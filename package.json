@@ -1,0 +1,12 @@
+{
+  "name": "bot-calculator",
+  "version": "1.0.0",
+  "description": "SMM panel services price calculator (smmorange.com services list)",
+  "main": "calculator.js",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "fetch": "python3 tools/fetch_services.py"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}
