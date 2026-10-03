@@ -59,3 +59,13 @@ C.quantityForBudget(svc, 10);                    // { quantity, affordable }
 ```sh
 npm test
 ```
+
+## Deploying to Vercel
+
+The site is static, so there's no build step. `vercel.json` serves the repo root as-is,
+and `.vercelignore` leaves out `tools/` and `test/`.
+
+- **From GitHub (recommended):** at vercel.com/new, import `codemodeai/bot-calculator` and
+  click **Deploy** without changing any settings. Every push to the default branch then
+  redeploys the site.
+- **From a terminal:** run `npx vercel --prod` in this folder.
