@@ -168,7 +168,7 @@
     <div class="facts">
       <div class="fact"><span>Delivery time</span><b id="tTime">—</b></div>
       <div class="fact"><span>Refill</span><b id="tRefill">—</b></div>
-      <div class="fact"><span>Price per 1000</span><b id="tRate">—</b></div>
+      <div class="fact"><span>Service ID</span><b id="tId">—</b></div>
     </div>
     <p class="svc-name" id="tSvc"></p>
     <div class="actions">
@@ -240,15 +240,14 @@
     return all.filter(function (s) { return s.platform === state.platform && s.kind === state.kind; });
   }
 
+  // "Real accounts · Lifetime refill · done in ~2 hours" for the current quantity
+  function describe(s) {
+    var t = approx(C.estimateHours(s, state.qty || 1000));
+    return C.features(s).concat(t ? ['done in ' + t] : []).join(' · ');
+  }
+
   // "~3 hours", "under 1 hour"
   function approx(h) { var t = C.formatHours(h); return t ? (/^under/.test(t) ? t : '~' + t) : null; }
-
-  function speedText(s) {
-    var sp = C.speedPerHour(s);
-    if (!sp) return null;
-    var n = sp * 24;
-    return (n >= 1e6 ? +(n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? +(n / 1e3).toFixed(1) + 'K' : Math.round(n)) + ' per day';
-  }
 
   // ---------- render ----------
   function renderPlatforms() {
@@ -283,31 +282,45 @@
     current.service = picked || (chosen && chosen.service);
 
     $('options').innerHTML = opts.map(function (o) {
-      var s = o.service, time = approx(o.estimateHours), sp = speedText(s);
+      var s = o.service, time = approx(o.estimateHours);
       var items = [
-        '<li>' + (time ? 'Done in ' + esc(time) : 'Speed not listed') + '</li>',
+        '<li>' + (time ? 'Done in ' + esc(time) : 'Delivery time not listed') + '</li>',
         '<li>' + esc(o.refill.label) + '</li>'
       ];
-      if (sp) items.push('<li>' + esc(sp) + '</li>');
+      var total = o.fits && state.qty > 0 ? money(C.quote(s, { quantity: state.qty }).price, 2) : money(s.rate);
+      var unit = o.fits && state.qty > 0 ? 'for ' + num(state.qty) : '/ 1000';
       var pill = o.alsoFastest ? '<span class="pill">Also the fastest</span>' :
         (!o.fits ? '<span class="pill warn">' + (state.qty < s.min ? 'Min ' + num(s.min) : 'Max ' + num(s.max)) + '</span>' : '');
       return '<button type="button" class="opt" data-o="' + o.key + '" aria-pressed="' + (!picked && chosen === o) + '">' +
         '<span class="kind">' + esc(o.label) + '</span>' +
         '<span class="why">' + esc(WHY[o.key]) + '</span>' +
-        '<span class="rate">' + esc(money(s.rate)) + ' <small>/ 1000</small></span>' +
+        '<span class="rate">' + esc(total) + ' <small>' + esc(unit) + '</small></span>' +
         '<ul>' + items.join('') + '</ul>' + pill + '</button>';
     }).join('');
 
     $('moreBtn').hidden = g.length <= 1;
-    $('moreBtn').textContent = state.showAll ? 'Hide the full list' : 'See all ' + g.length + ' options';
+    $('moreBtn').textContent = state.showAll ? 'Hide other options' : 'See other options';
     $('moreBtn').setAttribute('aria-expanded', state.showAll);
     $('all').hidden = !state.showAll;
     if (state.showAll) {
-      $('all').innerHTML = g.slice().sort(function (a, b) { return a.rate - b.rate; }).map(function (s) {
+      // Sorted by price: skip a row when a cheaper one gives the same thing at least as fast.
+      var fastest = {}, q = state.qty || 1000;
+      var shownHours = function (s) {   // the rounded time the page shows: under 1 hour, N hours, N days
+        var h = C.estimateHours(s, q);
+        return h == null ? Infinity : h < 1 ? 0 : h < 24 ? Math.ceil(h) : Math.ceil(h / 24) * 24;
+      };
+      $('all').innerHTML = g.slice().sort(function (a, b) { return a.rate - b.rate || shownHours(a) - shownHours(b); }).filter(function (s) {
+        var key = C.features(s).join('|'), h = shownHours(s);
+        if (key in fastest && fastest[key] <= h) return false;
+        fastest[key] = h;
+        return true;
+      }).map(function (s) {
         var fits = C.fitsQuantity(s, state.qty);
+        var price = fits && state.qty > 0 ? money(C.quote(s, { quantity: state.qty }).price, 2) : money(s.rate) + ' / 1000';
         return '<button type="button" class="row" data-s="' + esc(s.id) + '" aria-pressed="' + (current.service === s) + '">' +
-          '<span class="' + (fits ? '' : 'off') + '">' + esc(s.name) + (fits ? '' : ' · min ' + num(s.min) + ', max ' + num(s.max)) + '</span>' +
-          '<b>' + esc(money(s.rate)) + '</b></button>';
+          '<span class="' + (fits ? '' : 'off') + '">' + esc(describe(s)) +
+          (fits ? '' : ' · ' + (state.qty < s.min ? 'min ' + num(s.min) : 'max ' + num(s.max))) + '</span>' +
+          '<b>' + esc(price) + '</b></button>';
       }).join('');
     }
   }
@@ -337,8 +350,10 @@
     $('tSum').textContent = bad ? '—' : money(r.price, 2);
     $('tTime').textContent = approx(C.estimateHours(s, qty)) || 'Not listed';
     $('tRefill').textContent = C.refillInfo(s).label;
-    $('tRate').textContent = money(s.rate);
-    $('tSvc').textContent = 'Service #' + s.id + ': ' + s.name;
+    $('tId').textContent = '#' + s.id;
+    var extra = C.features(s).filter(function (f) { return f !== C.refillInfo(s).label; });
+    $('tSvc').textContent = extra.join(' · ');
+    $('tSvc').hidden = !extra.length;
     $('bSum').textContent = bad ? '—' : money(r.price, 2);
     $('bWhat').textContent = bad ? r.errors[0] : what;
   }
@@ -375,7 +390,7 @@
   $('copyBtn').addEventListener('click', function () {
     var btn = this, s = current.service; if (!s) return;
     var text = $('tWhat').textContent + '\nTotal: ' + $('tSum').textContent + '\nDelivery: ' + $('tTime').textContent +
-      ' · ' + $('tRefill').textContent + '\nService #' + s.id + ': ' + s.name;
+      ' · ' + $('tRefill').textContent + '\nService ID: ' + s.id;
     var done = function () { btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = 'Copy details'; }, 1400); };
     try {
       navigator.clipboard.writeText(text).then(done, function () { selectText(); });

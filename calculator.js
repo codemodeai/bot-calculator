@@ -332,6 +332,33 @@
     return q;
   }
 
+  // Short plain-language tags for a service, e.g. ["Real accounts", "No drop", "Lifetime refill"].
+  function features(s) {
+    var t = plain(s.name), out = [];
+    var m = t.match(/(\d+)\s*days?\s*premium/);
+    if (m) out.push(m[1] + '-day premium');
+    if (/\+\s*views/.test(t) && /member/.test(t)) out.push('With post views');
+    if (/live ?stream/.test(t) && /comment/.test(t)) out.push('For live streams');
+    if (/comment/.test(t) && !/comment likes?/.test(t)) {
+      if (/\bcustom\b/.test(t)) out.push('Your own text');
+      else if (/\bemoji\b/.test(t)) out.push('Emoji');
+      else if (/\brandom\b/.test(t)) out.push('Random text');
+    }
+    var country = /india|🇮🇳/.test(t) ? 'Indian' : /\busa\b|🇺🇸|🇺🇲/.test(t) ? 'USA' : /\buk\b|🇬🇧/.test(t) ? 'UK' :
+      /russia/.test(t) ? 'Russian' : /arab/.test(t) ? 'Arabic' : null;
+    if (country) out.push(country + ' accounts');
+    else if (/\blq\b|low quality/.test(t)) out.push('Basic accounts');
+    else if (/\bmq\b/.test(t)) out.push('Standard accounts');
+    else if (/\bhq\b|high quality|real|old accounts/.test(t)) out.push('Real accounts');
+    if (/google search/.test(t)) out.push('From Google search');
+    if (/adwords/.test(t)) out.push('Ad views');
+    if (/watch ?time/.test(t) && !/seconds watch/.test(t)) out.push('Adds watch time');
+    if (/reach|impression/.test(t)) out.push('Adds reach');
+    if (/non drop|no drop|drop:? 0%/.test(t)) out.push('No drop');
+    out.push(refillInfo(s).label);
+    return out;
+  }
+
   function estimateHours(s, qty) {
     var sp = speedPerHour(s);
     if (!sp) return null;
@@ -408,6 +435,7 @@
     speedPerHour: speedPerHour,
     startHours: startHours,
     refillInfo: refillInfo,
+    features: features,
     qualityScore: qualityScore,
     estimateHours: estimateHours,
     fitsQuantity: fitsQuantity,

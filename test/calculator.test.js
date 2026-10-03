@@ -137,3 +137,11 @@ test('pickOptions returns cheap / smart / fast / best without duplicates', () =>
   const big = C.pickOptions(g, 1e7);
   assert.equal(big[0].fits, false);
 });
+
+test('features turns panel names into short plain tags', () => {
+  const f = name => C.features({ name, category: '' });
+  assert.deepEqual(f('Instagram Likes [ 100% India 🇮🇳 ] | No Drop | Lifetime ♻️ | Speed: 300K/Day'), ['Indian accounts', 'No drop', 'Lifetime refill']);
+  assert.deepEqual(f('Tik Tok Live Stream Comments [ Custom ] | HQ + Real Profiles | No Refill ⚠️'), ['For live streams', 'Your own text', 'Real accounts', 'No refill']);
+  assert.deepEqual(f('Telegram Premium Members [ 30 Days Premium ⭐️ ] | No Drop'), ['30-day premium', 'No drop', 'No refill']);
+  assert.deepEqual(f('Facebook Followers [ Page & Profile ] | MQ Profiles | 30 Days ♻️'), ['Standard accounts', '30-day refill']);
+});
