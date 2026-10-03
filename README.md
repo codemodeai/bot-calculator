@@ -1,12 +1,27 @@
 # SMM Price Calculator
 
-A calculator for the services list on an SMM panel's `/services` page, such as
-[smmorange.com/services](https://smmorange.com/services). Pick a service and enter a
-quantity or a budget. It checks the service's min/max order and gives the total price.
-You can also add a reseller markup, a customer discount and a display currency, and
-build an order with several services.
+A price calculator for [smmorange.com](https://smmorange.com) services. Open `index.html`.
 
-Open `index.html` in a browser. It doesn't need a build step or a server.
+**Simple calculator (`index.html`).** Four steps:
+1. **Platform:** Instagram, YouTube, TikTok, Facebook, Telegram or X.
+2. **Service:** Followers, Likes, Views, Subscribers, Members, Comments and so on.
+3. **Speed / quality:** up to four options, picked automatically from the services list:
+   - **Cheapest:** the lowest price.
+   - **Smart choice:** better refill or quality for at most 2.5× the cheapest price.
+   - **Very fast:** clearly quicker delivery for your quantity.
+   - **Best quality:** the strongest refill and accounts.
+
+   An option only appears when it actually differs from the others. **See all options**
+   lists every service in the group.
+4. **Quantity:** shows the total price, estimated delivery time, refill and service ID.
+
+Delivery time is estimated from the start time and speed in each service's name (for
+example "Start: 0-1 Hours | Speed: 300K/Day"). Some services don't list a speed, and then
+the page shows "Speed not listed".
+
+**Advanced calculator (`advanced.html`).** Shows every service, with search, budget mode,
+drip-feed runs, reseller markup and discount, currency conversion, a multi-item order
+and CSV import/export.
 
 ## Price data
 

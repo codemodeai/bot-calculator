@@ -2,283 +2,190 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SMM Price Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>
+  /* Layout: one narrow column of four steps; the total sits under the steps and in a bar pinned to the bottom on phones. */
   :root {
-    --bg: #f6f5f2; --surface: #ffffff; --surface-2: #f0eee9; --border: #e2ded6;
-    --text: #1d1b18; --muted: #6b665d; --accent: #e8590c; --accent-ink: #ffffff;
-    --accent-soft: #fdebdf; --ok: #2f855a; --ok-soft: #e3f4ea; --warn: #b7791f; --warn-soft: #fdf3dc;
-    --err: #c53030; --err-soft: #fde8e8; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.05);
-    --radius: 12px; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --bg: #fbf7f3; --surface: #ffffff; --sunk: #f4ede6; --line: #eadfd4;
+    --text: #23180f; --muted: #7a6a5c; --accent: #f26b1d; --accent-ink: #ffffff; --accent-soft: #fff0e6;
+    --good: #23824f; --good-soft: #e5f4eb; --warn: #a15c00; --warn-soft: #fff3dc;
+    --mark-dark: #1d1d1f; --mark-dark-ink: #ffffff;
+    --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --radius: 14px;
+    color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #141311; --surface: #1d1c19; --surface-2: #26241f; --border: #34312b;
-      --text: #f1eee8; --muted: #a39d91; --accent: #ff7a2e; --accent-ink: #1a0d04;
-      --accent-soft: #3a2415; --ok: #68d391; --ok-soft: #1b3326; --warn: #f6c35b; --warn-soft: #3a2f15;
-      --err: #fc8181; --err-soft: #3b1d1d; --shadow: none;
+      --bg: #17120e; --surface: #211a14; --sunk: #2a221b; --line: #3a2f26;
+      --text: #f5ece4; --muted: #b3a294; --accent: #ff8a3d; --accent-ink: #1e0f04; --accent-soft: #3a2416;
+      --good: #6fd39b; --good-soft: #193526; --warn: #f2bb5c; --warn-soft: #3a2c14;
+      --mark-dark: #f5ece4; --mark-dark-ink: #17120e;
+      color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #141311; --surface: #1d1c19; --surface-2: #26241f; --border: #34312b;
-    --text: #f1eee8; --muted: #a39d91; --accent: #ff7a2e; --accent-ink: #1a0d04;
-    --accent-soft: #3a2415; --ok: #68d391; --ok-soft: #1b3326; --warn: #f6c35b; --warn-soft: #3a2f15;
-    --err: #fc8181; --err-soft: #3b1d1d; --shadow: none;
+    --bg: #17120e; --surface: #211a14; --sunk: #2a221b; --line: #3a2f26;
+    --text: #f5ece4; --muted: #b3a294; --accent: #ff8a3d; --accent-ink: #1e0f04; --accent-soft: #3a2416;
+    --good: #6fd39b; --good-soft: #193526; --warn: #f2bb5c; --warn-soft: #3a2c14;
+    --mark-dark: #f5ece4; --mark-dark-ink: #17120e;
+    color-scheme: dark;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
-  body { background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 20px 16px 48px; }
-  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  h1 { font-size: 22px; margin: 0; letter-spacing: -.01em; }
-  h1 span { color: var(--accent); }
-  h2 { font-size: 15px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
-  .sub { color: var(--muted); font-size: 13px; }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  button, .btn {
-    font: inherit; font-size: 14px; border: 1px solid var(--border); background: var(--surface); color: var(--text);
-    padding: 7px 12px; border-radius: 8px; cursor: pointer; white-space: nowrap;
-  }
-  button:hover { border-color: var(--muted); }
-  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
-  button.ghost { background: transparent; }
-  button:disabled { opacity: .5; cursor: not-allowed; }
-  input, select, textarea {
-    font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; padding: 8px 10px; width: 100%; min-width: 0;
-  }
-  input:focus, select:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
-  .banner { border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px; font-size: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
-  .banner.warn { background: var(--warn-soft); color: var(--text); border: 1px solid var(--warn); }
-  .banner.ok { background: var(--ok-soft); border: 1px solid var(--ok); }
-  .grid { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 16px; align-items: start; }
-  @media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); min-width: 0; }
-  .stack > * + * { margin-top: 12px; }
+  body { background: var(--bg); color: var(--text); font: 16px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px 140px; display: grid; gap: 22px; }
+  @media (min-width: 761px) { .wrap { padding-bottom: 48px; } }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.02em; text-wrap: balance; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .tag { font-size: 13px; color: var(--muted); }
+  .step { display: grid; gap: 12px; min-width: 0; }
+  .step h2 { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: flex; gap: 10px; align-items: center; }
+  .step h2 b { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 12px; letter-spacing: 0; }
+  .step[data-off] { opacity: .45; pointer-events: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  /* platforms */
+  .platforms { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 620px) { .platforms { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .plat { display: grid; justify-items: center; gap: 8px; padding: 14px 6px 12px; background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius); }
+  .plat:hover { border-color: var(--muted); }
+  .plat[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .mark { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; font-size: 15px; color: #fff; }
+  .plat span { font-size: 14px; font-weight: 600; }
+
+  /* service types */
+  .types { display: flex; flex-wrap: wrap; gap: 8px; }
+  .type { padding: 10px 18px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); font-weight: 600; font-size: 15px; }
+  .type:hover { border-color: var(--muted); }
+  .type[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .type small { font-weight: 500; opacity: .7; margin-left: 4px; }
+
+  /* options */
+  .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+  .opt { text-align: left; display: grid; gap: 6px; align-content: start; padding: 14px; border-radius: var(--radius); border: 2px solid var(--line); background: var(--surface); min-width: 0; }
+  .opt:hover { border-color: var(--muted); }
+  .opt[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .opt .kind { font-weight: 800; font-size: 16px; }
+  .opt .why { font-size: 13px; color: var(--muted); }
+  .opt .rate { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .opt .rate small { font-size: 12px; font-weight: 500; color: var(--muted); }
+  .opt ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 13px; }
+  .opt li::before { content: "·"; color: var(--accent); font-weight: 800; margin-right: 6px; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--good-soft); color: var(--good); justify-self: start; }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .more { justify-self: start; background: none; border: 0; padding: 4px 0; color: var(--accent); font-weight: 600; font-size: 14px; }
+  .all { display: grid; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); max-height: 340px; overflow: auto; }
+  .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; text-align: left; padding: 10px 12px; border: 0; border-bottom: 1px solid var(--line); background: none; font-size: 13px; }
+  .row:last-child { border-bottom: 0; }
+  .row:hover { background: var(--sunk); }
+  .row[aria-pressed="true"] { background: var(--accent-soft); }
+  .row b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .row span { min-width: 0; overflow-wrap: anywhere; }
+  .row .off { color: var(--muted); }
+
+  /* quantity */
+  .qty { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .qty input { font: inherit; font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; width: 100%; max-width: 260px; padding: 10px 14px; border-radius: var(--radius); border: 2px solid var(--line); background: var(--surface); color: var(--text); }
+  .qty input:focus { border-color: var(--accent); outline: none; }
   .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-  .chip { font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); cursor: pointer; }
-  .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  .chip[aria-pressed="true"] .sub { color: inherit; opacity: .8; }
-  .list { max-height: 560px; overflow: auto; border: 1px solid var(--border); border-radius: 10px; }
-  .cat { position: sticky; top: 0; background: var(--surface-2); font-size: 12px; font-weight: 700; padding: 6px 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); }
-  .svc { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: baseline; padding: 8px 10px; border-bottom: 1px solid var(--border); cursor: pointer; width: 100%; text-align: left; border-radius: 0; border-width: 0 0 1px 0; background: transparent; white-space: normal; }
-  .svc:hover { background: var(--surface-2); }
-  .svc[aria-selected="true"] { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
-  .svc .id { font-family: var(--mono); font-size: 12px; color: var(--muted); }
-  .svc .nm { font-size: 14px; overflow-wrap: anywhere; }
-  .svc .rt { font-family: var(--mono); font-size: 13px; font-weight: 600; }
-  .empty { padding: 24px; text-align: center; color: var(--muted); }
-  .detail h3 { margin: 0 0 4px; font-size: 18px; overflow-wrap: anywhere; }
-  .badges { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
-  .badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
-  .badge.yes { background: var(--ok-soft); border-color: var(--ok); }
-  .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
-  @media (max-width: 560px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  .fact { background: var(--surface-2); border-radius: 8px; padding: 8px 10px; }
-  .fact b { display: block; font-family: var(--mono); font-size: 15px; overflow-wrap: anywhere; }
-  .fact span { font-size: 12px; color: var(--muted); }
-  .desc { white-space: pre-wrap; font-size: 13px; color: var(--muted); background: var(--surface-2); border-radius: 8px; padding: 8px 10px; max-height: 140px; overflow: auto; }
-  .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-  @media (max-width: 560px) { .fields { grid-template-columns: minmax(0, 1fr); } }
-  .quick { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-  .quick button { font-size: 12px; padding: 3px 8px; }
-  input[type=range] { padding: 0; accent-color: var(--accent); border: 0; }
-  .result { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-  @media (max-width: 560px) { .result { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  .stat { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
-  .stat span { font-size: 12px; color: var(--muted); display: block; }
-  .stat b { font-family: var(--mono); font-size: 18px; overflow-wrap: anywhere; }
-  .stat.big { background: var(--accent-soft); border-color: var(--accent); }
-  .stat.big b { font-size: 22px; color: var(--accent); }
-  .errors { color: var(--err); background: var(--err-soft); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
-  .note { font-size: 13px; color: var(--muted); }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-  td.num, th.num { text-align: right; font-family: var(--mono); white-space: nowrap; }
-  .table-wrap { overflow-x: auto; }
-  dialog { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); padding: 0; width: min(720px, calc(100vw - 32px)); }
-  dialog::backdrop { background: rgba(0,0,0,.45); }
-  .dlg { padding: 18px; }
-  .dlg textarea { min-height: 220px; font-family: var(--mono); font-size: 12px; }
-  .msg { font-size: 14px; margin-top: 8px; }
-  .msg.err { color: var(--err); } .msg.ok { color: var(--ok); }
-  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-  .seg button { border: 0; border-radius: 0; }
-  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
-  .hide { display: none !important; }
-  footer { margin-top: 24px; color: var(--muted); font-size: 12px; }
+  .chip { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .chip:hover { border-color: var(--muted); }
+  .hint { font-size: 13px; color: var(--muted); margin: 0; }
+  .hint.bad { color: var(--warn); font-weight: 600; }
+
+  /* total */
+  .total { background: var(--surface); border: 2px solid var(--accent); border-radius: 18px; padding: 18px; display: grid; gap: 10px; }
+  .total .sum { font-size: 44px; line-height: 1.05; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--accent); overflow-wrap: anywhere; }
+  .total .what { font-size: 15px; font-weight: 600; }
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  @media (max-width: 480px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .fact { background: var(--sunk); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+  .fact span { display: block; font-size: 12px; color: var(--muted); }
+  .fact b { font-size: 15px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .svc-name { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; margin: 0; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { padding: 10px 16px; border-radius: 10px; border: 2px solid var(--accent); background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+  .btn.ghost { background: transparent; color: var(--text); border-color: var(--line); }
+
+  /* phone: total pinned to the bottom */
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; box-shadow: 0 -6px 20px rgba(0,0,0,.08); }
+  .bar .s { font-size: 24px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .bar .d { font-size: 12px; color: var(--muted); }
+  @media (min-width: 761px) { .bar { display: none; } }
+  footer { font-size: 12px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
+  footer a { color: inherit; }
+  .theme { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; color: var(--muted); }
+  @media (prefers-reduced-motion: no-preference) {
+    .plat, .type, .opt, .chip, .row { transition: border-color .15s, background-color .15s; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div>
-      <h1>SMM <span>Price</span> Calculator</h1>
-      <div class="sub" id="sourceLine">Loading services…</div>
+      <h1>SMM <em>Price</em> Calculator</h1>
+      <div class="tag" id="tagline">Prices from smmorange.com</div>
     </div>
-    <div class="row">
-      <button id="importBtn" class="primary">Import services</button>
-      <button id="exportBtn">Export CSV</button>
-      <button id="themeBtn" class="ghost" title="Toggle theme" aria-label="Toggle theme">◐</button>
-    </div>
+    <button class="theme" id="themeBtn" type="button">Dark / light</button>
   </header>
 
-  <div id="banner" class="banner warn hide"></div>
+  <section class="step" aria-labelledby="h1s">
+    <h2 id="h1s"><b>1</b>Choose platform</h2>
+    <div class="platforms" id="platforms"></div>
+  </section>
 
-  <div class="grid">
-    <!-- Service browser -->
-    <section class="card stack" aria-label="Services">
-      <h2>1 · Choose a service</h2>
-      <div class="chips" id="platforms" role="group" aria-label="Platform"></div>
-      <div>
-        <label for="category">Category</label>
-        <select id="category"></select>
-      </div>
-      <div>
-        <label for="search">Search by name or ID</label>
-        <input id="search" type="search" placeholder="e.g. followers, refill, 1023">
-      </div>
-      <div class="row" style="justify-content: space-between">
-        <span class="sub" id="count"></span>
-        <select id="sort" style="width:auto" aria-label="Sort">
-          <option value="panel">Panel order</option>
-          <option value="cheap">Cheapest first</option>
-          <option value="expensive">Most expensive first</option>
-        </select>
-      </div>
-      <div class="list" id="list" role="listbox" aria-label="Services"></div>
-    </section>
+  <section class="step" aria-labelledby="h2s" id="stepType">
+    <h2 id="h2s"><b>2</b>What do you need?</h2>
+    <div class="types" id="types"></div>
+  </section>
 
-    <!-- Calculator -->
-    <div class="stack">
-      <section class="card detail" id="detail" aria-live="polite">
-        <div class="empty">Select a service to start calculating.</div>
-      </section>
+  <section class="step" aria-labelledby="h3s" id="stepOpt">
+    <h2 id="h3s"><b>3</b>Pick a speed / quality</h2>
+    <div class="options" id="options"></div>
+    <button class="more" id="moreBtn" type="button" aria-expanded="false"></button>
+    <div class="all" id="all" hidden></div>
+  </section>
 
-      <section class="card stack" id="calc">
-        <div class="row" style="justify-content: space-between">
-          <h2 style="margin:0">2 · Calculate</h2>
-          <div class="seg" role="group" aria-label="Mode">
-            <button data-mode="qty" aria-pressed="true">By quantity</button>
-            <button data-mode="budget" aria-pressed="false">By budget</button>
-          </div>
-        </div>
-
-        <div id="qtyMode">
-          <label for="qty">Quantity</label>
-          <input id="qty" type="number" inputmode="numeric" min="1" step="1" value="1000">
-          <input id="qtyRange" type="range" min="0" max="1000" value="0" aria-label="Quantity slider">
-          <div class="quick" id="quick"></div>
-        </div>
-
-        <div id="budgetMode" class="hide">
-          <label for="budget">Budget (<span id="budgetCur">USD</span>)</label>
-          <input id="budget" type="number" inputmode="decimal" min="0" step="0.01" value="10">
-          <p class="note" id="budgetOut"></p>
-        </div>
-
-        <div id="dripBox" class="fields hide">
-          <div>
-            <label for="runs">Drip-feed runs</label>
-            <input id="runs" type="number" min="1" step="1" value="1">
-          </div>
-          <div>
-            <label for="interval">Interval (minutes)</label>
-            <input id="interval" type="number" min="1" step="1" value="30">
-          </div>
-        </div>
-
-        <details>
-          <summary class="sub" style="cursor:pointer">Reseller options — markup, discount, currency</summary>
-          <div class="fields" style="margin-top:12px">
-            <div>
-              <label for="markup">Markup %</label>
-              <input id="markup" type="number" step="0.1" value="0">
-            </div>
-            <div>
-              <label for="discount">Customer discount %</label>
-              <input id="discount" type="number" step="0.1" min="0" max="100" value="0">
-            </div>
-            <div>
-              <label for="dispCur">Show prices in</label>
-              <input id="dispCur" type="text" maxlength="3" placeholder="e.g. INR" style="text-transform:uppercase">
-            </div>
-            <div>
-              <label for="fx">Exchange rate (1 <span class="curLbl">USD</span> = ?)</label>
-              <input id="fx" type="number" step="0.0001" min="0" value="1">
-            </div>
-          </div>
-        </details>
-
-        <div id="errors" class="errors hide" role="alert"></div>
-
-        <div class="result">
-          <div class="stat big"><span>Total price</span><b id="rPrice">—</b></div>
-          <div class="stat"><span>Total quantity</span><b id="rQty">—</b></div>
-          <div class="stat"><span>Price per unit</span><b id="rUnit">—</b></div>
-          <div class="stat"><span>Panel cost / profit</span><b id="rProfit">—</b></div>
-        </div>
-        <p class="note" id="rNote"></p>
-
-        <div class="row">
-          <button id="addBtn" class="primary">Add to order</button>
-          <button id="copyBtn">Copy quote</button>
-        </div>
-      </section>
-
-      <section class="card stack" id="cartCard">
-        <h2 style="margin:0">3 · Order summary</h2>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>ID</th><th>Service</th><th class="num">Qty</th><th class="num">Price</th><th></th></tr></thead>
-            <tbody id="cartBody"><tr><td colspan="5" class="empty">No items yet.</td></tr></tbody>
-            <tfoot><tr><th colspan="3">Total</th><th class="num" id="cartTotal">—</th><th></th></tr></tfoot>
-          </table>
-        </div>
-        <div class="row">
-          <button id="copyCart">Copy order</button>
-          <button id="clearCart" class="ghost">Clear</button>
-        </div>
-      </section>
-
-      <section class="card stack">
-        <h2 style="margin:0">Compare in this category</h2>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>ID</th><th>Service</th><th class="num">Per 1000</th><th class="num">Min</th><th class="num">Max</th><th class="num" id="cmpQtyHead">For qty</th></tr></thead>
-            <tbody id="cmpBody"></tbody>
-          </table>
-        </div>
-      </section>
+  <section class="step" aria-labelledby="h4s" id="stepQty">
+    <h2 id="h4s"><b>4</b>How many?</h2>
+    <div class="qty">
+      <input id="qty" type="number" inputmode="numeric" min="1" step="1" value="1000" aria-label="Quantity">
     </div>
-  </div>
+    <div class="chips" id="chips"></div>
+    <p class="hint" id="qtyHint"></p>
+  </section>
 
-  <footer>Price = rate per 1000 × quantity ÷ 1000 × runs × (1 + markup) × (1 − discount). Prices come from the loaded services list; always check the panel before ordering.</footer>
+  <section class="total" aria-live="polite" id="total">
+    <div class="what" id="tWhat"></div>
+    <div class="sum" id="tSum">—</div>
+    <div class="facts">
+      <div class="fact"><span>Delivery time</span><b id="tTime">—</b></div>
+      <div class="fact"><span>Refill</span><b id="tRefill">—</b></div>
+      <div class="fact"><span>Price per 1000</span><b id="tRate">—</b></div>
+    </div>
+    <p class="svc-name" id="tSvc"></p>
+    <div class="actions">
+      <button class="btn" id="copyBtn" type="button">Copy details</button>
+    </div>
+  </section>
+
+  <footer>
+    <span id="updated"></span>
+    <a href="advanced.html" id="advLink">Advanced calculator →</a>
+  </footer>
 </div>
 
-<dialog id="importDlg">
-  <form method="dialog" class="dlg stack" id="importForm">
-    <h2 style="margin:0">Import services</h2>
-    <p class="note" style="margin:0">
-      Paste one of:<br>
-      • the table copied from <b>smmorange.com/services</b> (select the whole table → copy → paste),<br>
-      • the JSON from the panel API (<code>action=services</code>), or<br>
-      • a CSV with columns <code>id,name,category,rate,min,max</code>.
-    </p>
-    <textarea id="importText" placeholder="Paste here…" spellcheck="false"></textarea>
-    <div class="row">
-      <label class="btn" style="margin:0;color:var(--text)">Load file… <input id="importFile" type="file" accept=".json,.csv,.txt,.tsv,.html" class="hide"></label>
-      <span class="sub" style="flex:1"></span>
-      <button value="cancel" formnovalidate class="ghost">Cancel</button>
-      <button id="resetData" type="button">Use bundled list</button>
-      <button id="doImport" type="button" class="primary">Import</button>
-    </div>
-    <div id="importMsg" class="msg"></div>
-  </form>
-</dialog>
+<div class="bar" aria-hidden="true">
+  <div><div class="s" id="bSum">—</div><div class="d" id="bWhat"></div></div>
+  <button class="btn" type="button" onclick="document.getElementById('total').scrollIntoView({behavior:'smooth'})">Details</button>
+</div>
 
 <script src="calculator.js"></script>
 <script src="data/services.js"></script>
@@ -287,334 +194,193 @@
   'use strict';
   var C = window.SmmCalc;
   var $ = function (id) { return document.getElementById(id); };
-  var STORE_KEY = 'smmcalc.services.v1', CART_KEY = 'smmcalc.cart.v1', PREF_KEY = 'smmcalc.prefs.v1';
+  var KEY = 'smmcalc.simple.v1';
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); };
+  var num = function (n) { return Number(n).toLocaleString('en-IN'); };
 
-  function load(key) { try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; } }
-  function save(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
-  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
-  function fmtInt(n) { return isFinite(n) ? Number(n).toLocaleString('en-US') : '—'; }
-
-  var state = {
-    data: null, services: [], platform: 'All', category: 'All', search: '', sort: 'panel',
-    selected: null, mode: 'qty', cart: load(CART_KEY) || []
+  var PLATFORMS = [
+    { id: 'Instagram', label: 'Instagram', code: 'IG', color: 'linear-gradient(135deg,#feda75,#fa7e1e 30%,#d62976 60%,#962fbf 85%,#4f5bd5)' },
+    { id: 'YouTube', label: 'YouTube', code: 'YT', color: '#ff0033' },
+    { id: 'TikTok', label: 'TikTok', code: 'TT', color: 'var(--mark-dark)', ink: 'var(--mark-dark-ink)' },
+    { id: 'Facebook', label: 'Facebook', code: 'FB', color: '#1877f2' },
+    { id: 'Telegram', label: 'Telegram', code: 'TG', color: '#229ed9' },
+    { id: 'Twitter', label: 'X / Twitter', code: 'X', color: 'var(--mark-dark)', ink: 'var(--mark-dark-ink)' }
+  ];
+  var TYPE_ORDER = ['Followers', 'Likes', 'Views', 'Subscribers', 'Members', 'Comments', 'Comment Likes', 'Other'];
+  var WHY = {
+    cheap: 'Lowest price',
+    smart: 'Better quality for a little more',
+    fast: 'Quickest delivery',
+    best: 'Strongest refill and accounts'
   };
 
-  // ---------- data ----------
-  function setData(payload, fromImport) {
-    var services = (payload.services || []).map(function (s) { return C.normaliseService(s, payload.currency); })
-      .filter(function (s) { return s.id && s.name && isFinite(s.rate); });
-    services.forEach(function (s, i) { s.order = i; s.platform = C.platformOf(s); });
-    state.data = payload; state.services = services;
-    state.platform = 'All'; state.category = 'All'; state.selected = null;
-    if (fromImport) save(STORE_KEY, payload);
-    renderSource(); renderPlatforms(); renderCategories(); renderList();
-    var first = filtered()[0]; if (first) select(first.id);
-    renderCart();
+  var data = window.SERVICES_DATA || { services: [] };
+  var all = data.services.map(function (s) { return C.normaliseService(s, data.currency); })
+    .filter(function (s) { return s.id && isFinite(s.rate); });
+  all.forEach(function (s) { s.platform = C.platformOf(s); s.kind = C.serviceType(s); });
+  var currency = data.currency || 'INR';
+  var money = function (v, dp) { return C.formatMoney(v, currency, dp); };
+
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+  var state = {
+    platform: saved.platform || 'Instagram',
+    kind: saved.kind || 'Followers',
+    optKey: saved.optKey || 'smart',
+    pickedId: null,          // set when the user picks from "See all options"
+    qty: saved.qty || 1000,
+    showAll: false
+  };
+
+  function remember() {
+    try { localStorage.setItem(KEY, JSON.stringify({ platform: state.platform, kind: state.kind, optKey: state.optKey, qty: state.qty })); } catch (e) {}
   }
 
-  function baseCurrency() { return (state.selected && state.selected.currency) || (state.data && state.data.currency) || 'USD'; }
-  function prefs() {
-    var cur = $('dispCur').value.trim().toUpperCase();
-    var fx = parseFloat($('fx').value);
-    return { cur: /^[A-Z]{3}$/.test(cur) ? cur : null, fx: fx > 0 ? fx : 1 };
-  }
-  function money(v, base) {
-    var p = prefs();
-    return p.cur ? C.formatMoney(v * p.fx, p.cur) : C.formatMoney(v, base || baseCurrency());
+  function group() {
+    return all.filter(function (s) { return s.platform === state.platform && s.kind === state.kind; });
   }
 
-  function renderSource() {
-    var d = state.data, b = $('banner');
-    var cats = C.groupByCategory(state.services).length;
-    $('sourceLine').textContent = state.services.length + ' services · ' + cats + ' categories · source: ' +
-      (d.demo ? 'demo data' : d.source || 'imported') + (d.fetchedAt ? ' · updated ' + String(d.fetchedAt).slice(0, 10) : '');
-    if (d.demo) {
-      b.className = 'banner warn';
-      b.innerHTML = '<span><b>Demo data.</b> These are sample services, not smmorange.com prices. Import the real list to get exact quotes.</span>';
-      var btn = document.createElement('button'); btn.className = 'primary'; btn.textContent = 'Import real list';
-      btn.onclick = openImport; b.appendChild(btn);
-    } else b.className = 'banner hide';
+  // "~3 hours", "under 1 hour"
+  function approx(h) { var t = C.formatHours(h); return t ? (/^under/.test(t) ? t : '~' + t) : null; }
+
+  function speedText(s) {
+    var sp = C.speedPerHour(s);
+    if (!sp) return null;
+    var n = sp * 24;
+    return (n >= 1e6 ? +(n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? +(n / 1e3).toFixed(1) + 'K' : Math.round(n)) + ' per day';
   }
 
-  // ---------- filters ----------
-  function filtered() {
-    var q = state.search.toLowerCase();
-    var out = state.services.filter(function (s) {
-      if (state.platform !== 'All' && s.platform !== state.platform) return false;
-      if (state.category !== 'All' && s.category !== state.category) return false;
-      if (q && (s.name + ' ' + s.category + ' ' + s.id).toLowerCase().indexOf(q) === -1) return false;
-      return true;
-    });
-    if (state.sort === 'cheap') out.sort(function (a, b) { return a.rate - b.rate; });
-    if (state.sort === 'expensive') out.sort(function (a, b) { return b.rate - a.rate; });
-    return out;
-  }
-
+  // ---------- render ----------
   function renderPlatforms() {
+    $('platforms').innerHTML = PLATFORMS.filter(function (p) {
+      return all.some(function (s) { return s.platform === p.id; });
+    }).map(function (p) {
+      return '<button type="button" class="plat" data-p="' + p.id + '" aria-pressed="' + (p.id === state.platform) + '">' +
+        '<div class="mark" style="background:' + p.color + (p.ink ? ';color:' + p.ink : '') + '">' + p.code + '</div>' +
+        '<span>' + esc(p.label) + '</span></button>';
+    }).join('');
+  }
+
+  function renderTypes() {
     var counts = {};
-    state.services.forEach(function (s) { counts[s.platform] = (counts[s.platform] || 0) + 1; });
-    var names = ['All'].concat(Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; }));
-    $('platforms').innerHTML = names.map(function (n) {
-      return '<button class="chip" data-p="' + esc(n) + '" aria-pressed="' + (n === state.platform) + '">' + esc(n) +
-        (n === 'All' ? '' : ' <span class="sub">' + counts[n] + '</span>') + '</button>';
+    all.forEach(function (s) { if (s.platform === state.platform) counts[s.kind] = (counts[s.kind] || 0) + 1; });
+    var kinds = TYPE_ORDER.filter(function (k) { return counts[k]; });
+    if (kinds.indexOf(state.kind) === -1) state.kind = kinds[0];
+    $('types').innerHTML = kinds.map(function (k) {
+      return '<button type="button" class="type" data-k="' + esc(k) + '" aria-pressed="' + (k === state.kind) + '">' + esc(k) + '</button>';
     }).join('');
   }
 
-  function renderCategories() {
-    var cats = C.groupByCategory(state.services.filter(function (s) {
-      return state.platform === 'All' || s.platform === state.platform;
-    })).map(function (g) { return g.category; });
-    if (cats.indexOf(state.category) === -1) state.category = 'All';
-    $('category').innerHTML = '<option value="All">All categories (' + cats.length + ')</option>' +
-      cats.map(function (c) { return '<option' + (c === state.category ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('');
-  }
+  var current = { options: [], service: null, option: null };
 
-  function renderList() {
-    var items = filtered();
-    $('count').textContent = items.length + ' of ' + state.services.length + ' services';
-    if (!items.length) { $('list').innerHTML = '<div class="empty">No services match.</div>'; return; }
-    var html = [], last = null, grouped = state.sort === 'panel';
-    items.slice(0, 1500).forEach(function (s) {
-      if (grouped && s.category !== last) { html.push('<div class="cat">' + esc(s.category) + '</div>'); last = s.category; }
-      html.push('<button class="svc" role="option" data-id="' + esc(s.id) + '" aria-selected="' + (state.selected && state.selected.id === s.id) + '">' +
-        '<span class="id">' + esc(s.id) + '</span><span class="nm">' + esc(s.name) + '</span>' +
-        '<span class="rt">' + esc(C.formatMoney(s.rate, s.currency)) + '</span></button>');
-    });
-    if (items.length > 1500) html.push('<div class="empty">Showing first 1500 — refine your search.</div>');
-    $('list').innerHTML = html.join('');
-  }
+  function renderOptions() {
+    var g = group();
+    var opts = C.pickOptions(g, state.qty);
+    current.options = opts;
+    var picked = state.pickedId && g.filter(function (s) { return s.id === state.pickedId; })[0];
+    var chosen = picked ? null : (opts.filter(function (o) { return o.key === state.optKey; })[0] || opts.filter(function (o) { return o.key === 'smart'; })[0] || opts[0]);
+    current.option = chosen;
+    current.service = picked || (chosen && chosen.service);
 
-  // ---------- selection / calculator ----------
-  function select(id) {
-    var s = state.services.filter(function (x) { return x.id === String(id); })[0];
-    if (!s) return;
-    state.selected = s;
-    Array.prototype.forEach.call(document.querySelectorAll('.svc'), function (el) {
-      el.setAttribute('aria-selected', el.getAttribute('data-id') === s.id);
-    });
-    var badge = function (on, label) { return '<span class="badge' + (on ? ' yes' : '') + '">' + (on ? '✓ ' : '✗ ') + label + '</span>'; };
-    $('detail').innerHTML =
-      '<div class="sub">' + esc(s.category) + ' · ID ' + esc(s.id) + '</div>' +
-      '<h3>' + esc(s.name) + '</h3>' +
-      '<div class="badges">' + badge(s.refill, 'Refill') + badge(s.cancel, 'Cancel') + badge(s.dripfeed, 'Drip-feed') +
-        (s.type && s.type !== 'Default' ? '<span class="badge">' + esc(s.type) + '</span>' : '') + '</div>' +
-      '<div class="facts">' +
-        '<div class="fact"><span>Rate per 1000</span><b>' + esc(C.formatMoney(s.rate, s.currency)) + '</b></div>' +
-        '<div class="fact"><span>Min order</span><b>' + fmtInt(s.min) + '</b></div>' +
-        '<div class="fact"><span>Max order</span><b>' + fmtInt(s.max) + '</b></div>' +
-        '<div class="fact"><span>Average time</span><b>' + esc(s.time || '—') + '</b></div>' +
-      '</div>' + (s.description ? '<div class="desc">' + esc(s.description) + '</div>' : '');
-
-    var min = isFinite(s.min) ? s.min : 1, max = isFinite(s.max) && s.max > 0 ? s.max : Math.max(min * 1000, 100000);
-    var q = $('qty');
-    q.min = min; q.max = max;
-    var cur = parseInt(q.value, 10);
-    if (!(cur >= min && cur <= max)) q.value = Math.min(max, Math.max(min, 1000));
-    var picks = [min, 1000, 5000, 10000, 50000, max].filter(function (v, i, a) { return v >= min && v <= max && a.indexOf(v) === i; });
-    $('quick').innerHTML = picks.map(function (v) {
-      return '<button type="button" data-q="' + v + '">' + (v === min ? 'Min ' : v === max ? 'Max ' : '') + fmtInt(v) + '</button>';
+    $('options').innerHTML = opts.map(function (o) {
+      var s = o.service, time = approx(o.estimateHours), sp = speedText(s);
+      var items = [
+        '<li>' + (time ? 'Done in ' + esc(time) : 'Speed not listed') + '</li>',
+        '<li>' + esc(o.refill.label) + '</li>'
+      ];
+      if (sp) items.push('<li>' + esc(sp) + '</li>');
+      var pill = o.alsoFastest ? '<span class="pill">Also the fastest</span>' :
+        (!o.fits ? '<span class="pill warn">' + (state.qty < s.min ? 'Min ' + num(s.min) : 'Max ' + num(s.max)) + '</span>' : '');
+      return '<button type="button" class="opt" data-o="' + o.key + '" aria-pressed="' + (!picked && chosen === o) + '">' +
+        '<span class="kind">' + esc(o.label) + '</span>' +
+        '<span class="why">' + esc(WHY[o.key]) + '</span>' +
+        '<span class="rate">' + esc(money(s.rate)) + ' <small>/ 1000</small></span>' +
+        '<ul>' + items.join('') + '</ul>' + pill + '</button>';
     }).join('');
-    $('dripBox').classList.toggle('hide', !s.dripfeed);
-    if (!s.dripfeed) $('runs').value = 1;
-    Array.prototype.forEach.call(document.querySelectorAll('.curLbl'), function (el) { el.textContent = s.currency; });
-    syncRange(); calc(); renderCompare();
-  }
 
-  // logarithmic slider so both 10 and 10,000,000 are reachable
-  function syncRange() {
-    var q = $('qty'), min = Math.max(1, +q.min || 1), max = Math.max(min + 1, +q.max || 1);
-    var v = Math.min(max, Math.max(min, +q.value || min));
-    $('qtyRange').value = Math.round(1000 * Math.log(v / min) / Math.log(max / min));
-  }
-  function fromRange() {
-    var q = $('qty'), min = Math.max(1, +q.min || 1), max = Math.max(min + 1, +q.max || 1);
-    var v = min * Math.pow(max / min, $('qtyRange').value / 1000);
-    var mag = Math.pow(10, Math.max(0, Math.floor(Math.log10(v)) - 1));
-    q.value = Math.min(max, Math.max(min, Math.round(v / mag) * mag));
-  }
-
-  function opts() {
-    return { quantity: $('qty').value, runs: $('runs').value, markup: $('markup').value, discount: $('discount').value };
-  }
-
-  function current() {
-    var s = state.selected; if (!s) return null;
-    if (state.mode === 'budget') {
-      var o = opts(), b = C.quantityForBudget(s, parseFloat($('budget').value) / prefs().fx, o);
-      o.quantity = b.quantity; o.runs = 1;
-      var r = C.quote(s, o);
-      if (!b.affordable) r.errors = ['Budget is below the minimum order (' + fmtInt(s.min) + ' = ' + money(C.quote(s, { quantity: s.min, markup: o.markup, discount: o.discount }).price, s.currency) + ').'];
-      r.valid = b.affordable && r.valid;
-      return r;
+    $('moreBtn').hidden = g.length <= 1;
+    $('moreBtn').textContent = state.showAll ? 'Hide the full list' : 'See all ' + g.length + ' options';
+    $('moreBtn').setAttribute('aria-expanded', state.showAll);
+    $('all').hidden = !state.showAll;
+    if (state.showAll) {
+      $('all').innerHTML = g.slice().sort(function (a, b) { return a.rate - b.rate; }).map(function (s) {
+        var fits = C.fitsQuantity(s, state.qty);
+        return '<button type="button" class="row" data-s="' + esc(s.id) + '" aria-pressed="' + (current.service === s) + '">' +
+          '<span class="' + (fits ? '' : 'off') + '">' + esc(s.name) + (fits ? '' : ' · min ' + num(s.min) + ', max ' + num(s.max)) + '</span>' +
+          '<b>' + esc(money(s.rate)) + '</b></button>';
+      }).join('');
     }
-    return C.quote(s, opts());
   }
 
-  function calc() {
-    var r = current();
-    if (!r) return;
-    var s = r.service;
-    $('errors').classList.toggle('hide', r.valid);
-    $('errors').textContent = r.errors.join(' ');
-    $('rPrice').textContent = money(r.price, s.currency);
-    $('rQty').textContent = fmtInt(r.totalQuantity);
-    var p = prefs();
-    $('rUnit').textContent = !r.totalQuantity ? '—' : p.cur ? C.formatMoney(r.pricePerUnit * p.fx, p.cur, 5) : C.formatMoney(r.pricePerUnit, s.currency, 5);
-    $('budgetCur').textContent = p.cur || s.currency;
-    $('rProfit').textContent = money(r.cost, s.currency) + ' / ' + money(r.profit, s.currency);
-    $('rNote').textContent = r.runs > 1
-      ? r.runs + ' runs × ' + fmtInt(r.quantity) + ' every ' + ($('interval').value || '?') + ' min ≈ ' + formatDuration((r.runs - 1) * (+$('interval').value || 0)) + ' total delivery window.'
-      : '';
-    if (state.mode === 'budget') {
-      $('budgetOut').innerHTML = r.valid
-        ? 'You can buy <b>' + fmtInt(r.quantity) + '</b> units for ' + esc(money(r.price, s.currency)) +
-          (isFinite(s.max) && r.quantity === s.max ? ' (capped at the max order).' : '.')
-        : '';
-    }
-    $('addBtn').disabled = !r.valid;
-    $('cmpQtyHead').textContent = 'For ' + fmtInt(r.totalQuantity || 1000);
-    renderCompare();
-  }
-
-  function formatDuration(min) {
-    if (!min) return '0 min';
-    var d = Math.floor(min / 1440), h = Math.floor(min % 1440 / 60), m = min % 60;
-    return [d ? d + 'd' : '', h ? h + 'h' : '', m ? m + 'm' : ''].filter(Boolean).join(' ');
-  }
-
-  function renderCompare() {
-    var s = state.selected;
-    if (!s) { $('cmpBody').innerHTML = ''; return; }
-    var r = current(), qty = (r && r.totalQuantity) || 1000;
-    var peers = state.services.filter(function (x) { return x.category === s.category; }).sort(function (a, b) { return a.rate - b.rate; });
-    $('cmpBody').innerHTML = peers.slice(0, 50).map(function (x) {
-      var ok = !(qty < x.min) && !(x.max > 0 && qty > x.max);
-      var q = C.quote(x, { quantity: qty, markup: $('markup').value, discount: $('discount').value });
-      return '<tr' + (x.id === s.id ? ' style="background:var(--accent-soft)"' : '') + '>' +
-        '<td class="sub">' + esc(x.id) + '</td>' +
-        '<td><a href="#" data-pick="' + esc(x.id) + '" style="color:inherit">' + esc(x.name) + '</a></td>' +
-        '<td class="num">' + esc(C.formatMoney(x.rate, x.currency)) + '</td>' +
-        '<td class="num">' + fmtInt(x.min) + '</td><td class="num">' + fmtInt(x.max) + '</td>' +
-        '<td class="num">' + (ok ? esc(money(q.price, x.currency)) : '<span class="sub">n/a</span>') + '</td></tr>';
+  function renderQtyChips() {
+    var s = current.service;
+    if (!s) { $('chips').innerHTML = ''; return; }
+    var max = s.max > 0 ? s.max : Infinity;
+    var picks = [100, 500, 1000, 5000, 10000, 50000, 100000].filter(function (v) { return v >= s.min && v <= max; });
+    if (picks.indexOf(s.min) === -1) picks.unshift(s.min);
+    $('chips').innerHTML = picks.slice(0, 7).map(function (v) {
+      return '<button type="button" class="chip" data-q="' + v + '">' + (v === s.min ? 'Min ' : '') + num(v) + '</button>';
     }).join('');
   }
 
-  // ---------- cart ----------
-  function quoteText(r) {
-    var s = r.service;
-    return '#' + s.id + ' ' + s.name + '\n  Qty: ' + fmtInt(r.totalQuantity) + (r.runs > 1 ? ' (' + r.runs + ' × ' + fmtInt(r.quantity) + ')' : '') +
-      ' → ' + money(r.price, s.currency);
+  function renderTotal() {
+    var s = current.service, qty = state.qty;
+    var plat = PLATFORMS.filter(function (p) { return p.id === state.platform; })[0];
+    var label = current.option ? current.option.label : 'Selected service';
+    if (!s) { $('tSum').textContent = '—'; return; }
+    var r = C.quote(s, { quantity: qty });
+    var bad = !r.valid;
+    $('qtyHint').className = 'hint' + (bad ? ' bad' : '');
+    $('qtyHint').textContent = bad ? r.errors.join(' ') : 'This option takes ' + num(s.min) + ' to ' + (s.max > 0 && s.max < 2e9 ? num(s.max) : 'unlimited') + '.';
+    var what = num(qty || 0) + ' ' + (plat ? plat.label : '') + ' ' + state.kind + ' · ' + label;
+    $('tWhat').textContent = what;
+    $('tSum').textContent = bad ? '—' : money(r.price, 2);
+    $('tTime').textContent = approx(C.estimateHours(s, qty)) || 'Not listed';
+    $('tRefill').textContent = C.refillInfo(s).label;
+    $('tRate').textContent = money(s.rate);
+    $('tSvc').textContent = 'Service #' + s.id + ': ' + s.name;
+    $('bSum').textContent = bad ? '—' : money(r.price, 2);
+    $('bWhat').textContent = bad ? r.errors[0] : what;
   }
 
-  function renderCart() {
-    var body = $('cartBody');
-    if (!state.cart.length) {
-      body.innerHTML = '<tr><td colspan="5" class="empty">No items yet.</td></tr>';
-      $('cartTotal').textContent = '—'; return;
-    }
-    var total = 0, cur = state.cart[0].currency;
-    body.innerHTML = state.cart.map(function (it, i) {
-      total += it.price;
-      return '<tr><td class="sub">' + esc(it.id) + '</td><td>' + esc(it.name) + '</td><td class="num">' + fmtInt(it.qty) +
-        '</td><td class="num">' + esc(money(it.price, it.currency)) + '</td><td><button class="ghost" data-rm="' + i + '" aria-label="Remove">✕</button></td></tr>';
-    }).join('');
-    $('cartTotal').textContent = money(total, cur);
-  }
-
-  function cartText() {
-    var total = 0;
-    var lines = state.cart.map(function (it, i) {
-      total += it.price;
-      return (i + 1) + '. #' + it.id + ' ' + it.name + ' — ' + fmtInt(it.qty) + ' → ' + money(it.price, it.currency);
-    });
-    return lines.join('\n') + '\nTotal: ' + money(total, state.cart.length ? state.cart[0].currency : 'USD');
-  }
-
-  function copy(text, btn) {
-    var done = function () { var t = btn.textContent; btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = t; }, 1200); };
-    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, function () { prompt('Copy:', text); });
-    else prompt('Copy:', text);
-  }
-
-  // ---------- import ----------
-  function openImport() { $('importMsg').textContent = ''; $('importDlg').showModal(); }
-
-  function doImport() {
-    var text = $('importText').value, msg = $('importMsg');
-    try {
-      var list = C.parseAny(text);
-      if (/^\s*</.test(text)) list = parseHtml(text);
-      if (!list.length) throw new Error('No services recognised. Make sure each row starts with the numeric service ID.');
-      setData({ source: 'imported ' + new Date().toISOString().slice(0, 10), demo: false, fetchedAt: new Date().toISOString(), currency: list[0].currency, services: list }, true);
-      msg.className = 'msg ok'; msg.textContent = 'Imported ' + list.length + ' services.';
-      setTimeout(function () { $('importDlg').close(); }, 600);
-    } catch (e) {
-      msg.className = 'msg err'; msg.textContent = e.message;
-    }
-  }
-
-  // saved services page (.html): turn table rows into tab-separated text and reuse the table parser
-  function parseHtml(html) {
-    var doc = new DOMParser().parseFromString(html, 'text/html');
-    var lines = Array.prototype.map.call(doc.querySelectorAll('tr'), function (tr) {
-      return Array.prototype.map.call(tr.querySelectorAll('td,th'), function (td) { return td.textContent.replace(/\s+/g, ' ').trim(); })
-        .filter(Boolean).join('\t');
-    });
-    return C.parseTable(lines.join('\n'));
+  function renderAll() {
+    renderPlatforms(); renderTypes(); renderOptions(); renderQtyChips(); renderTotal(); remember();
   }
 
   // ---------- events ----------
   $('platforms').addEventListener('click', function (e) {
     var b = e.target.closest('[data-p]'); if (!b) return;
-    state.platform = b.getAttribute('data-p'); renderPlatforms(); renderCategories(); renderList();
+    state.platform = b.getAttribute('data-p'); state.pickedId = null; state.showAll = false; renderAll();
   });
-  $('category').addEventListener('change', function () { state.category = this.value; renderList(); });
-  $('search').addEventListener('input', function () { state.search = this.value.trim(); renderList(); });
-  $('sort').addEventListener('change', function () { state.sort = this.value; renderList(); });
-  $('list').addEventListener('click', function (e) { var b = e.target.closest('[data-id]'); if (b) select(b.getAttribute('data-id')); });
-  $('cmpBody').addEventListener('click', function (e) { var a = e.target.closest('[data-pick]'); if (a) { e.preventDefault(); select(a.getAttribute('data-pick')); } });
-  $('quick').addEventListener('click', function (e) { var b = e.target.closest('[data-q]'); if (b) { $('qty').value = b.getAttribute('data-q'); syncRange(); calc(); } });
-  $('qty').addEventListener('input', function () { syncRange(); calc(); });
-  $('qtyRange').addEventListener('input', function () { fromRange(); calc(); });
-  ['runs', 'interval', 'markup', 'discount', 'budget', 'fx', 'dispCur'].forEach(function (id) {
-    $(id).addEventListener('input', function () { calc(); save(PREF_KEY, { markup: $('markup').value, discount: $('discount').value, cur: $('dispCur').value, fx: $('fx').value }); renderCart(); });
+  $('types').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-k]'); if (!b) return;
+    state.kind = b.getAttribute('data-k'); state.pickedId = null; state.showAll = false; renderAll();
   });
-  document.querySelector('.seg').addEventListener('click', function (e) {
-    var b = e.target.closest('[data-mode]'); if (!b) return;
-    state.mode = b.getAttribute('data-mode');
-    Array.prototype.forEach.call(this.children, function (c) { c.setAttribute('aria-pressed', c === b); });
-    $('qtyMode').classList.toggle('hide', state.mode !== 'qty');
-    $('budgetMode').classList.toggle('hide', state.mode !== 'budget');
-    calc();
+  $('options').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-o]'); if (!b) return;
+    state.optKey = b.getAttribute('data-o'); state.pickedId = null; renderAll();
   });
-  $('addBtn').addEventListener('click', function () {
-    var r = current(); if (!r || !r.valid) return;
-    state.cart.push({ id: r.service.id, name: r.service.name, qty: r.totalQuantity, price: r.price, currency: r.service.currency });
-    save(CART_KEY, state.cart); renderCart();
+  $('moreBtn').addEventListener('click', function () { state.showAll = !state.showAll; renderOptions(); });
+  $('all').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-s]'); if (!b) return;
+    state.pickedId = b.getAttribute('data-s'); renderOptions(); renderQtyChips(); renderTotal();
   });
-  $('copyBtn').addEventListener('click', function () { var r = current(); if (r) copy(quoteText(r), this); });
-  $('copyCart').addEventListener('click', function () { if (state.cart.length) copy(cartText(), this); });
-  $('clearCart').addEventListener('click', function () { state.cart = []; save(CART_KEY, []); renderCart(); });
-  $('cartBody').addEventListener('click', function (e) {
-    var b = e.target.closest('[data-rm]'); if (!b) return;
-    state.cart.splice(+b.getAttribute('data-rm'), 1); save(CART_KEY, state.cart); renderCart();
+  $('qty').addEventListener('input', function () {
+    state.qty = parseInt(this.value, 10) || 0; renderOptions(); renderTotal(); remember();
   });
-  $('importBtn').addEventListener('click', openImport);
-  $('doImport').addEventListener('click', doImport);
-  $('resetData').addEventListener('click', function () {
-    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    setData(window.SERVICES_DATA, false); $('importDlg').close();
+  $('chips').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-q]'); if (!b) return;
+    state.qty = +b.getAttribute('data-q'); $('qty').value = state.qty; renderOptions(); renderTotal(); remember();
   });
-  $('importFile').addEventListener('change', function () {
-    var f = this.files[0]; if (!f) return;
-    var rd = new FileReader();
-    rd.onload = function () { $('importText').value = rd.result; doImport(); };
-    rd.readAsText(f);
-  });
-  $('exportBtn').addEventListener('click', function () {
-    var blob = new Blob([C.toCsv(state.services)], { type: 'text/csv' });
-    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'services.csv'; a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  $('copyBtn').addEventListener('click', function () {
+    var btn = this, s = current.service; if (!s) return;
+    var text = $('tWhat').textContent + '\nTotal: ' + $('tSum').textContent + '\nDelivery: ' + $('tTime').textContent +
+      ' · ' + $('tRefill').textContent + '\nService #' + s.id + ': ' + s.name;
+    var done = function () { btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = 'Copy details'; }, 1400); };
+    try {
+      navigator.clipboard.writeText(text).then(done, function () { selectText(); });
+    } catch (e) { selectText(); }
+    function selectText() { var r = document.createRange(); r.selectNodeContents($('total')); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
   });
   $('themeBtn').addEventListener('click', function () {
     var root = document.documentElement;
@@ -623,10 +389,11 @@
   });
 
   // ---------- boot ----------
-  var p = load(PREF_KEY);
-  if (p) { $('markup').value = p.markup || 0; $('discount').value = p.discount || 0; $('dispCur').value = p.cur || ''; $('fx').value = p.fx || 1; }
-  var stored = load(STORE_KEY);
-  setData(stored && stored.services && stored.services.length ? stored : (window.SERVICES_DATA || { demo: true, services: [] }), false);
+  if (!all.some(function (s) { return s.platform === state.platform; })) state.platform = 'Instagram';
+  $('qty').value = state.qty;
+  $('updated').textContent = all.length + ' services' + (data.fetchedAt ? ' · prices updated ' + String(data.fetchedAt).slice(0, 10) : '') + ' · prices in ' + currency;
+  if (data.demo) $('tagline').textContent = 'Demo prices — load the real list with tools/fetch_services.py';
+  renderAll();
 })();
 </script>
 </body>

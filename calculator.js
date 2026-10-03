@@ -263,7 +263,157 @@
     })).join('\n');
   }
 
+  // ---------- simple mode: platform -> service type -> Cheap / Smart / Very fast ----------
+
+  // Panel names use Unicode bold/superscript letters ("𝐔𝐋𝐓𝐑𝐀 𝐅𝐀𝐒𝐓", "ᴺᴱᵂ"); NFKC turns them into plain text.
+  function plain(text) {
+    var t = String(text || '');
+    return (t.normalize ? t.normalize('NFKC') : t).toLowerCase();
+  }
+
+  var TYPES = [
+    ['Comment Likes', /comment likes?/],
+    ['Subscribers', /subscri/],
+    ['Followers', /follower/],
+    ['Members', /member/],
+    ['Comments', /comment/],
+    ['Likes', /\blikes?\b/],
+    ['Views', /\bviews?\b|watch ?time/]
+  ];
+  function serviceType(s) {
+    var name = plain(s.name), cat = plain(s.category);
+    for (var i = 0; i < TYPES.length; i++) if (TYPES[i][1].test(name)) return TYPES[i][0];
+    for (var j = 0; j < TYPES.length; j++) if (TYPES[j][1].test(cat)) return TYPES[j][0];
+    return 'Other';
+  }
+
+  function unitValue(num, suffix) {
+    return parseFloat(num) * (suffix === 'm' ? 1e6 : suffix === 'k' ? 1e3 : 1);
+  }
+
+  // Delivery speed in units per hour, read from text like "Speed: 300K/Day", "1M / hour", "Day 1M", "20M Day".
+  function speedPerHour(s) {
+    var t = plain(s.name + ' | ' + s.category)
+      .replace(/(start(\s*time)?\s*:?\s*)?\d+\s*-\s*\d+\s*(hours?|hrs?|mins?|minutes?|seconds?)/g, ' ');
+    var m = t.match(/speed\s*:?\s*(?:upto\s*)?(\d+(?:\.\d+)?)\s*([km])?\+?\s*(?:\/|per)?\s*(day|hours?|hrs?)\b/) ||
+            t.match(/(\d+(?:\.\d+)?)\s*([km])\+?\s*(?:\/|per)?\s*(day|hours?|hrs?)\b/);
+    if (m) return unitValue(m[1], m[2]) / (m[3] === 'day' ? 24 : 1);
+    m = t.match(/\bday\s+(\d+(?:\.\d+)?)\s*([km])\b/);
+    if (m) return unitValue(m[1], m[2]) / 24;
+    return null;
+  }
+
+  // Hours until the order starts.
+  function startHours(s) {
+    var t = plain(s.name);
+    var m = t.match(/(\d+)\s*-\s*(\d+)\s*(hours?|hrs?|mins?|minutes?)/);
+    if (m) return /^m/.test(m[3]) ? parseInt(m[2], 10) / 60 : parseInt(m[2], 10);
+    return /instant/.test(t) ? 0 : 1;
+  }
+
+  function isFastByName(s) { return /super ?fast|ultra ?fast|fastest|ultra fast|high speed|⚡/.test(plain(s.name + ' ' + s.category)); }
+
+  function refillInfo(s) {
+    var t = plain(s.name);
+    if (/no refill/.test(t)) return { days: 0, label: 'No refill' };
+    if (/lifetime/.test(t)) return { days: 9999, label: 'Lifetime refill' };
+    var m = t.match(/(\d+)\s*days?\s*(♻|refill)/);
+    if (m) return { days: +m[1], label: m[1] + '-day refill' };
+    return s.refill ? { days: 30, label: 'Refill' } : { days: 0, label: 'No refill' };
+  }
+
+  function qualityScore(s) {
+    var t = plain(s.name + ' | ' + s.category), q = 0, r = refillInfo(s).days;
+    q += r >= 9999 ? 3 : r >= 365 ? 2 : r > 0 ? 1 : 0;
+    if (/non drop|no drop|drop:? 0%/.test(t)) q += 1;
+    if (/\bhq\b|real|old accounts|premium quality/.test(t)) q += 1;
+    if (/\blq\b|low quality/.test(t)) q -= 1;
+    if (/smart choice|most trusted|recommended|best working/.test(t)) q += 2;
+    return q;
+  }
+
+  function estimateHours(s, qty) {
+    var sp = speedPerHour(s);
+    if (!sp) return null;
+    return startHours(s) + (qty || 0) / sp;
+  }
+
+  function fitsQuantity(s, qty) {
+    return !(qty > 0) || (!(qty < s.min) && !(s.max > 0 && qty > s.max));
+  }
+
+  /*
+   * Pick up to four options for a group of services:
+   *   cheap  - lowest rate (ties go to the faster / better one)
+   *   smart  - best value among services with better refill or quality than the cheapest
+   *   fast   - clearly faster than the cheapest
+   *   best   - highest refill / quality score, when it beats all of the above
+   * An option only appears when it differs from the others in a way that matters.
+   * Services that can't take the quantity are only used when none can.
+   */
+  function pickOptions(services, qty) {
+    if (!services.length) return [];
+    var pool = services.filter(function (s) { return fitsQuantity(s, qty); });
+    var outOfRange = !pool.length;
+    if (outOfRange) pool = services.slice();
+    var q = qty > 0 ? qty : 1000;
+    var speedRank = function (s) {
+      var est = estimateHours(s, q);
+      if (est != null) return est;
+      return startHours(s) + q / (isFastByName(s) ? 20000 : 1000);
+    };
+    var quality = qualityScore;
+    var value = function (s) { var k = quality(s); return s.rate * (k >= 0 ? 1 / (1 + 0.3 * k) : 1 + 0.3 * -k); };
+
+    var cheap = pool.slice().sort(function (a, b) {
+      return a.rate - b.rate || speedRank(a) - speedRank(b) || quality(b) - quality(a);
+    })[0];
+    var others = pool.filter(function (s) { return s !== cheap; });
+
+    // "Very fast" must be clearly faster: at least 10% and 15 minutes sooner for this quantity.
+    var fast = others.filter(function (s) { return speedRank(s) < speedRank(cheap) * 0.9 && speedRank(cheap) - speedRank(s) >= 0.25; })
+      .sort(function (a, b) { return speedRank(a) - speedRank(b) || a.rate - b.rate; })[0] || null;
+
+    // "Smart" is a better product for a price close to the cheapest one.
+    var smart = others.filter(function (s) { return s !== fast && quality(s) > quality(cheap) && s.rate <= cheap.rate * 2.5; })
+      .sort(function (a, b) { return value(a) - value(b) || a.rate - b.rate; })[0] || null;
+
+    var bar = Math.max(quality(cheap), smart ? quality(smart) : -Infinity, fast ? quality(fast) : -Infinity);
+    var best = others.filter(function (s) { return s !== smart && s !== fast && quality(s) > bar; })
+      .sort(function (a, b) { return quality(b) - quality(a) || a.rate - b.rate; })[0] || null;
+
+    var out = [{ key: 'cheap', label: 'Cheapest', service: cheap, alsoFastest: !fast && others.length > 0 }];
+    if (smart) out.push({ key: 'smart', label: 'Smart choice', service: smart });
+    if (fast) out.push({ key: 'fast', label: 'Very fast', service: fast });
+    if (best) out.push({ key: 'best', label: 'Best quality', service: best });
+    out.forEach(function (o) {
+      o.estimateHours = estimateHours(o.service, q);
+      o.refill = refillInfo(o.service);
+      o.fits = fitsQuantity(o.service, qty);
+      o.outOfRange = outOfRange;
+    });
+    return out;
+  }
+
+  function formatHours(h) {
+    if (h == null || !isFinite(h)) return null;
+    if (h < 1) return 'under 1 hour';
+    if (h < 24) { var r = Math.ceil(h); return r + (r === 1 ? ' hour' : ' hours'); }
+    var d = Math.ceil(h / 24);
+    return d + (d === 1 ? ' day' : ' days');
+  }
+
   return {
+    serviceType: serviceType,
+    speedPerHour: speedPerHour,
+    startHours: startHours,
+    refillInfo: refillInfo,
+    qualityScore: qualityScore,
+    estimateHours: estimateHours,
+    fitsQuantity: fitsQuantity,
+    pickOptions: pickOptions,
+    formatHours: formatHours,
+    plain: plain,
     parseMoney: parseMoney,
     parseJson: parseJson,
     parseTable: parseTable,

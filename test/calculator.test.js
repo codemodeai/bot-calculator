@@ -89,3 +89,51 @@ test('platformOf understands short platform names', () => {
   assert.equal(C.platformOf({ category: 'IG Views', name: 'IG Views [ Cheap ]' }), 'Instagram');
   assert.equal(C.platformOf({ category: 'YT Likes', name: '' }), 'YouTube');
 });
+
+test('serviceType groups services by what they deliver', () => {
+  const t = name => C.serviceType({ name, category: '' });
+  assert.equal(t('YouTube Comment Likes [ Max 100K ]'), 'Comment Likes');
+  assert.equal(t('Telegram Premium Members + Views [ 3 Days ]'), 'Members');
+  assert.equal(t('YouTube Likes + Views From Google Search'), 'Likes');
+  assert.equal(t('Youtube Subscribers [ Max 50K ]'), 'Subscribers');
+  assert.equal(t('IG Reel Views + Reach'), 'Views');
+});
+
+test('speedPerHour reads speed and ignores start times and refill days', () => {
+  const sp = name => C.speedPerHour({ name, category: '' });
+  assert.equal(sp('Likes | 30 Days ♻️ | Speed: 300K/Day 🚀'), 12500);
+  assert.equal(sp('IG Views [ All Links ] [ 1M / hour ]'), 1e6);
+  assert.equal(sp('Speed: 1K/Hours'), 1000);
+  assert.equal(sp('Speed: 500+/Day'), 500 / 24);
+  assert.equal(sp('Video Views | All Link | Day 1M 🚀 - Fastest'), 1e6 / 24);
+  assert.equal(sp('Speed: 2M/Day 🚀 𝐔𝐋𝐓𝐑𝐀 𝐅𝐀𝐒𝐓'), 2e6 / 24);
+  assert.equal(sp('IG Views [ 0-1 hrs ]'), null);
+  assert.equal(sp('Premium Members [ 30 Days Premium ]'), null);
+});
+
+test('startHours and refillInfo', () => {
+  assert.equal(C.startHours({ name: 'Start Time: 24-48 Hours' }), 48);
+  assert.equal(C.startHours({ name: 'Start: 0-1 Min' }), 1 / 60);
+  assert.equal(C.startHours({ name: 'Instant Start' }), 0);
+  assert.equal(C.refillInfo({ name: 'x | No Refill ⚠️' }).days, 0);
+  assert.equal(C.refillInfo({ name: 'x | Lifetime ♻️' }).label, 'Lifetime refill');
+  assert.equal(C.refillInfo({ name: 'x | 30 Days ♻️' }).label, '30-day refill');
+});
+
+test('pickOptions returns cheap / smart / fast / best without duplicates', () => {
+  const mk = (id, rate, name, min = 10, max = 100000) => C.normaliseService({ id, name, rate, min, max, category: 'X' });
+  const g = [
+    mk(1, 10, 'Likes | No Refill | Speed: 1K/Day'),
+    mk(2, 12, 'Likes | Lifetime ♻️ | Speed: 1K/Day'),
+    mk(3, 30, 'Likes | No Refill | Speed: 100K/Day'),
+    mk(4, 80, 'Likes | HQ | Non Drop | Lifetime ♻️ | Speed: 1K/Day')
+  ];
+  const opts = C.pickOptions(g, 5000);
+  assert.deepEqual(opts.map(o => o.key + ':' + o.service.id), ['cheap:1', 'smart:2', 'fast:3', 'best:4']);
+  // identical variants collapse to one card
+  const same = [mk(5, 360, 'Comments [ UK ]'), mk(6, 360, 'Comments [ USA ]')];
+  assert.deepEqual(C.pickOptions(same, 100).map(o => o.key), ['cheap']);
+  // quantity outside every range still shows the cheapest, flagged
+  const big = C.pickOptions(g, 1e7);
+  assert.equal(big[0].fits, false);
+});
