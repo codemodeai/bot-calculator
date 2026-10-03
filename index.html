@@ -60,6 +60,7 @@
   .chips { display: flex; gap: 6px; flex-wrap: wrap; }
   .chip { font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); cursor: pointer; }
   .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .chip[aria-pressed="true"] .sub { color: inherit; opacity: .8; }
   .list { max-height: 560px; overflow: auto; border: 1px solid var(--border); border-radius: 10px; }
   .cat { position: sticky; top: 0; background: var(--surface-2); font-size: 12px; font-weight: 700; padding: 6px 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); }
   .svc { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: baseline; padding: 8px 10px; border-bottom: 1px solid var(--border); cursor: pointer; width: 100%; text-align: left; border-radius: 0; border-width: 0 0 1px 0; background: transparent; white-space: normal; }

@@ -8,26 +8,26 @@ build an order with several services.
 
 Open `index.html` in a browser. It doesn't need a build step or a server.
 
-## Loading the real smmorange.com prices
+## Price data
 
-The repo ships **demo data** (`data/services.js`). These are sample services, **not**
-smmorange.com prices. The page shows a warning banner until you load the real list in
-one of these ways:
+`data/services.js` / `data/services.json` hold smmorange.com's services list: 147 services
+in 36 categories, fetched from the panel API on 2026-10-03. Rates are per 1000 units in
+**INR**. The API doesn't report a currency, but INR is smmorange.com's base currency.
 
-1. **Paste in the page.** Open smmorange.com/services, select the whole table, copy it, then go to
-   **Import services**, paste and click **Import**. The list is saved in your browser.
-   You can also import:
-   - JSON from the panel API (`action=services`)
-   - a CSV file (`id,name,category,rate,min,max,...`)
-   - a saved copy of the page (`.html`)
-2. **Bundle it into the repo** (everyone who opens the page gets it):
-   ```sh
-   python3 tools/fetch_services.py                       # scrape https://smmorange.com/services
-   python3 tools/fetch_services.py --html saved.html     # from a page you saved in your browser
-   python3 tools/fetch_services.py --api https://smmorange.com/api/v2 --key YOUR_KEY
-   ```
-   This rewrites `data/services.json` and `data/services.js`. Run it again whenever the
-   panel changes its prices.
+To refresh the prices, run:
+
+```sh
+python3 tools/fetch_services.py --api https://smmorange.com/api/v2 --key YOUR_KEY --currency INR
+```
+
+Don't commit your API key. The script only writes the services list.
+
+Other ways to load a list:
+- In the page, use **Import services** and paste API JSON, a CSV
+  (`id,name,category,rate,min,max,...`), a table copied from a panel's services page, or a
+  saved `.html` copy. Imported lists are saved in your browser only.
+- `python3 tools/fetch_services.py --url <services page>` or `--html saved.html` scrapes a
+  classic panel services table.
 
 ## How prices are calculated
 

@@ -84,3 +84,8 @@ test('platformOf detects platform', () => {
   assert.equal(C.platformOf({ category: 'X / Twitter', name: '' }), 'Twitter');
   assert.equal(C.platformOf({ category: 'Misc', name: 'Website Traffic' }), 'Website');
 });
+
+test('platformOf understands short platform names', () => {
+  assert.equal(C.platformOf({ category: 'IG Views', name: 'IG Views [ Cheap ]' }), 'Instagram');
+  assert.equal(C.platformOf({ category: 'YT Likes', name: '' }), 'YouTube');
+});

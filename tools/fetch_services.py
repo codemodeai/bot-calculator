@@ -13,6 +13,7 @@ Only the Python standard library is used.
 """
 import argparse
 import datetime
+import html
 import json
 import os
 import re
@@ -146,11 +147,21 @@ def services_from_html(page):
         elif len([t for t in texts if t]) == 1:
             category = next(t for t in texts if t)
     for s in out:
+        s["category"] = clean(s["category"])
+        s["name"] = clean(s["name"])
         s["currency"] = currency or "USD"
     return out
 
 
-def services_from_api(api_url, key):
+def clean(text):
+    """Decode HTML entities (also double-escaped ones like &amp;amp;) and collapse whitespace."""
+    text = str(text or "")
+    while html.unescape(text) != text:
+        text = html.unescape(text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def services_from_api(api_url, key, currency=None):
     body = urllib.parse.urlencode({"key": key, "action": "services"}).encode()
     req = urllib.request.Request(api_url, data=body, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=60) as r:
@@ -162,8 +173,8 @@ def services_from_api(api_url, key):
         rate, cur = parse_money(s.get("rate"))
         out.append({
             "id": str(s.get("service")),
-            "name": s.get("name", ""),
-            "category": s.get("category", "Uncategorised"),
+            "name": clean(s.get("name")),
+            "category": clean(s.get("category")) or "Uncategorised",
             "rate": rate,
             "min": to_int(s.get("min", "")),
             "max": to_int(s.get("max", "")),
@@ -171,9 +182,9 @@ def services_from_api(api_url, key):
             "refill": bool(s.get("refill")),
             "cancel": bool(s.get("cancel")),
             "dripfeed": bool(s.get("dripfeed")),
-            "currency": cur or "USD",
-            "time": s.get("time", ""),
-            "description": s.get("description", ""),
+            "currency": currency or s.get("currency") or cur or "USD",
+            "time": clean(s.get("time") or s.get("average_time")),
+            "description": clean(s.get("description") or s.get("desc")),
         })
     return out
 
@@ -204,12 +215,13 @@ def main():
     ap.add_argument("--api", help="panel API URL, e.g. https://smmorange.com/api/v2")
     ap.add_argument("--key", help="panel API key (used with --api)")
     ap.add_argument("--html", help="parse a saved copy of the services page instead of downloading it")
+    ap.add_argument("--currency", help="currency of the rates, e.g. INR (the API does not report it; smmorange.com uses INR)")
     args = ap.parse_args()
 
     if args.api:
         if not args.key:
             ap.error("--api needs --key")
-        services = services_from_api(args.api, args.key)
+        services = services_from_api(args.api, args.key, args.currency)
         source = args.api
     else:
         if args.html:
@@ -222,6 +234,9 @@ def main():
                 page = r.read().decode("utf-8", errors="replace")
             source = args.url
         services = services_from_html(page)
+    if args.currency:
+        for s in services:
+            s["currency"] = args.currency.upper()
     if not services:
         sys.exit("No services found. The page may need a login or render with JavaScript — "
                  "save it from your browser and use --html, or use --api with your API key.")

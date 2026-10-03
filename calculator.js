@@ -186,6 +186,9 @@
   function platformOf(s) {
     var hay = (s.category + ' ' + s.name).toLowerCase();
     if (/\bx\b|twitter/.test(hay)) return 'Twitter';
+    var SHORT = { ig: 'Instagram', insta: 'Instagram', yt: 'YouTube', tg: 'Telegram', fb: 'Facebook', tt: 'TikTok' };
+    var m = hay.match(/\b(ig|insta|yt|tg|fb|tt)\b/);
+    if (m && hay.indexOf('tiktok') === -1) return SHORT[m[1]];
     for (var i = 0; i < PLATFORMS.length; i++) if (hay.indexOf(PLATFORMS[i].toLowerCase()) !== -1) return PLATFORMS[i];
     if (/traffic|visit/.test(hay)) return 'Website';
     return 'Other';
