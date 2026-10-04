@@ -113,6 +113,9 @@
   .pkg .lbl { font-weight: 800; font-size: 16px; }
   .pkg .why { font-size: 13px; color: var(--muted); }
   .pkg .amt { font-size: 24px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; margin-top: 6px; }
+  .pkg .per { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .minnote { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--muted); background: var(--surface-2); border-radius: 12px; padding: 10px 12px; margin: 0; }
+  .minnote button { border: 1px solid var(--accent); color: var(--accent); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 700; }
   .pkg ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
   .pkg li { display: flex; gap: 6px; align-items: baseline; }
   .pkg li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--grad); flex: none; transform: translateY(-1px); }
@@ -347,6 +350,7 @@
           <div><span>Goes to</span><b id="sumLink">Add your link</b></div>
         </div>
         <div class="total"><span>Total</span><b id="sumTotal">—</b></div>
+        <p class="minnote" id="minNote" hidden><span id="minText"></span><button type="button" id="minUse"></button></p>
         <p class="err" id="payErr" hidden></p>
         <p class="note" id="demoNote" hidden></p>
         <button class="pay" id="payBtn" type="button">
@@ -573,10 +577,14 @@
         '<span class="lbl">' + esc(NICE[o.key]) + '</span>' +
         '<span class="why">' + esc(WHY[o.key]) + '</span>' +
         '<span class="amt">' + price + '</span>' +
+        '<span class="per">' + esc(perK(s.rate)) + ' per 1,000</span>' +
         '<ul><li>' + esc(t ? 'Done in ' + t : 'Starts within the hour') + '</li><li>' + esc(o.refill.label) + '</li>' +
         feats.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul></button>';
     }).join('') || '<p class="hint">No packages for this yet.</p>';
   }
+
+  // "₹0.24", "₹0.054": enough digits that cheap services don't all read ₹0.00 / ₹1.00.
+  function perK(rate) { return C.formatMoney(rate, store.currency, rate >= 1 ? 2 : rate >= 0.1 ? 2 : 3); }
 
   // Every service in the group, cheapest first; a row is skipped when a cheaper one gives the same thing at least as fast.
   function renderAllOptions(g) {
@@ -664,6 +672,17 @@
     $('sumRate').textContent = money(s.rate);
     $('sumLink').textContent = state.link.trim() ? state.link.trim().replace(/^https?:\/\/(www\.)?/, '') : 'Add your link';
     $('sumTotal').textContent = total != null ? money(total) : '—';
+    // Razorpay's smallest payment is ₹1; say so when it applies, and offer the quantity ₹1 actually buys.
+    var exact = s.rate * state.qty / 1000, forOne = Math.floor(1000 / s.rate + 1e-9);
+    if (s.max > 0) forOne = Math.min(forOne, s.max);
+    var showMin = total != null && exact < 1 && s.rate > 0;
+    $('minNote').hidden = !showMin;
+    if (showMin) {
+      $('minText').textContent = '₹1 is the minimum payment. ₹1 gets you up to ' + num(forOne) + '.';
+      $('minUse').textContent = 'Get ' + num(forOne);
+      $('minUse').hidden = forOne <= state.qty;
+      $('minUse').setAttribute('data-q', forOne);
+    }
     $('barTotal').textContent = total != null ? money(total) : '—';
     var issue = problems();
     $('barWhat').textContent = issue || title;
@@ -689,6 +708,7 @@
     var b = e.target.closest('[data-o]'); if (!b) return;
     state.optKey = b.getAttribute('data-o'); state.pickedId = null; renderSoft();
   });
+  $('minUse').addEventListener('click', function () { setQty(+this.getAttribute('data-q')); });
   $('moreBtn').addEventListener('click', function () { state.showAll = !state.showAll; renderSoft(); });
   $('all').addEventListener('click', function (e) {
     var b = e.target.closest('[data-s]'); if (!b) return;
