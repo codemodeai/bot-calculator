@@ -287,3 +287,13 @@ test('webhook signature check', () => {
   assert.ok(!shop.verifyWebhookSignature(body, shop.hmac('other', body), 'whsec'));
   assert.ok(!shop.verifyWebhookSignature(body, 'x', ''));
 });
+
+test('new sb_secret_ keys go only in the apikey header; legacy JWT keys also in Authorization', async () => {
+  const seen = [];
+  global.fetch = async (url, init) => { seen.push(init.headers); return { status: 200, text: async () => '[]' }; };
+  await wallet.wallet(USER, Object.assign({}, LIVE, { supabaseService: 'sb_secret_abc' }));
+  assert.ok(seen.every((h) => h.apikey === 'sb_secret_abc' && !h.Authorization));
+  seen.length = 0;
+  await wallet.wallet(USER, Object.assign({}, LIVE, { supabaseService: 'eyJhbGciOi.legacy' }));
+  assert.ok(seen.every((h) => h.Authorization === 'Bearer eyJhbGciOi.legacy'));
+});
