@@ -30,7 +30,7 @@ http.createServer((req, res) => {
   }
   let rel = decodeURIComponent(url.pathname).replace(/\/+$/, '') || '/index';
   let file = path.join(ROOT, rel);
-  if (!file.startsWith(ROOT) || /\/(\.|lib\/|api\/|tools\/|test\/)/.test(rel)) { res.statusCode = 404; return res.end('Not found'); }
+  if (!file.startsWith(ROOT) || /\/(\.|lib\/|api\/|data\/|tools\/|test\/)/.test(rel)) { res.statusCode = 404; return res.end('Not found'); }
   if (!path.extname(file)) file += '.html';   // cleanUrls, like vercel.json
   fs.readFile(file, (err, data) => {
     if (err) { res.statusCode = 404; return res.end('Not found'); }

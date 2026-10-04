@@ -19,7 +19,9 @@ function fakeBackend() {
     if (url.startsWith(LIVE.smmUrl)) {
       const p = Object.fromEntries(new URLSearchParams(body));
       assert.equal(p.key, 'panel-key');
-      if (p.action === 'services') return reply(200, services);
+      if (db.panelDown) throw new Error('network down');
+      if (p.action === 'services') return reply(200, db.panelServices || services);
+      if (p.action === 'balance') return reply(200, { balance: '100.00', currency: db.panelCurrency || 'INR' });
       if (p.action === 'add') { db.panelAdds.push(p); return reply(200, { order: 9000 + db.panelAdds.length }); }
       if (p.action === 'status') return reply(200, { status: 'In progress', start_count: '120', remains: '300', charge: '1.2' });
     }
@@ -74,6 +76,7 @@ test('mode is live only with Razorpay and panel keys', () => {
 test('catalogue hides cost prices and custom-comment services', async () => {
   shop._resetCache();
   const cat = await shop.catalogue(Object.assign({}, DEMO, { smmKey: '' }));
+  assert.equal(cat.source, 'sample');
   const svc33 = cat.services.find((s) => s.id === '33');
   assert.equal(svc33.rate, 3);                           // 2.00 cost + 50%
   assert.ok(!cat.services.some((s) => /custom/i.test(s.name)));
@@ -130,4 +133,49 @@ test('webhook signature check', () => {
   assert.ok(shop.verifyWebhookSignature(body, shop.hmac('whsec', body), 'whsec'));
   assert.ok(!shop.verifyWebhookSignature(body, shop.hmac('other', body), 'whsec'));
   assert.ok(!shop.verifyWebhookSignature(body, 'x', ''));
+});
+
+test('with a panel key, prices come live from the panel', async () => {
+  shop._resetCache();
+  const db = fakeBackend();
+  db.panelServices = [{ service: 33, name: 'IG Views', category: 'IG Views', rate: '9.00', min: '100', max: '1000' }];
+  const cat = await shop.catalogue(LIVE);
+  assert.equal(cat.source, 'live');
+  assert.deepEqual(cat.services.map((s) => [s.id, s.rate]), [['33', 13.5]]);   // 9.00 live, not the 2.00 sample
+});
+
+test('panel errors are reported instead of falling back to sample prices', async () => {
+  shop._resetCache();
+  const db = fakeBackend();
+  db.panelServices = { error: 'Incorrect API Key' };
+  await assert.rejects(shop.catalogue(LIVE), /Incorrect API Key/);
+  const st = await shop.status(LIVE);
+  assert.equal(st.panel.ok, false);
+  assert.match(st.panel.error, /Incorrect API Key/);
+  assert.equal(st.razorpay, 'test keys');
+});
+
+test('a short panel outage reuses the last live prices', async () => {
+  shop._resetCache();
+  const db = fakeBackend();
+  await shop.catalogue(LIVE);
+  db.panelDown = true;
+  const realNow = Date.now;
+  Date.now = () => realNow() + 6 * 60 * 1000;          // past the 5-minute cache
+  try {
+    const cat = await shop.catalogue(LIVE);
+    assert.equal(cat.stale, true);
+    assert.equal(cat.source, 'live');
+  } finally { Date.now = realNow; }
+});
+
+test('non-INR panel accounts need an exchange rate', async () => {
+  shop._resetCache();
+  const db = fakeBackend();
+  db.panelCurrency = 'USD';
+  db.panelServices = [{ service: 1, name: 'Instagram Likes', category: 'Instagram Likes', rate: '0.10', min: '10', max: '1000' }];
+  await assert.rejects(shop.catalogue(LIVE), /PANEL_TO_INR_RATE/);
+  shop._resetCache();
+  const cat = await shop.catalogue(Object.assign({}, LIVE, { fx: 84, markup: 0 }));
+  assert.equal(cat.services[0].rate, 8.4);
 });

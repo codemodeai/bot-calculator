@@ -5,22 +5,13 @@
   "installCommand": "",
   "outputDirectory": ".",
   "cleanUrls": true,
-  "headers": [
-    {
-      "source": "/data/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=300, must-revalidate"
-        }
-      ]
-    }
-  ],
   "redirects": [
-    {
-      "source": "/boost",
-      "destination": "/",
-      "permanent": false
-    }
+    { "source": "/boost", "destination": "/", "permanent": false },
+    { "source": "/calculator", "destination": "/", "permanent": false },
+    { "source": "/advanced", "destination": "/", "permanent": false },
+    { "source": "/data/:path*", "destination": "/", "permanent": false },
+    { "source": "/lib/:path*", "destination": "/", "permanent": false },
+    { "source": "/README.md", "destination": "/", "permanent": false },
+    { "source": "/package.json", "destination": "/", "permanent": false }
   ]
 }
