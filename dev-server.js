@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Local preview: serves the static site and the /api functions the same way Vercel does.
-//   node dev-server.js            -> http://localhost:3000/boost
+//   node dev-server.js            -> http://localhost:3000
 // Put your keys in .env (see .env.example); without Razorpay keys the store runs in demo mode.
 'use strict';
 
@@ -39,5 +39,5 @@ http.createServer((req, res) => {
   });
 }).listen(PORT, () => {
   const mode = require('./lib/shop').mode();
-  console.log('Store: http://localhost:' + PORT + '/boost  (' + mode + ' mode)');
+  console.log('Store: http://localhost:' + PORT + '  (' + mode + ' mode)');
 });

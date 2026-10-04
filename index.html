@@ -3,412 +3,831 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>SMM Price Calculator</title>
+<title>Boostly · Instagram Growth</title>
+<meta name="description" content="Instagram followers, likes and views, delivered automatically. Pay securely with UPI, cards or netbanking.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap">
 <style>
-  /* Layout: one narrow column of four steps; the total sits under the steps and in a bar pinned to the bottom on phones. */
+  /* Layout: hero, then a two-column order builder (steps left, sticky checkout card right); one column + pinned pay bar on phones. */
   :root {
-    --bg: #fbf7f3; --surface: #ffffff; --sunk: #f4ede6; --line: #eadfd4;
-    --text: #23180f; --muted: #7a6a5c; --accent: #f26b1d; --accent-ink: #ffffff; --accent-soft: #fff0e6;
-    --good: #23824f; --good-soft: #e5f4eb; --warn: #a15c00; --warn-soft: #fff3dc;
-    --mark-dark: #1d1d1f; --mark-dark-ink: #ffffff;
-    --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --radius: 14px;
+    --bg: #f7f5fb; --surface: #ffffff; --surface-2: #f1edf8; --line: #e4ddef; --line-strong: #cbbfe0;
+    --text: #17121f; --muted: #6c6380; --faint: #9a92ab;
+    --g1: #f9a03f; --g2: #ee2a7b; --g3: #a034c7; --g4: #5b51d8;
+    --grad: linear-gradient(120deg, var(--g1), var(--g2) 38%, var(--g3) 70%, var(--g4));
+    --accent: #d6246e; --accent-soft: #fde8f1; --on-grad: #ffffff;
+    --good: #1c8a52; --good-soft: #e3f5ea; --warn: #a65b00; --warn-soft: #fff1da; --bad: #c42b3b; --bad-soft: #fde6e8;
+    --shadow: 0 1px 2px rgba(30, 14, 60, .05), 0 8px 28px rgba(30, 14, 60, .08);
+    --blob-opacity: .35;
+    --font: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --r: 18px;
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #17120e; --surface: #211a14; --sunk: #2a221b; --line: #3a2f26;
-      --text: #f5ece4; --muted: #b3a294; --accent: #ff8a3d; --accent-ink: #1e0f04; --accent-soft: #3a2416;
-      --good: #6fd39b; --good-soft: #193526; --warn: #f2bb5c; --warn-soft: #3a2c14;
-      --mark-dark: #f5ece4; --mark-dark-ink: #17120e;
+      --bg: #0c0a12; --surface: #16131f; --surface-2: #1e1a2a; --line: #2b2539; --line-strong: #43395a;
+      --text: #f4f0fb; --muted: #a79fbb; --faint: #776f8c;
+      --accent: #ff5c9d; --accent-soft: #3a1328;
+      --good: #5fd497; --good-soft: #12301f; --warn: #f5bd5e; --warn-soft: #382a10; --bad: #ff7a86; --bad-soft: #3a1419;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 36px rgba(0,0,0,.35);
+      --blob-opacity: .22;
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #17120e; --surface: #211a14; --sunk: #2a221b; --line: #3a2f26;
-    --text: #f5ece4; --muted: #b3a294; --accent: #ff8a3d; --accent-ink: #1e0f04; --accent-soft: #3a2416;
-    --good: #6fd39b; --good-soft: #193526; --warn: #f2bb5c; --warn-soft: #3a2c14;
-    --mark-dark: #f5ece4; --mark-dark-ink: #17120e;
+    --bg: #0c0a12; --surface: #16131f; --surface-2: #1e1a2a; --line: #2b2539; --line-strong: #43395a;
+    --text: #f4f0fb; --muted: #a79fbb; --faint: #776f8c;
+    --accent: #ff5c9d; --accent-soft: #3a1328;
+    --good: #5fd497; --good-soft: #12301f; --warn: #f5bd5e; --warn-soft: #382a10; --bad: #ff7a86; --bad-soft: #3a1419;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 36px rgba(0,0,0,.35);
+    --blob-opacity: .22;
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
-  body { background: var(--bg); color: var(--text); font: 16px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px 140px; display: grid; gap: 22px; }
-  @media (min-width: 761px) { .wrap { padding-bottom: 48px; } }
-  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.02em; text-wrap: balance; }
-  h1 em { font-style: normal; color: var(--accent); }
-  .tag { font-size: 13px; color: var(--muted); }
-  .step { display: grid; gap: 12px; min-width: 0; }
-  .step h2 { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: flex; gap: 10px; align-items: center; }
-  .step h2 b { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 12px; letter-spacing: 0; }
-  .step[data-off] { opacity: .45; pointer-events: none; }
-  button { font: inherit; color: inherit; cursor: pointer; }
+  body { background: var(--bg); color: var(--text); font: 16px/1.5 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
   :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  [hidden] { display: none !important; }
 
-  /* platforms */
-  .platforms { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
-  @media (max-width: 620px) { .platforms { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  .plat { display: grid; justify-items: center; gap: 8px; padding: 14px 6px 12px; background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius); }
-  .plat:hover { border-color: var(--muted); }
+  .blobs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .blobs i { position: absolute; width: 520px; height: 520px; border-radius: 50%; filter: blur(90px); opacity: var(--blob-opacity); }
+  .blobs i:nth-child(1) { background: var(--g2); top: -180px; left: -120px; }
+  .blobs i:nth-child(2) { background: var(--g4); top: -120px; right: -160px; }
+  .blobs i:nth-child(3) { background: var(--g1); top: 520px; left: 40%; width: 380px; height: 380px; opacity: calc(var(--blob-opacity) * .6); }
+
+  .page { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto; padding: 0 16px 140px; }
+  @media (min-width: 900px) { .page { padding-bottom: 64px; } }
+
+  /* header */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; letter-spacing: -.02em; text-decoration: none; color: var(--text); }
+  .logo { width: 34px; height: 34px; border-radius: 11px; background: var(--grad); display: grid; place-items: center; box-shadow: 0 6px 18px rgba(238, 42, 123, .35); }
+  .logo svg { width: 18px; height: 18px; }
+  .nav { display: flex; align-items: center; gap: 6px; }
+  .nav button { background: none; border: 0; padding: 8px 12px; border-radius: 999px; font-weight: 600; font-size: 15px; color: var(--muted); }
+  .nav button { white-space: nowrap; }
+  @media (max-width: 420px) { .nav { gap: 2px; } .nav button { padding: 8px 10px; font-size: 14px; } .brand { font-size: 18px; } }
+  .nav button[aria-current="page"] { color: var(--text); background: var(--surface); box-shadow: var(--shadow); }
+  .nav .icon { width: 38px; height: 38px; padding: 0; display: grid; place-items: center; border: 1px solid var(--line); background: var(--surface); color: var(--text); }
+  .nav .icon svg { width: 18px; height: 18px; }
+
+  /* hero */
+  .hero { text-align: center; padding: 28px 0 34px; display: grid; justify-items: center; gap: 14px; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: 13px; font-weight: 600; color: var(--muted); box-shadow: var(--shadow); }
+  .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 4px var(--good-soft); }
+  .hero h1 { margin: 0; font-size: clamp(34px, 6vw, 60px); line-height: 1.04; letter-spacing: -.035em; font-weight: 800; text-wrap: balance; max-width: 820px; }
+  .gt { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { margin: 0; font-size: 18px; color: var(--muted); max-width: 580px; text-wrap: pretty; }
+  .trust { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 20px; font-size: 14px; color: var(--muted); font-weight: 500; }
+  .trust span { display: inline-flex; align-items: center; gap: 6px; }
+  .trust svg { width: 16px; height: 16px; color: var(--good); flex: none; }
+
+  /* order builder */
+  .builder { display: grid; gap: 20px; align-items: start; }
+  @media (min-width: 900px) { .builder { grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; } }
+  .steps { display: grid; gap: 14px; min-width: 0; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; box-shadow: var(--shadow); min-width: 0; }
+  .card h2 { margin: 0 0 14px; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .card h2 .n { width: 26px; height: 26px; border-radius: 9px; background: var(--grad); color: var(--on-grad); display: grid; place-items: center; font-size: 13px; font-weight: 800; flex: none; }
+  .card h2 .sub { margin-left: auto; font-size: 13px; font-weight: 500; color: var(--faint); }
+
+  .plats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+  @media (max-width: 640px) { .plats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .plat { display: grid; justify-items: center; gap: 6px; padding: 12px 4px 10px; border-radius: 14px; border: 2px solid var(--line); background: var(--surface); font-size: 13px; font-weight: 600; min-width: 0; }
+  .plat:hover { border-color: var(--line-strong); }
   .plat[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
-  .mark { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; font-size: 15px; color: #fff; }
-  .plat span { font-size: 14px; font-weight: 600; }
+  .pmark { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #fff; }
+  .pmark svg { width: 22px; height: 22px; }
 
-  /* service types */
-  .types { display: flex; flex-wrap: wrap; gap: 8px; }
-  .type { padding: 10px 18px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); font-weight: 600; font-size: 15px; }
-  .type:hover { border-color: var(--muted); }
-  .type[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-  .type small { font-weight: 500; opacity: .7; margin-left: 4px; }
+  .kinds { display: flex; flex-wrap: wrap; gap: 8px; }
+  .kind { padding: 10px 18px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); font-weight: 600; font-size: 15px; }
+  .kind:hover { border-color: var(--line-strong); }
+  .kind[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
 
-  /* options */
-  .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
-  .opt { text-align: left; display: grid; gap: 6px; align-content: start; padding: 14px; border-radius: var(--radius); border: 2px solid var(--line); background: var(--surface); min-width: 0; }
-  .opt:hover { border-color: var(--muted); }
-  .opt[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
-  .opt .kind { font-weight: 800; font-size: 16px; }
-  .opt .why { font-size: 13px; color: var(--muted); }
-  .opt .rate { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
-  .opt .rate small { font-size: 12px; font-weight: 500; color: var(--muted); }
-  .opt ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 13px; }
-  .opt li::before { content: "·"; color: var(--accent); font-weight: 800; margin-right: 6px; }
-  .pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--good-soft); color: var(--good); justify-self: start; }
-  .pill.warn { background: var(--warn-soft); color: var(--warn); }
-  .more { justify-self: start; background: none; border: 0; padding: 4px 0; color: var(--accent); font-weight: 600; font-size: 14px; }
-  .all { display: grid; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); max-height: 340px; overflow: auto; }
-  .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; text-align: left; padding: 10px 12px; border: 0; border-bottom: 1px solid var(--line); background: none; font-size: 13px; }
-  .row:last-child { border-bottom: 0; }
-  .row:hover { background: var(--sunk); }
-  .row[aria-pressed="true"] { background: var(--accent-soft); }
-  .row b { font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .row span { min-width: 0; overflow-wrap: anywhere; }
-  .row .off { color: var(--muted); }
+  .pkgs { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+  .pkg { position: relative; text-align: left; display: grid; gap: 4px; align-content: start; padding: 16px; border-radius: 16px; border: 2px solid var(--line); background: var(--surface); min-width: 0; }
+  .pkg:hover { border-color: var(--line-strong); }
+  .pkg[aria-pressed="true"] { border-color: transparent; background: linear-gradient(var(--surface), var(--surface)) padding-box, var(--grad) border-box; box-shadow: 0 10px 30px rgba(238, 42, 123, .18); }
+  .pkg .lbl { font-weight: 800; font-size: 16px; }
+  .pkg .why { font-size: 13px; color: var(--muted); }
+  .pkg .amt { font-size: 24px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; margin-top: 6px; }
+  .pkg ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+  .pkg li { display: flex; gap: 6px; align-items: baseline; }
+  .pkg li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--grad); flex: none; transform: translateY(-1px); }
+  .badge { position: absolute; top: -10px; right: 12px; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--grad); color: var(--on-grad); }
+  .badge.soft { background: var(--warn-soft); color: var(--warn); }
 
-  /* quantity */
-  .qty { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .qty input { font: inherit; font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; width: 100%; max-width: 260px; padding: 10px 14px; border-radius: var(--radius); border: 2px solid var(--line); background: var(--surface); color: var(--text); }
-  .qty input:focus { border-color: var(--accent); outline: none; }
-  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-  .chip { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .chip:hover { border-color: var(--muted); }
-  .hint { font-size: 13px; color: var(--muted); margin: 0; }
-  .hint.bad { color: var(--warn); font-weight: 600; }
+  .qrow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .qinput { display: flex; align-items: center; border: 2px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
+  .qinput:focus-within { border-color: var(--accent); }
+  .qinput button { width: 46px; height: 54px; border: 0; background: var(--surface-2); font-size: 22px; font-weight: 600; }
+  .qinput input { width: 150px; border: 0; background: transparent; text-align: center; font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; padding: 8px 4px; outline: none; -moz-appearance: textfield; }
+  .qinput input::-webkit-outer-spin-button, .qinput input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .range { width: 100%; margin: 16px 0 4px; accent-color: var(--accent); }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .chip { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .chip:hover, .chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+  .hint { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+  .hint.bad { color: var(--bad); font-weight: 600; }
 
-  /* total */
-  .total { background: var(--surface); border: 2px solid var(--accent); border-radius: 18px; padding: 18px; display: grid; gap: 10px; }
-  .total .sum { font-size: 44px; line-height: 1.05; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--accent); overflow-wrap: anywhere; }
-  .total .what { font-size: 15px; font-weight: 600; }
-  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  @media (max-width: 480px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  .fact { background: var(--sunk); border-radius: 10px; padding: 8px 10px; min-width: 0; }
-  .fact span { display: block; font-size: 12px; color: var(--muted); }
-  .fact b { font-size: 15px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-  .svc-name { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; margin: 0; }
-  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  .btn { padding: 10px 16px; border-radius: 10px; border: 2px solid var(--accent); background: var(--accent); color: var(--accent-ink); font-weight: 700; }
-  .btn.ghost { background: transparent; color: var(--text); border-color: var(--line); }
+  .field { display: grid; gap: 6px; }
+  .field + .field { margin-top: 14px; }
+  .field label { font-size: 14px; font-weight: 600; }
+  .field label small { font-weight: 500; color: var(--faint); }
+  .tin { width: 100%; padding: 14px 16px; border-radius: 14px; border: 2px solid var(--line); background: var(--surface); font-size: 16px; outline: none; }
+  .tin:focus { border-color: var(--accent); }
+  .tin.bad { border-color: var(--bad); }
+  .safe { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--muted); background: var(--surface-2); padding: 10px 12px; border-radius: 12px; margin-top: 14px; }
+  .safe svg { width: 16px; height: 16px; flex: none; color: var(--good); margin-top: 2px; }
 
-  /* phone: total pinned to the bottom */
-  .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; box-shadow: 0 -6px 20px rgba(0,0,0,.08); }
-  .bar .s { font-size: 24px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
-  .bar .d { font-size: 12px; color: var(--muted); }
-  @media (min-width: 761px) { .bar { display: none; } }
-  footer { font-size: 12px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
+  /* checkout */
+  .checkout { position: relative; display: grid; gap: 14px; }
+  @media (min-width: 900px) { .checkout { position: sticky; top: 16px; } }
+  .sum-head { display: flex; align-items: center; gap: 12px; }
+  .sum-head .pmark { width: 44px; height: 44px; flex: none; }
+  .sum-head b { display: block; font-size: 17px; line-height: 1.25; }
+  .sum-head span { font-size: 13px; color: var(--muted); }
+  .lines { display: grid; gap: 8px; padding: 14px 0; border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line); font-size: 14px; }
+  .lines div { display: flex; justify-content: space-between; gap: 10px; }
+  .lines span { color: var(--muted); }
+  .lines b { text-align: right; overflow-wrap: anywhere; font-weight: 600; }
+  .total { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .total span { color: var(--muted); font-weight: 600; }
+  .total b { font-size: 36px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .pay { position: relative; width: 100%; padding: 16px 20px; border: 0; border-radius: 14px; background: var(--grad); background-size: 160% 100%; color: var(--on-grad); font-size: 17px; font-weight: 800; letter-spacing: .01em; box-shadow: 0 10px 28px rgba(238, 42, 123, .35); display: inline-flex; justify-content: center; align-items: center; gap: 10px; }
+  .pay:hover { background-position: 100% 0; }
+  .pay:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+  .pay svg { width: 18px; height: 18px; }
+  .spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .methods { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+  .methods span { font-size: 11px; font-weight: 700; letter-spacing: .03em; padding: 4px 8px; border-radius: 6px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+  .secure { text-align: center; font-size: 12px; color: var(--faint); margin: 0; }
+  .note { font-size: 13px; padding: 10px 12px; border-radius: 12px; background: var(--warn-soft); color: var(--warn); margin: 0; }
+  .err { font-size: 14px; padding: 10px 12px; border-radius: 12px; background: var(--bad-soft); color: var(--bad); margin: 0; font-weight: 600; }
+
+  /* phone pay bar */
+  .bar { position: fixed; z-index: 20; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line); display: flex; align-items: center; gap: 12px; box-shadow: 0 -10px 30px rgba(0,0,0,.1); }
+  .bar .t { flex: 1; min-width: 0; }
+  .bar .t b { display: block; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .bar .t span { display: block; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar .pay { width: auto; padding: 14px 22px; font-size: 16px; }
+  @media (min-width: 900px) { .bar { display: none; } }
+
+  /* how it works */
+  .how { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 44px; }
+  @media (max-width: 720px) { .how { grid-template-columns: 1fr; } }
+  .how .card h3 { margin: 10px 0 4px; font-size: 17px; }
+  .how .card p { margin: 0; color: var(--muted); font-size: 14px; }
+  .how .ic { width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
+  .how .ic svg { width: 20px; height: 20px; }
+
+  /* track */
+  .track { max-width: 640px; margin: 24px auto 0; display: grid; gap: 14px; }
+  .track h1 { margin: 0; font-size: 34px; letter-spacing: -.03em; font-weight: 800; text-align: center; }
+  .track > p { margin: 0; text-align: center; color: var(--muted); }
+  .tform { display: flex; gap: 8px; }
+  .tform .tin { flex: 1; min-width: 0; }
+  .tform .pay { width: auto; padding: 0 22px; box-shadow: none; }
+  .st-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .st-head b { font-size: 18px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+  .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .pill.done { background: var(--good-soft); color: var(--good); }
+  .pill.progress { background: var(--accent-soft); color: var(--accent); }
+  .pill.partial, .pill.pending { background: var(--warn-soft); color: var(--warn); }
+  .pill.error { background: var(--bad-soft); color: var(--bad); }
+  .prog { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin: 14px 0 6px; }
+  .prog i { display: block; height: 100%; background: var(--grad); border-radius: inherit; transition: width .6s ease; }
+  .kv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+  .kv div { background: var(--surface-2); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+  .kv span { display: block; font-size: 12px; color: var(--muted); }
+  .kv b { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; font-size: 15px; }
+  .recent { display: grid; gap: 6px; }
+  .recent h3 { margin: 6px 0 2px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); }
+  .ritem { display: flex; justify-content: space-between; gap: 10px; text-align: left; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); }
+  .ritem:hover { border-color: var(--line-strong); }
+  .ritem b { font-size: 15px; }
+  .ritem span { font-size: 13px; color: var(--muted); }
+  .ritem code { font-size: 12px; color: var(--faint); }
+
+  /* modal */
+  .scrim { position: fixed; inset: 0; z-index: 50; background: rgba(10, 6, 20, .55); backdrop-filter: blur(6px); display: grid; place-items: center; padding: 16px; }
+  .modal { width: 100%; max-width: 420px; background: var(--surface); border-radius: 24px; padding: 26px 22px 22px; display: grid; gap: 14px; text-align: center; box-shadow: 0 30px 80px rgba(0,0,0,.35); }
+  .modal h2 { margin: 0; font-size: 24px; letter-spacing: -.02em; }
+  .modal p { margin: 0; color: var(--muted); font-size: 15px; }
+  .tick { width: 72px; height: 72px; margin: 0 auto; border-radius: 50%; background: var(--grad); display: grid; place-items: center; box-shadow: 0 12px 34px rgba(238, 42, 123, .4); }
+  .tick svg { width: 36px; height: 36px; color: #fff; }
+  .tick.fail { background: var(--bad); box-shadow: none; }
+  .tid { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); text-align: left; }
+  .tid span { font-size: 12px; color: var(--muted); display: block; }
+  .tid code { font-size: 15px; font-weight: 700; overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .ghost { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; font-size: 14px; }
+  .modal .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .demo-sheet { text-align: left; display: grid; gap: 10px; }
+  .demo-sheet .pill { justify-self: start; }
+  .demo-sheet .amt { font-size: 32px; font-weight: 800; letter-spacing: -.02em; }
+
+  footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--faint); }
   footer a { color: inherit; }
-  .theme { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; color: var(--muted); }
+
   @media (prefers-reduced-motion: no-preference) {
-    .plat, .type, .opt, .chip, .row { transition: border-color .15s, background-color .15s; }
+    .plat, .kind, .pkg, .chip, .ritem, .pay { transition: border-color .15s, background-color .15s, background-position .4s, box-shadow .2s, transform .15s; }
+    .pay:active:not(:disabled) { transform: scale(.98); }
+    .modal { animation: pop .25s ease-out; }
+    @keyframes pop { from { transform: translateY(12px) scale(.97); opacity: 0; } }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div>
-      <h1>SMM <em>Price</em> Calculator</h1>
-      <div class="tag" id="tagline">Prices from smmorange.com</div>
-    </div>
-    <button class="theme" id="themeBtn" type="button">Dark / light</button>
+<div class="blobs" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<div class="page">
+  <header class="top">
+    <a class="brand" href="#" id="home">
+      <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5 2 4 14h7l-1.5 8L20 10h-7l.5-8z"/></svg></span>
+      <span id="storeName">Boostly</span>
+    </a>
+    <nav class="nav">
+      <button type="button" data-view="order" aria-current="page">Order</button>
+      <button type="button" data-view="track">Track order</button>
+      <button type="button" class="icon" id="themeBtn" aria-label="Switch dark / light">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+    </nav>
   </header>
 
-  <section class="step" aria-labelledby="h1s">
-    <h2 id="h1s"><b>1</b>Choose platform</h2>
-    <div class="platforms" id="platforms"></div>
-  </section>
+  <!-- ORDER -->
+  <main id="viewOrder">
+    <section class="hero">
+      <span class="eyebrow"><span class="dot"></span><span id="liveText">Orders start in under an hour</span></span>
+      <h1>Grow your <span class="gt" id="heroPlat">Instagram</span> in minutes, not months.</h1>
+      <p>Followers, likes and views delivered automatically. No password needed. Pay by UPI, card or netbanking.</p>
+      <div class="trust">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Secure Razorpay checkout</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Starts automatically</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Live order tracking</span>
+      </div>
+    </section>
 
-  <section class="step" aria-labelledby="h2s" id="stepType">
-    <h2 id="h2s"><b>2</b>What do you need?</h2>
-    <div class="types" id="types"></div>
-  </section>
+    <div class="builder">
+      <div class="steps">
+        <section class="card" aria-labelledby="s1">
+          <h2 id="s1"><span class="n">1</span>Platform</h2>
+          <div class="plats" id="plats"></div>
+        </section>
 
-  <section class="step" aria-labelledby="h3s" id="stepOpt">
-    <h2 id="h3s"><b>3</b>Pick a speed / quality</h2>
-    <div class="options" id="options"></div>
-    <button class="more" id="moreBtn" type="button" aria-expanded="false"></button>
-    <div class="all" id="all" hidden></div>
-  </section>
+        <section class="card" aria-labelledby="s2">
+          <h2 id="s2"><span class="n">2</span>What do you want?</h2>
+          <div class="kinds" id="kinds"></div>
+        </section>
 
-  <section class="step" aria-labelledby="h4s" id="stepQty">
-    <h2 id="h4s"><b>4</b>How many?</h2>
-    <div class="qty">
-      <input id="qty" type="number" inputmode="numeric" min="1" step="1" value="1000" aria-label="Quantity">
+        <section class="card" aria-labelledby="s3">
+          <h2 id="s3"><span class="n">3</span>Choose a package<span class="sub" id="pkgSub"></span></h2>
+          <div class="pkgs" id="pkgs"></div>
+        </section>
+
+        <section class="card" aria-labelledby="s4">
+          <h2 id="s4"><span class="n">4</span>How many?</h2>
+          <div class="qrow">
+            <div class="qinput">
+              <button type="button" id="qMinus" aria-label="Fewer">−</button>
+              <input id="qty" type="number" inputmode="numeric" min="1" step="1" aria-label="Quantity">
+              <button type="button" id="qPlus" aria-label="More">+</button>
+            </div>
+          </div>
+          <input class="range" id="range" type="range" min="0" max="1000" step="1" aria-label="Quantity slider">
+          <div class="chips" id="chips"></div>
+          <p class="hint" id="qHint"></p>
+        </section>
+
+        <section class="card" aria-labelledby="s5">
+          <h2 id="s5"><span class="n">5</span>Where should it go?</h2>
+          <div class="field">
+            <label for="link" id="linkLabel">Profile link or username</label>
+            <input class="tin" id="link" type="text" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <p class="hint" id="linkHint"></p>
+          </div>
+          <div class="field">
+            <label for="email">Email <small>(optional, for your receipt)</small></label>
+            <input class="tin" id="email" type="email" autocomplete="email" placeholder="you@example.com">
+          </div>
+          <div class="safe">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <span>We never ask for your password. Keep the account <b>public</b> until the order finishes.</span>
+          </div>
+        </section>
+      </div>
+
+      <aside class="card checkout" id="checkout" aria-live="polite">
+        <div class="sum-head">
+          <div class="pmark" id="sumMark"></div>
+          <div><b id="sumTitle">—</b><span id="sumPkg"></span></div>
+        </div>
+        <div class="lines">
+          <div><span>Delivery</span><b id="sumTime">—</b></div>
+          <div><span>Refill guarantee</span><b id="sumRefill">—</b></div>
+          <div><span>Price per 1,000</span><b id="sumRate">—</b></div>
+          <div><span>Goes to</span><b id="sumLink">Add your link</b></div>
+        </div>
+        <div class="total"><span>Total</span><b id="sumTotal">—</b></div>
+        <p class="err" id="payErr" hidden></p>
+        <p class="note" id="demoNote" hidden></p>
+        <button class="pay" id="payBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <span id="payText">Pay</span>
+        </button>
+        <div class="methods" aria-label="Payment methods"><span>UPI</span><span>GPAY</span><span>PHONEPE</span><span>CARDS</span><span>NETBANKING</span></div>
+        <p class="secure">Payments are processed by Razorpay. We never see your card or UPI PIN.</p>
+      </aside>
     </div>
-    <div class="chips" id="chips"></div>
-    <p class="hint" id="qtyHint"></p>
-  </section>
 
-  <section class="total" aria-live="polite" id="total">
-    <div class="what" id="tWhat"></div>
-    <div class="sum" id="tSum">—</div>
-    <div class="facts">
-      <div class="fact"><span>Delivery time</span><b id="tTime">—</b></div>
-      <div class="fact"><span>Refill</span><b id="tRefill">—</b></div>
-      <div class="fact"><span>Service ID</span><b id="tId">—</b></div>
-    </div>
-    <p class="svc-name" id="tSvc"></p>
-    <div class="actions">
-      <button class="btn" id="copyBtn" type="button">Copy details</button>
-    </div>
-  </section>
+    <section class="how" aria-label="How it works">
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></div>
+        <h3>1. Paste your link</h3><p>Pick a package and tell us which profile or post to boost.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+        <h3>2. Pay securely</h3><p>UPI, cards or netbanking through Razorpay. Takes about 20 seconds.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></div>
+        <h3>3. Watch it grow</h3><p>Your order starts automatically. Track it live with your tracking ID.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- TRACK -->
+  <main id="viewTrack" hidden>
+    <section class="track">
+      <h1>Track your <span class="gt">order</span></h1>
+      <p>Enter the tracking ID from your payment confirmation.</p>
+      <form class="tform" id="trackForm">
+        <input class="tin" id="trackId" placeholder="pay_XXXXXXXXXXXX" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Tracking ID">
+        <button class="pay" type="submit">Check</button>
+      </form>
+      <p class="err" id="trackErr" hidden></p>
+      <div class="card" id="trackCard" hidden></div>
+      <div class="recent" id="recent"></div>
+    </section>
+  </main>
 
   <footer>
-    <span id="updated"></span>
-    <span><a href="boost">Store →</a> · <a href="advanced.html" id="advLink">Advanced calculator →</a></span>
+    <span id="footLeft"></span>
+    <span><a href="/calculator">Price calculator</a></span>
   </footer>
 </div>
 
-<div class="bar" aria-hidden="true">
-  <div><div class="s" id="bSum">—</div><div class="d" id="bWhat"></div></div>
-  <button class="btn" type="button" onclick="document.getElementById('total').scrollIntoView({behavior:'smooth'})">Details</button>
+<div class="bar" id="bar">
+  <div class="t"><b id="barTotal">—</b><span id="barWhat"></span></div>
+  <button class="pay" type="button" id="barPay">Pay</button>
 </div>
 
+<div class="scrim" id="scrim" hidden><div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"></div></div>
+
 <script src="calculator.js"></script>
-<script src="data/services.js"></script>
 <script>
 (function () {
   'use strict';
   var C = window.SmmCalc;
   var $ = function (id) { return document.getElementById(id); };
-  var KEY = 'smmcalc.simple.v1';
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); };
   var num = function (n) { return Number(n).toLocaleString('en-IN'); };
+  var KEY = 'boostly.v1', ORDERS = 'boostly.orders.v1';
 
-  var PLATFORMS = [
-    { id: 'Instagram', label: 'Instagram', code: 'IG', color: 'linear-gradient(135deg,#feda75,#fa7e1e 30%,#d62976 60%,#962fbf 85%,#4f5bd5)' },
-    { id: 'YouTube', label: 'YouTube', code: 'YT', color: '#ff0033' },
-    { id: 'TikTok', label: 'TikTok', code: 'TT', color: 'var(--mark-dark)', ink: 'var(--mark-dark-ink)' },
-    { id: 'Facebook', label: 'Facebook', code: 'FB', color: '#1877f2' },
-    { id: 'Telegram', label: 'Telegram', code: 'TG', color: '#229ed9' },
-    { id: 'Twitter', label: 'X / Twitter', code: 'X', color: 'var(--mark-dark)', ink: 'var(--mark-dark-ink)' }
-  ];
-  var TYPE_ORDER = ['Followers', 'Likes', 'Views', 'Subscribers', 'Members', 'Comments', 'Comment Likes', 'Other'];
-  var WHY = {
-    cheap: 'Lowest price',
-    smart: 'Better quality for a little more',
-    fast: 'Quickest delivery',
-    best: 'Strongest refill and accounts'
+  var ICONS = {
+    Instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>',
+    YouTube: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12 31 31 0 0 0 1 16.8a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.8 15.1V8.9L15.6 12z"/></svg>',
+    TikTok: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 3c.4 2.2 1.9 3.8 4.1 4v3.1a7.3 7.3 0 0 1-4.1-1.3v6.4a5.8 5.8 0 1 1-5.8-5.8c.3 0 .6 0 .9.1v3.2a2.7 2.7 0 1 0 1.8 2.5V3z"/></svg>',
+    Facebook: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 8.5V6.8c0-.8.2-1.3 1.4-1.3H17V2.3A22 22 0 0 0 14.6 2C12.3 2 10.7 3.4 10.7 6v2.5H8v3.4h2.7V22H14V11.9h2.7l.4-3.4z"/></svg>',
+    Telegram: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.7 19.5c-.2 1-.9 1.3-1.7.8l-4.8-3.6-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.9 8.9-8c.4-.3-.1-.5-.6-.2L6.5 13.2l-4.7-1.5c-1-.3-1-1 .2-1.5L20.5 3c.9-.3 1.6.2 1.4 1.3z"/></svg>',
+    Twitter: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.8 2.5h3.3l-7.2 8.2 8.5 11.2h-6.6l-5.2-6.8-5.9 6.8H1.4l7.7-8.8L1 2.5h6.8l4.7 6.2zm-1.2 17.4h1.8L7.6 4.4H5.6z"/></svg>'
   };
+  var PLATFORMS = [
+    { id: 'Instagram', label: 'Instagram', bg: 'linear-gradient(45deg,#f9a03f,#ee2a7b 45%,#a034c7 75%,#5b51d8)' },
+    { id: 'YouTube', label: 'YouTube', bg: '#ff0033' },
+    { id: 'TikTok', label: 'TikTok', bg: '#111' },
+    { id: 'Facebook', label: 'Facebook', bg: '#1877f2' },
+    { id: 'Telegram', label: 'Telegram', bg: '#229ed9' },
+    { id: 'Twitter', label: 'X', bg: '#111' }
+  ];
+  var KIND_ORDER = ['Followers', 'Likes', 'Views', 'Subscribers', 'Members', 'Comments', 'Comment Likes'];
+  var WHY = { cheap: 'Lowest price', smart: 'Best value: better quality for a little more', fast: 'Quickest delivery', best: 'Strongest refill and accounts' };
+  var NICE = { cheap: 'Starter', smart: 'Popular', fast: 'Express', best: 'Premium' };
 
-  var data = window.SERVICES_DATA || { services: [] };
-  var all = data.services.map(function (s) { return C.normaliseService(s, data.currency); })
-    .filter(function (s) { return s.id && isFinite(s.rate); });
-  all.forEach(function (s) { s.platform = C.platformOf(s); s.kind = C.serviceType(s); });
-  var currency = data.currency || 'INR';
-  var money = function (v, dp) { return C.formatMoney(v, currency, dp); };
+  // What the link field asks for, per platform / service.
+  function linkSpec(p, k) {
+    var profile = /Followers|Subscribers|Members/.test(k);
+    var ex = {
+      Instagram: profile ? ['Instagram username or profile link', 'instagram.com/yourname or @yourname'] : ['Instagram post or reel link', 'https://www.instagram.com/p/…'],
+      YouTube: profile ? ['YouTube channel link', 'https://www.youtube.com/@yourchannel'] : ['YouTube video link', 'https://youtu.be/…'],
+      TikTok: profile ? ['TikTok profile link', 'https://www.tiktok.com/@yourname'] : ['TikTok video link', 'https://www.tiktok.com/@you/video/…'],
+      Facebook: profile ? ['Facebook page or profile link', 'https://www.facebook.com/yourpage'] : ['Facebook post or video link', 'https://www.facebook.com/…'],
+      Telegram: profile ? ['Telegram channel or group link', 'https://t.me/yourchannel'] : ['Telegram post link', 'https://t.me/yourchannel/123'],
+      Twitter: profile ? ['X profile link', 'https://x.com/yourname'] : ['X post link', 'https://x.com/you/status/…']
+    }[p] || ['Link', 'https://…'];
+    return { label: ex[0], placeholder: ex[1], profile: profile };
+  }
+  function linkProblem(v, p, k) {
+    v = v.trim();
+    if (!v) return 'empty';
+    if (/\s/.test(v)) return 'The link can’t contain spaces.';
+    var spec = linkSpec(p, k);
+    var isUrl = /^(https?:\/\/)?([a-z0-9-]+\.)+[a-z]{2,}\//i.test(v);
+    if (!isUrl && !(spec.profile && /^@?[A-Za-z0-9._]{1,60}$/.test(v))) return spec.profile ? 'Enter a username or a full profile link.' : 'Paste the full post link (https://…).';
+    if (p === 'Instagram' && isUrl && !/instagram\.com|instagr\.am/i.test(v)) return 'That doesn’t look like an Instagram link.';
+    if (p === 'Instagram' && !spec.profile && !/\/(p|reel|reels|tv)\//i.test(v)) return 'Use a post or reel link, e.g. instagram.com/p/…';
+    return null;
+  }
+
+  // ---------- data ----------
+  var store = { mode: 'preview', storeName: 'Boostly', support: '', currency: 'INR', services: [] };
+  var money = function (v) { return C.formatMoney(v, store.currency, 2); };
 
   var saved = {};
   try { saved = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
-  var state = {
-    platform: saved.platform || 'Instagram',
-    kind: saved.kind || 'Followers',
-    optKey: saved.optKey || 'smart',
-    pickedId: null,          // set when the user picks from "See all options"
-    qty: saved.qty || 1000,
-    showAll: false
-  };
-
+  var state = { platform: saved.platform || 'Instagram', kind: saved.kind || 'Followers', optKey: saved.optKey || 'smart', qty: saved.qty || 1000, link: '', email: saved.email || '' };
   function remember() {
-    try { localStorage.setItem(KEY, JSON.stringify({ platform: state.platform, kind: state.kind, optKey: state.optKey, qty: state.qty })); } catch (e) {}
+    try { localStorage.setItem(KEY, JSON.stringify({ platform: state.platform, kind: state.kind, optKey: state.optKey, qty: state.qty, email: state.email })); } catch (e) {}
   }
 
-  function group() {
-    return all.filter(function (s) { return s.platform === state.platform && s.kind === state.kind; });
+  function loadScript(src) {
+    return new Promise(function (ok, fail) { var s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = fail; document.head.appendChild(s); });
   }
 
-  // "Real accounts · Lifetime refill · done in ~2 hours" for the current quantity
-  function describe(s) {
-    var t = approx(C.estimateHours(s, state.qty || 1000));
-    return C.features(s).concat(t ? ['done in ' + t] : []).join(' · ');
+  function boot() {
+    fetch('/api/services', { headers: { Accept: 'application/json' } })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) { Object.assign(store, d); start(); })
+      .catch(function () {
+        // No backend (opened as a file / plain static host): show bundled prices with a 50% sample markup.
+        loadScript('data/services.js').then(function () {
+          var d = window.SERVICES_DATA || { services: [] };
+          store.mode = 'preview';
+          store.services = d.services.map(function (s) { return C.normaliseService(s, d.currency); })
+            .filter(function (s) { return s.id && isFinite(s.rate) && s.rate > 0; })
+            .map(function (s) { s.platform = C.platformOf(s); s.kind = C.serviceType(s); s.rate = C.retailRate(s.rate, 50); return s; })
+            .filter(function (s) { return s.platform !== 'Other' && !/\bcustom\b/.test(C.plain(s.name)); });
+          start();
+        }, function () { start(); });
+      });
   }
 
-  // "~3 hours", "under 1 hour"
-  function approx(h) { var t = C.formatHours(h); return t ? (/^under/.test(t) ? t : '~' + t) : null; }
+  var all = [];
+  function start() {
+    all = store.services.map(function (s) { var n = C.normaliseService(s, store.currency); n.platform = s.platform; n.kind = s.kind; return n; });
+    $('storeName').textContent = store.storeName;
+    document.title = store.storeName + ' · Social Growth';
+    $('footLeft').textContent = '© ' + new Date().getFullYear() + ' ' + store.storeName + (store.support ? ' · Support: ' + store.support : '');
+    if (store.mode !== 'live') {
+      $('demoNote').hidden = false;
+      $('demoNote').textContent = store.mode === 'demo'
+        ? 'Demo mode: checkout is simulated and no order is placed. Add your Razorpay and panel keys to go live.'
+        : 'Preview: the payment server isn’t running, so checkout is simulated.';
+    }
+    if (!all.some(function (s) { return s.platform === state.platform; })) state.platform = 'Instagram';
+    $('qty').value = state.qty;
+    $('email').value = state.email;
+    route();
+    renderAll();
+  }
 
   // ---------- render ----------
+  var cur = { service: null, option: null, quote: null };
+
+  function group() { return all.filter(function (s) { return s.platform === state.platform && s.kind === state.kind; }); }
+  function plat(id) { return PLATFORMS.filter(function (p) { return p.id === id; })[0] || PLATFORMS[0]; }
+  function approx(h) { var t = C.formatHours(h); return t ? (/^under/.test(t) ? t : '~' + t) : null; }
+  function markHtml(p) { return '<div class="pmark" style="background:' + p.bg + '">' + (ICONS[p.id] || '') + '</div>'; }
+
   function renderPlatforms() {
-    $('platforms').innerHTML = PLATFORMS.filter(function (p) {
-      return all.some(function (s) { return s.platform === p.id; });
-    }).map(function (p) {
-      return '<button type="button" class="plat" data-p="' + p.id + '" aria-pressed="' + (p.id === state.platform) + '">' +
-        '<div class="mark" style="background:' + p.color + (p.ink ? ';color:' + p.ink : '') + '">' + p.code + '</div>' +
-        '<span>' + esc(p.label) + '</span></button>';
+    $('plats').innerHTML = PLATFORMS.filter(function (p) { return all.some(function (s) { return s.platform === p.id; }); }).map(function (p) {
+      return '<button type="button" class="plat" data-p="' + p.id + '" aria-pressed="' + (p.id === state.platform) + '">' + markHtml(p) + '<span>' + esc(p.label) + '</span></button>';
     }).join('');
+    $('heroPlat').textContent = plat(state.platform).id === 'Twitter' ? 'X account' : plat(state.platform).label;
   }
 
-  function renderTypes() {
-    var counts = {};
-    all.forEach(function (s) { if (s.platform === state.platform) counts[s.kind] = (counts[s.kind] || 0) + 1; });
-    var kinds = TYPE_ORDER.filter(function (k) { return counts[k]; });
+  function renderKinds() {
+    var have = {};
+    all.forEach(function (s) { if (s.platform === state.platform) have[s.kind] = 1; });
+    var kinds = KIND_ORDER.filter(function (k) { return have[k]; });
     if (kinds.indexOf(state.kind) === -1) state.kind = kinds[0];
-    $('types').innerHTML = kinds.map(function (k) {
-      return '<button type="button" class="type" data-k="' + esc(k) + '" aria-pressed="' + (k === state.kind) + '">' + esc(k) + '</button>';
+    $('kinds').innerHTML = kinds.map(function (k) {
+      return '<button type="button" class="kind" data-k="' + esc(k) + '" aria-pressed="' + (k === state.kind) + '">' + esc(k) + '</button>';
     }).join('');
   }
 
-  var current = { options: [], service: null, option: null };
-
-  function renderOptions() {
-    var g = group();
-    var opts = C.pickOptions(g, state.qty);
-    current.options = opts;
-    var picked = state.pickedId && g.filter(function (s) { return s.id === state.pickedId; })[0];
-    var chosen = picked ? null : (opts.filter(function (o) { return o.key === state.optKey; })[0] || opts.filter(function (o) { return o.key === 'smart'; })[0] || opts[0]);
-    current.option = chosen;
-    current.service = picked || (chosen && chosen.service);
-
-    $('options').innerHTML = opts.map(function (o) {
-      var s = o.service, time = approx(o.estimateHours);
-      var items = [
-        '<li>' + (time ? 'Done in ' + esc(time) : 'Delivery time not listed') + '</li>',
-        '<li>' + esc(o.refill.label) + '</li>'
-      ];
-      var total = o.fits && state.qty > 0 ? money(C.quote(s, { quantity: state.qty }).price, 2) : money(s.rate);
-      var unit = o.fits && state.qty > 0 ? 'for ' + num(state.qty) : '/ 1000';
-      var pill = o.alsoFastest ? '<span class="pill">Also the fastest</span>' :
-        (!o.fits ? '<span class="pill warn">' + (state.qty < s.min ? 'Min ' + num(s.min) : 'Max ' + num(s.max)) + '</span>' : '');
-      return '<button type="button" class="opt" data-o="' + o.key + '" aria-pressed="' + (!picked && chosen === o) + '">' +
-        '<span class="kind">' + esc(o.label) + '</span>' +
+  function renderPackages() {
+    var opts = C.pickOptions(group(), state.qty);
+    var chosen = opts.filter(function (o) { return o.key === state.optKey; })[0] || opts.filter(function (o) { return o.key === 'smart'; })[0] || opts[0];
+    cur.option = chosen || null;
+    cur.service = chosen ? chosen.service : null;
+    $('pkgSub').textContent = opts.length > 1 ? opts.length + ' options' : '';
+    $('pkgs').innerHTML = opts.map(function (o) {
+      var s = o.service, t = approx(o.estimateHours);
+      var price = o.fits && state.qty > 0 ? money(C.chargeAmount(s.rate, state.qty)) : money(s.rate) + '<small style="font-size:13px;font-weight:600;color:var(--muted)"> /1k</small>';
+      var badge = o.key === 'smart' ? '<span class="badge">Popular</span>' :
+        (!o.fits ? '<span class="badge soft">' + (state.qty < s.min ? 'Min ' + num(s.min) : 'Max ' + num(s.max)) + '</span>' : '');
+      var feats = C.features(s).filter(function (f) { return f !== o.refill.label; }).slice(0, 1);
+      return '<button type="button" class="pkg" data-o="' + o.key + '" aria-pressed="' + (o === chosen) + '">' + badge +
+        '<span class="lbl">' + esc(NICE[o.key]) + '</span>' +
         '<span class="why">' + esc(WHY[o.key]) + '</span>' +
-        '<span class="rate">' + esc(total) + ' <small>' + esc(unit) + '</small></span>' +
-        '<ul>' + items.join('') + '</ul>' + pill + '</button>';
-    }).join('');
-
-    $('moreBtn').hidden = g.length <= 1;
-    $('moreBtn').textContent = state.showAll ? 'Hide other options' : 'See other options';
-    $('moreBtn').setAttribute('aria-expanded', state.showAll);
-    $('all').hidden = !state.showAll;
-    if (state.showAll) {
-      // Sorted by price: skip a row when a cheaper one gives the same thing at least as fast.
-      var fastest = {}, q = state.qty || 1000;
-      var shownHours = function (s) {   // the rounded time the page shows: under 1 hour, N hours, N days
-        var h = C.estimateHours(s, q);
-        return h == null ? Infinity : h < 1 ? 0 : h < 24 ? Math.ceil(h) : Math.ceil(h / 24) * 24;
-      };
-      $('all').innerHTML = g.slice().sort(function (a, b) { return a.rate - b.rate || shownHours(a) - shownHours(b); }).filter(function (s) {
-        var key = C.features(s).join('|'), h = shownHours(s);
-        if (key in fastest && fastest[key] <= h) return false;
-        fastest[key] = h;
-        return true;
-      }).map(function (s) {
-        var fits = C.fitsQuantity(s, state.qty);
-        var price = fits && state.qty > 0 ? money(C.quote(s, { quantity: state.qty }).price, 2) : money(s.rate) + ' / 1000';
-        return '<button type="button" class="row" data-s="' + esc(s.id) + '" aria-pressed="' + (current.service === s) + '">' +
-          '<span class="' + (fits ? '' : 'off') + '">' + esc(describe(s)) +
-          (fits ? '' : ' · ' + (state.qty < s.min ? 'min ' + num(s.min) : 'max ' + num(s.max))) + '</span>' +
-          '<b>' + esc(price) + '</b></button>';
-      }).join('');
-    }
+        '<span class="amt">' + price + '</span>' +
+        '<ul><li>' + esc(t ? 'Done in ' + t : 'Starts within the hour') + '</li><li>' + esc(o.refill.label) + '</li>' +
+        feats.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul></button>';
+    }).join('') || '<p class="hint">No packages for this yet.</p>';
   }
 
-  function renderQtyChips() {
-    var s = current.service;
+  // Slider runs on a log scale between the service's min and a sensible max.
+  function sliderBounds() {
+    var s = cur.service; if (!s) return [1, 1];
+    var hi = Math.min(s.max > 0 ? s.max : 1e6, Math.max(s.min * 1000, 100000));
+    return [s.min, hi];
+  }
+  function toSlider(q) { var b = sliderBounds(); if (b[1] <= b[0]) return 0; return Math.round(1000 * Math.log(Math.max(q, b[0]) / b[0]) / Math.log(b[1] / b[0])); }
+  function fromSlider(v) {
+    var b = sliderBounds(), q = b[0] * Math.pow(b[1] / b[0], v / 1000);
+    var step = q < 1000 ? 50 : q < 10000 ? 100 : q < 100000 ? 1000 : 5000;
+    return Math.max(b[0], Math.min(b[1], Math.round(q / step) * step));
+  }
+
+  function renderQty() {
+    var s = cur.service;
     if (!s) { $('chips').innerHTML = ''; return; }
     var max = s.max > 0 ? s.max : Infinity;
-    var picks = [100, 500, 1000, 5000, 10000, 50000, 100000].filter(function (v) { return v >= s.min && v <= max; });
-    if (picks.indexOf(s.min) === -1) picks.unshift(s.min);
-    $('chips').innerHTML = picks.slice(0, 7).map(function (v) {
-      return '<button type="button" class="chip" data-q="' + v + '">' + (v === s.min ? 'Min ' : '') + num(v) + '</button>';
+    var picks = [100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000].filter(function (v) { return v >= s.min && v <= max; }).slice(0, 7);
+    if (!picks.length) picks = [s.min];
+    $('chips').innerHTML = picks.map(function (v) {
+      return '<button type="button" class="chip" data-q="' + v + '" aria-pressed="' + (v === state.qty) + '">' + num(v) + '</button>';
     }).join('');
+    if (document.activeElement !== $('range')) $('range').value = toSlider(state.qty);
+    var q = C.quote(s, { quantity: state.qty });
+    $('qHint').className = 'hint' + (q.valid ? '' : ' bad');
+    $('qHint').textContent = q.valid ? 'This package takes ' + num(s.min) + ' to ' + (s.max > 0 && s.max < 1e9 ? num(s.max) : 'unlimited') + '.' : q.errors.join(' ');
   }
 
-  function renderTotal() {
-    var s = current.service, qty = state.qty;
-    var plat = PLATFORMS.filter(function (p) { return p.id === state.platform; })[0];
-    var label = current.option ? current.option.label : 'Selected service';
-    if (!s) { $('tSum').textContent = '—'; return; }
-    var r = C.quote(s, { quantity: qty });
-    var bad = !r.valid;
-    $('qtyHint').className = 'hint' + (bad ? ' bad' : '');
-    $('qtyHint').textContent = bad ? r.errors.join(' ') : 'This option takes ' + num(s.min) + ' to ' + (s.max > 0 && s.max < 2e9 ? num(s.max) : 'unlimited') + '.';
-    var what = num(qty || 0) + ' ' + (plat ? plat.label : '') + ' ' + state.kind + ' · ' + label;
-    $('tWhat').textContent = what;
-    $('tSum').textContent = bad ? '—' : money(r.price, 2);
-    $('tTime').textContent = approx(C.estimateHours(s, qty)) || 'Not listed';
-    $('tRefill').textContent = C.refillInfo(s).label;
-    $('tId').textContent = '#' + s.id;
-    var extra = C.features(s).filter(function (f) { return f !== C.refillInfo(s).label; });
-    $('tSvc').textContent = extra.join(' · ');
-    $('tSvc').hidden = !extra.length;
-    $('bSum').textContent = bad ? '—' : money(r.price, 2);
-    $('bWhat').textContent = bad ? r.errors[0] : what;
+  function renderLink() {
+    var spec = linkSpec(state.platform, state.kind);
+    $('linkLabel').textContent = spec.label;
+    $('link').placeholder = spec.placeholder;
+    var p = linkProblem(state.link, state.platform, state.kind);
+    var show = p && p !== 'empty' && state.link.length > 2;
+    $('link').classList.toggle('bad', !!show);
+    $('linkHint').className = 'hint' + (show ? ' bad' : '');
+    $('linkHint').textContent = show ? p : (spec.profile ? 'The account must be public.' : 'Open the post, tap ··· → Copy link, and paste it here.');
   }
 
-  function renderAll() {
-    renderPlatforms(); renderTypes(); renderOptions(); renderQtyChips(); renderTotal(); remember();
+  function problems() {
+    if (!cur.service) return 'Pick a package.';
+    var q = C.quote(cur.service, { quantity: state.qty });
+    if (!q.valid) return q.errors[0];
+    var l = linkProblem(state.link, state.platform, state.kind);
+    if (l) return l === 'empty' ? 'Add your link to continue.' : l;
+    return null;
   }
+
+  function renderCheckout() {
+    var s = cur.service, p = plat(state.platform);
+    $('sumMark').outerHTML = markHtml(p).replace('class="pmark"', 'class="pmark" id="sumMark"');
+    if (!s) { $('sumTitle').textContent = '—'; return; }
+    var q = C.quote(s, { quantity: state.qty });
+    var total = q.valid ? C.chargeAmount(s.rate, state.qty) : null;
+    cur.total = total;
+    var title = num(state.qty || 0) + ' ' + p.label + ' ' + state.kind;
+    $('sumTitle').textContent = title;
+    $('sumPkg').textContent = (cur.option ? NICE[cur.option.key] + ' package' : '');
+    $('sumTime').textContent = approx(C.estimateHours(s, state.qty)) || 'Starts within the hour';
+    $('sumRefill').textContent = C.refillInfo(s).label;
+    $('sumRate').textContent = money(s.rate);
+    $('sumLink').textContent = state.link.trim() ? state.link.trim().replace(/^https?:\/\/(www\.)?/, '') : 'Add your link';
+    $('sumTotal').textContent = total != null ? money(total) : '—';
+    $('barTotal').textContent = total != null ? money(total) : '—';
+    var issue = problems();
+    $('barWhat').textContent = issue || title;
+    var label = total != null ? 'Pay ' + money(total) : 'Pay';
+    if (!busy) { $('payText').textContent = label; $('barPay').textContent = issue ? 'Continue' : label; }
+    $('payBtn').disabled = !!issue || busy;
+    $('payBtn').title = issue || '';
+  }
+
+  function renderAll() { renderPlatforms(); renderKinds(); renderPackages(); renderQty(); renderLink(); renderCheckout(); remember(); }
+  function renderSoft() { renderPackages(); renderQty(); renderCheckout(); remember(); }
 
   // ---------- events ----------
-  $('platforms').addEventListener('click', function (e) {
+  $('plats').addEventListener('click', function (e) {
     var b = e.target.closest('[data-p]'); if (!b) return;
-    state.platform = b.getAttribute('data-p'); state.pickedId = null; state.showAll = false; renderAll();
+    state.platform = b.getAttribute('data-p'); renderAll();
   });
-  $('types').addEventListener('click', function (e) {
+  $('kinds').addEventListener('click', function (e) {
     var b = e.target.closest('[data-k]'); if (!b) return;
-    state.kind = b.getAttribute('data-k'); state.pickedId = null; state.showAll = false; renderAll();
+    state.kind = b.getAttribute('data-k'); renderAll();
   });
-  $('options').addEventListener('click', function (e) {
+  $('pkgs').addEventListener('click', function (e) {
     var b = e.target.closest('[data-o]'); if (!b) return;
-    state.optKey = b.getAttribute('data-o'); state.pickedId = null; renderAll();
+    state.optKey = b.getAttribute('data-o'); renderSoft();
   });
-  $('moreBtn').addEventListener('click', function () { state.showAll = !state.showAll; renderOptions(); });
-  $('all').addEventListener('click', function (e) {
-    var b = e.target.closest('[data-s]'); if (!b) return;
-    state.pickedId = b.getAttribute('data-s'); renderOptions(); renderQtyChips(); renderTotal();
-  });
-  $('qty').addEventListener('input', function () {
-    state.qty = parseInt(this.value, 10) || 0; renderOptions(); renderTotal(); remember();
-  });
-  $('chips').addEventListener('click', function (e) {
-    var b = e.target.closest('[data-q]'); if (!b) return;
-    state.qty = +b.getAttribute('data-q'); $('qty').value = state.qty; renderOptions(); renderTotal(); remember();
-  });
-  $('copyBtn').addEventListener('click', function () {
-    var btn = this, s = current.service; if (!s) return;
-    var text = $('tWhat').textContent + '\nTotal: ' + $('tSum').textContent + '\nDelivery: ' + $('tTime').textContent +
-      ' · ' + $('tRefill').textContent + '\nService ID: ' + s.id;
-    var done = function () { btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = 'Copy details'; }, 1400); };
-    try {
-      navigator.clipboard.writeText(text).then(done, function () { selectText(); });
-    } catch (e) { selectText(); }
-    function selectText() { var r = document.createRange(); r.selectNodeContents($('total')); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
-  });
+  function setQty(q) { state.qty = Math.max(0, q | 0); $('qty').value = state.qty; renderSoft(); }
+  $('qty').addEventListener('input', function () { state.qty = parseInt(this.value, 10) || 0; renderSoft(); });
+  $('range').addEventListener('input', function () { setQty(fromSlider(+this.value)); });
+  $('chips').addEventListener('click', function (e) { var b = e.target.closest('[data-q]'); if (b) setQty(+b.getAttribute('data-q')); });
+  function stepOf(q) { return q < 1000 ? 100 : q < 10000 ? 500 : q < 100000 ? 5000 : 50000; }
+  $('qMinus').addEventListener('click', function () { var s = cur.service; setQty(Math.max(s ? s.min : 1, state.qty - stepOf(state.qty - 1))); });
+  $('qPlus').addEventListener('click', function () { var s = cur.service, m = s && s.max > 0 ? s.max : Infinity; setQty(Math.min(m, state.qty + stepOf(state.qty))); });
+  $('link').addEventListener('input', function () { state.link = this.value; renderLink(); renderCheckout(); });
+  $('email').addEventListener('input', function () { state.email = this.value.trim(); remember(); });
   $('themeBtn').addEventListener('click', function () {
     var root = document.documentElement;
     var dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
     root.dataset.theme = dark ? 'light' : 'dark';
   });
 
-  // ---------- boot ----------
-  if (!all.some(function (s) { return s.platform === state.platform; })) state.platform = 'Instagram';
-  $('qty').value = state.qty;
-  $('updated').textContent = all.length + ' services' + (data.fetchedAt ? ' · prices updated ' + String(data.fetchedAt).slice(0, 10) : '') + ' · prices in ' + currency;
-  if (data.demo) $('tagline').textContent = 'Demo prices — load the real list with tools/fetch_services.py';
-  renderAll();
+  // ---------- views ----------
+  function route() {
+    var m = location.hash.match(/^#track(?:=(.+))?/);
+    var track = !!m;
+    $('viewOrder').hidden = track; $('viewTrack').hidden = !track; $('bar').hidden = track;
+    document.querySelectorAll('[data-view]').forEach(function (b) {
+      if ((b.getAttribute('data-view') === 'track') === track) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    if (track) {
+      renderRecent();
+      if (m[1]) { $('trackId').value = decodeURIComponent(m[1]); checkStatus(); }
+    }
+  }
+  window.addEventListener('hashchange', route);
+  document.querySelectorAll('[data-view]').forEach(function (b) {
+    b.addEventListener('click', function () { location.hash = b.getAttribute('data-view') === 'track' ? 'track' : ''; if (!location.hash) route(); window.scrollTo(0, 0); });
+  });
+  $('home').addEventListener('click', function (e) { e.preventDefault(); history.pushState('', '', location.pathname); route(); window.scrollTo(0, 0); });
+
+  // ---------- checkout ----------
+  var busy = false;
+  function setBusy(b) {
+    busy = b;
+    $('payBtn').disabled = b;
+    $('payText').innerHTML = b ? '<span class="spin" aria-hidden="true"></span> Processing…' : '';
+    if (!b) renderCheckout();
+  }
+  function showErr(msg) { $('payErr').hidden = !msg; $('payErr').textContent = msg || ''; }
+
+  function api(path, body) {
+    return fetch(path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {})
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { if (!r.ok) { var e = new Error(d.error || 'Request failed (' + r.status + ')'); e.data = d; throw e; } return d; }); });
+  }
+
+  function onPay() {
+    var issue = problems();
+    if (issue) {
+      showErr(issue);
+      var target = /link/i.test(issue) ? $('link') : $('qty');
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' }); target.focus({ preventScroll: true });
+      return;
+    }
+    showErr('');
+    var order = { serviceId: cur.service.id, quantity: state.qty, link: state.link.trim(), email: state.email };
+    var title = $('sumTitle').textContent;
+    if (store.mode === 'preview') { demoCheckout({ amount: Math.round(cur.total * 100), title: title, local: true }, order); return; }
+    setBusy(true);
+    api('/api/create-order', order).then(function (o) {
+      if (o.demo) { setBusy(false); demoCheckout(o, order); return; }
+      return loadRazorpay().then(function () { openRazorpay(o, order); });
+    }).catch(function (e) { setBusy(false); showErr(e.message); });
+  }
+  $('payBtn').addEventListener('click', onPay);
+  $('barPay').addEventListener('click', onPay);
+
+  var rzpLoaded = null;
+  function loadRazorpay() { return rzpLoaded || (rzpLoaded = loadScript('https://checkout.razorpay.com/v1/checkout.js')); }
+
+  function openRazorpay(o, order) {
+    var rz = new window.Razorpay({
+      key: o.keyId, order_id: o.orderId, amount: o.amount, currency: o.currency,
+      name: o.storeName || store.storeName, description: o.title,
+      prefill: order.email ? { email: order.email } : {},
+      notes: { link: order.link },
+      theme: { color: '#e1306c' },
+      handler: function (resp) {
+        modal(loadingHtml('Confirming your payment…'));
+        api('/api/verify-payment', resp).then(function (r) { setBusy(false); success(r, o.title, o.amount, order); })
+          .catch(function (e) { setBusy(false); failure(e.message, (e.data && e.data.trackingId) || resp.razorpay_payment_id); });
+      },
+      modal: { ondismiss: function () { setBusy(false); } }
+    });
+    rz.on('payment.failed', function (r) { showErr((r.error && r.error.description) || 'Payment failed. You weren’t charged.'); });
+    rz.open();
+  }
+
+  // Simulated checkout for demo / preview mode: nothing is charged, no order is placed.
+  function demoCheckout(o, order) {
+    modal('<div class="demo-sheet"><span class="pill pending">Test checkout</span><h2 id="modalTitle">' + esc(o.title) + '</h2>' +
+      '<div class="amt">' + esc(money(o.amount / 100)) + '</div>' +
+      '<p>This is a simulation. No money is charged and no order is placed. Add your Razorpay and panel keys to take real payments.</p>' +
+      '<button class="pay" id="demoOk" type="button">Simulate successful payment</button>' +
+      '<button class="ghost" id="demoCancel" type="button">Cancel</button></div>');
+    $('demoCancel').onclick = closeModal;
+    $('demoOk').onclick = function () {
+      modal(loadingHtml('Confirming your payment…'));
+      var done = function (r) { success(r, o.title, o.amount, order); };
+      if (o.local) setTimeout(function () { done({ demo: true, trackingId: 'demo_' + Math.random().toString(16).slice(2, 12) }); }, 700);
+      else api('/api/verify-payment', { demo: true, orderId: o.orderId }).then(done).catch(function (e) { failure(e.message); });
+    };
+  }
+
+  function loadingHtml(t) { return '<div class="tick"><span class="spin" style="width:32px;height:32px;border-width:3.5px"></span></div><h2 id="modalTitle">' + esc(t) + '</h2><p>Please don’t close this page.</p>'; }
+
+  function success(r, title, amount, order) {
+    saveOrder({ id: r.trackingId, title: title, amount: amount / 100, link: order.link, at: Date.now(), demo: !!r.demo });
+    modal('<div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
+      '<h2 id="modalTitle">' + (r.demo ? 'Demo order complete' : 'Order placed!') + '</h2>' +
+      '<p>' + esc(title) + ' for ' + esc(money(amount / 100)) + '. ' + (r.demo ? 'Nothing was charged.' : 'Delivery starts automatically.') + '</p>' +
+      '<div class="tid"><div><span>Tracking ID. Save it.</span><code>' + esc(r.trackingId) + '</code></div><button class="ghost" id="copyId" type="button">Copy</button></div>' +
+      '<div class="row2"><button class="ghost" id="mClose" type="button">New order</button><button class="pay" id="mTrack" type="button">Track order</button></div>');
+    $('copyId').onclick = function () { copy(r.trackingId, this); };
+    $('mClose').onclick = function () { closeModal(); state.link = ''; $('link').value = ''; renderLink(); renderCheckout(); };
+    $('mTrack').onclick = function () { closeModal(); location.hash = 'track=' + encodeURIComponent(r.trackingId); };
+  }
+
+  function failure(msg, trackingId) {
+    modal('<div class="tick fail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg></div>' +
+      '<h2 id="modalTitle">We need to check this one</h2><p>' + esc(msg) + '</p>' +
+      (trackingId ? '<div class="tid"><div><span>Payment reference</span><code>' + esc(trackingId) + '</code></div><button class="ghost" id="copyId" type="button">Copy</button></div>' : '') +
+      (store.support ? '<p>Contact support: <b>' + esc(store.support) + '</b></p>' : '') +
+      '<button class="ghost" id="mClose" type="button">Close</button>');
+    if (trackingId) { saveOrder({ id: trackingId, title: $('sumTitle').textContent, amount: cur.total, at: Date.now() }); $('copyId').onclick = function () { copy(trackingId, this); }; }
+    $('mClose').onclick = closeModal;
+  }
+
+  function copy(text, btn) {
+    var done = function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1400); };
+    try { navigator.clipboard.writeText(text).then(done, function () {}); } catch (e) {}
+  }
+
+  var lastFocus = null;
+  function modal(html) {
+    if ($('scrim').hidden) lastFocus = document.activeElement;
+    $('modal').innerHTML = html; $('scrim').hidden = false;
+    var f = $('modal').querySelector('button'); if (f) f.focus();
+  }
+  function closeModal() { $('scrim').hidden = true; if (lastFocus) lastFocus.focus(); }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('scrim').hidden && $('modal').querySelector('#mClose, #demoCancel')) closeModal(); });
+
+  // ---------- tracking ----------
+  function getOrders() { try { return JSON.parse(localStorage.getItem(ORDERS)) || []; } catch (e) { return []; } }
+  function saveOrder(o) {
+    var list = getOrders().filter(function (x) { return x.id !== o.id; });
+    list.unshift(o);
+    try { localStorage.setItem(ORDERS, JSON.stringify(list.slice(0, 20))); } catch (e) {}
+  }
+  function renderRecent() {
+    var list = getOrders();
+    $('recent').innerHTML = list.length ? '<h3>Your recent orders</h3>' + list.map(function (o) {
+      return '<button type="button" class="ritem" data-id="' + esc(o.id) + '"><div><b>' + esc(o.title) + '</b><br><code>' + esc(o.id) + '</code></div>' +
+        '<span>' + esc(o.amount != null ? money(o.amount) : '') + '<br>' + esc(new Date(o.at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })) + '</span></button>';
+    }).join('') : '';
+  }
+  $('recent').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-id]'); if (!b) return;
+    $('trackId').value = b.getAttribute('data-id'); checkStatus();
+  });
+  $('trackForm').addEventListener('submit', function (e) { e.preventDefault(); checkStatus(); });
+
+  function checkStatus() {
+    var id = $('trackId').value.trim();
+    $('trackErr').hidden = true;
+    if (!id) return;
+    $('trackCard').hidden = false;
+    $('trackCard').innerHTML = '<div style="display:grid;place-items:center;padding:20px"><span class="spin" style="border-color:var(--line);border-top-color:var(--accent)"></span></div>';
+    var p = /^demo_/.test(id) && store.mode === 'preview'
+      ? Promise.resolve({ trackingId: id, demo: true, status: 'In progress', state: 'progress', startCount: 1200, remains: 400, quantity: 1000, title: 'Demo order' })
+      : api('/api/order-status?id=' + encodeURIComponent(id));
+    p.then(renderStatus).catch(function (e) { $('trackCard').hidden = true; $('trackErr').hidden = false; $('trackErr').textContent = e.message; });
+  }
+
+  function renderStatus(s) {
+    var known = getOrders().filter(function (o) { return o.id === s.trackingId; })[0] || {};
+    var qty = s.quantity || null;
+    var delivered = qty != null && s.remains != null ? Math.max(0, qty - s.remains) : (s.state === 'done' ? qty : null);
+    var pct = qty ? Math.round(100 * (delivered || 0) / qty) : (s.state === 'done' ? 100 : 0);
+    if (s.state === 'done') pct = 100;
+    $('trackCard').innerHTML =
+      '<div class="st-head"><b>' + esc(s.title || known.title || 'Order') + '</b><span class="pill ' + esc(s.state) + '">' + esc(s.status) + '</span></div>' +
+      (s.note ? '<p class="hint bad">' + esc(s.note) + (store.support ? ' ' + esc(store.support) : '') + '</p>' : '') +
+      '<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><i style="width:' + pct + '%"></i></div>' +
+      '<p class="hint">' + (delivered != null && qty ? num(delivered) + ' of ' + num(qty) + ' delivered (' + pct + '%)' : 'Progress shows here once delivery starts.') + '</p>' +
+      '<div class="kv">' +
+        '<div><span>Tracking ID</span><b>' + esc(s.trackingId) + '</b></div>' +
+        '<div><span>Started from</span><b>' + (s.startCount != null ? num(s.startCount) : '—') + '</b></div>' +
+        '<div><span>Remaining</span><b>' + (s.remains != null ? num(s.remains) : '—') + '</b></div>' +
+        '<div><span>Paid</span><b>' + (s.paid != null ? esc(money(s.paid)) : known.amount != null ? esc(money(known.amount)) : '—') + '</b></div>' +
+      '</div>' +
+      (s.link || known.link ? '<p class="hint" style="overflow-wrap:anywhere">Link: ' + esc(s.link || known.link) + '</p>' : '') +
+      (s.demo ? '<p class="hint">Demo order: sample numbers.</p>' : '');
+  }
+
+  boot();
 })();
 </script>
 </body>

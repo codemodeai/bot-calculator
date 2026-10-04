@@ -1,8 +1,8 @@
 # SMM Price Calculator
 
-A price calculator for [smmorange.com](https://smmorange.com) services. Open `index.html`.
+A store and price calculator for [smmorange.com](https://smmorange.com) services.
 
-**Simple calculator (`index.html`).** Four steps:
+**Simple calculator (`calculator.html`, served at `/calculator`).** Four steps:
 1. **Platform:** Instagram, YouTube, TikTok, Facebook, Telegram or X.
 2. **Service:** Followers, Likes, Views, Subscribers, Members, Comments and so on.
 3. **Speed / quality:** up to four options, picked automatically from the services list:
@@ -19,9 +19,9 @@ Delivery time is estimated from the start time and speed in each service's name 
 example "Start: 0-1 Hours | Speed: 300K/Day"). Some services don't list a speed, and then
 the page shows "Speed not listed".
 
-**Store (`boost.html`, served at `/boost`).** A shop for your customers: platform → service →
+**Store (`index.html`, the home page).** A shop for your customers: platform → service →
 package → quantity → link → **Pay with Razorpay** (UPI, cards, netbanking). After payment the order
-is placed on smmorange.com automatically, and the customer gets a tracking ID for `/boost#track`.
+is placed on smmorange.com automatically, and the customer gets a tracking ID for `/#track`.
 See [Store and payments](#store-and-payments).
 
 **Advanced calculator (`advanced.html`).** Shows every service, with search, budget mode,
@@ -123,7 +123,7 @@ How it stays safe:
 API routes (`api/`, Vercel serverless functions): `GET /api/services`, `POST /api/create-order`,
 `POST /api/verify-payment`, `GET /api/order-status?id=pay_…`, `POST /api/webhook`.
 
-To run it locally, run `node dev-server.js` and open http://localhost:3000/boost.
+To run it locally, run `node dev-server.js` and open http://localhost:3000.
 
 ## Tests
 
