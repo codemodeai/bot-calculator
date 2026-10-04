@@ -1,7 +1,7 @@
 # Boostly store
 
-A store for [smmorange.com](https://smmorange.com) services. Customers add money to a wallet with
-Razorpay (UPI, cards, netbanking), order at exact prices, and orders go to smmorange.com automatically.
+A store for SMM panel services, buying from [smmzio.com](https://smmzio.com). Customers add money to a wallet with
+Razorpay (UPI, cards, netbanking), order at exact prices, and orders go to the panel automatically.
 
 The store is the home page (`index.html`). The steps:
 
@@ -28,7 +28,7 @@ Delivery time is estimated from the start time and speed in each service's name 
 
 ## Prices
 
-Prices come **live from your smmorange.com account** through `SMM_API_KEY`: the panel's
+Prices come **live from your smmzio.com account** through `SMM_API_KEY`: the panel's
 services list (`action=services`), refreshed every 5 minutes.
 
 ```
@@ -36,7 +36,8 @@ rate per 1000 = panel rate × (1 + MARKUP_PERCENT ÷ 100), rounded up to a tidy 
 price         = rate per 1000 × quantity ÷ 1000
 ```
 
-Example: smmorange's ₹0.16 Instagram views × 1.8 = ₹0.288, shown as **₹0.30 per 1,000**.
+Example: a ₹0.16 panel rate × 1.8 = ₹0.288, shown as **₹0.30 per 1,000**. smmzio prices are in USD and
+are converted with `PANEL_TO_INR_RATE` first.
 
 Orders cost exactly that, rounded up to 1/100 of a paisa (₹0.0001); there's no minimum order.
 Only adding money has a minimum (₹1, Razorpay's smallest payment). `MARKUP_PERCENT` defaults to 80. Tidy rounding goes up in steps of
@@ -68,13 +69,13 @@ or your balance.
 
 ```
 add money:  customer --pays ≥ ₹1--> Razorpay --> /api/recharge (checks signature) --> wallet balance
-order:      customer --> /api/order --> exact price taken from wallet --> smmorange.com API (action=add)
+order:      customer --> /api/order --> exact price taken from wallet --> smmzio.com API (action=add)
             panel refuses (e.g. low balance) --> price goes straight back to the wallet
 ```
 
 Three services are involved:
 
-- **SMM panel API key** (smmorange.com → Account → API). It loads prices, places orders, and pays
+- **SMM panel API key** (smmzio.com → Account → API). It loads prices, places orders, and pays
   for them from your panel balance.
 - **Razorpay keys** (dashboard.razorpay.com → Account & Settings → API Keys). Customers add money
   to their wallet with these. Start with `rzp_test_...` keys, then switch to live keys once
@@ -89,8 +90,8 @@ in the code or commit them.**
 
 | Variable | |
 |---|---|
-| `SMM_API_KEY` | smmorange.com API key |
-| `SMM_API_URL` | defaults to `https://smmorange.com/api/v2` |
+| `SMM_API_KEY` | smmzio.com API key |
+| `SMM_API_URL` | defaults to `https://smmzio.com/api/v2` (any Perfect Panel–style API works) |
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | Razorpay API keys |
 | `RAZORPAY_WEBHOOK_SECRET` | optional backup: add a webhook to `https://YOUR-SITE/api/webhook` for `payment.captured` |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Supabase project URL and public (anon) key |
@@ -98,7 +99,7 @@ in the code or commit them.**
 | `MARKUP_PERCENT` | your margin on top of the panel price (default `80`) |
 | `ROUND_PRICES` | round prices up to tidy numbers, e.g. ₹0.288 → ₹0.30 (default on; `0` = off) |
 | `RAZORPAY_FEE_PERCENT` | added to each recharge to cover Razorpay (default `2.36`; `0` = you pay it) |
-| `PANEL_TO_INR_RATE` | only if your panel account isn't in INR |
+| `PANEL_TO_INR_RATE` | rupees per 1 unit of the panel's currency; smmzio is in USD, so e.g. `98` |
 | `STORE_NAME`, `SUPPORT_CONTACT` | shown in the store |
 
 Unless all of the panel, Razorpay and Supabase keys are set, the store runs in **demo mode**: a
@@ -124,7 +125,7 @@ How it stays safe:
   key can read or change them.
 - If the panel refuses an order, the charge goes back to the wallet at once. If the panel doesn't
   answer, the order is marked **Being checked** instead of refunded, because it may have gone
-  through; check it on smmorange and refund it in the `orders`/`wallets` tables if it didn't.
+  through; check it on the panel and refund it in the `orders`/`wallets` tables if it didn't.
 - Every balance change is recorded in the `ledger` table.
 
 API routes (`api/`, Vercel serverless functions): `GET /api/services`, `GET /api/status`,
