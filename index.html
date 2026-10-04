@@ -197,6 +197,10 @@
   .amtin input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 28px; font-weight: 800; padding: 10px 0; outline: none; font-variant-numeric: tabular-nums; }
   .modal form { display: grid; gap: 10px; }
   .modal .left { text-align: left; display: grid; gap: 12px; }
+  .fees { display: grid; gap: 6px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); font-size: 14px; font-variant-numeric: tabular-nums; }
+  .fees div { display: flex; justify-content: space-between; gap: 10px; }
+  .fees span { color: var(--muted); }
+  .fees .sum { padding-top: 6px; border-top: 1px dashed var(--line); font-weight: 800; }
   .codein { letter-spacing: .4em; text-align: center; font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
   .toast { position: fixed; z-index: 60; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; box-shadow: var(--shadow); max-width: calc(100% - 32px); }
   @media (min-width: 900px) { .toast { bottom: 24px; } }
@@ -393,7 +397,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
           <span id="payText">Place order</span>
         </button>
-        <p class="secure">Orders are paid from your wallet. Add money (from ₹1) with:</p>
+        <p class="secure">Orders are paid from your wallet. Add money (from ₹1, plus Razorpay’s fee) with:</p>
         <div class="methods" aria-label="Payment methods"><span>UPI</span><span>GPAY</span><span>PHONEPE</span><span>CARDS</span><span>NETBANKING</span></div>
       </aside>
     </div>
@@ -528,9 +532,10 @@
         loadScript('data/services.js').then(function () {
           var d = window.SERVICES_DATA || { services: [] };
           store.mode = 'preview';
+          store.feePercent = 2.36;
           store.services = d.services.map(function (s) { return C.normaliseService(s, d.currency); })
             .filter(function (s) { return s.id && isFinite(s.rate) && s.rate > 0; })
-            .map(function (s) { s.platform = C.platformOf(s); s.kind = C.serviceType(s); s.rate = C.retailRate(s.rate, 50); return s; })
+            .map(function (s) { s.platform = C.platformOf(s); s.kind = C.serviceType(s); s.rate = C.niceRate(C.retailRate(s.rate, 80)); return s; })
             .filter(function (s) { return s.platform !== 'Other' && !/\bcustom\b/.test(C.plain(s.name)); });
           start();
         }, function () { start(); });
@@ -909,6 +914,7 @@
       '<form id="amForm"><div class="amtin"><span>₹</span><input id="amIn" type="number" inputmode="decimal" min="' + min + '" max="50000" step="0.01" required aria-label="Amount"></div>' +
       '<div class="presets" id="amPicks">' + picks.map(function (v) { return '<button type="button" data-a="' + v + '">₹' + num(v) + '</button>'; }).join('') + '</div>' +
       '<p class="hint" id="amHint">Minimum recharge ₹' + min + '. Your balance never expires.</p>' +
+      '<div class="fees" id="amFees"></div>' +
       '<button class="pay" type="submit" id="amBtn"></button></form>' +
       (acct.demo ? '<p class="note">Demo wallet: no money is charged.</p>' : '<div class="methods"><span>UPI</span><span>GPAY</span><span>PHONEPE</span><span>CARDS</span><span>NETBANKING</span></div>') +
       '<button class="ghost" id="mClose" type="button">Cancel</button></div>');
@@ -916,7 +922,14 @@
     function sync() {
       var v = Number(input.value);
       var ok = v >= min && v <= 50000;
-      $('amBtn').textContent = ok ? 'Add ' + price(v) : 'Add money';
+      var fee = ok ? C.gatewayFee(v, store.feePercent) : 0;
+      $('amBtn').textContent = ok ? 'Pay ' + price(C.round(v + fee, 2)) : 'Add money';
+      $('amFees').hidden = !ok;
+      if (ok) {
+        $('amFees').innerHTML = '<div><span>Added to wallet</span><b>' + esc(price(v)) + '</b></div>' +
+          (fee ? '<div><span>Razorpay fee (' + esc(store.feePercent) + '%)</span><b>' + esc(price(fee)) + '</b></div>' : '') +
+          '<div class="sum"><span>You pay</span><b>' + esc(price(C.round(v + fee, 2))) + '</b></div>';
+      }
       $('amBtn').disabled = !ok;
       $('amHint').className = 'hint' + (input.value && !ok ? ' bad' : '');
       $('amHint').textContent = input.value && v < min ? 'The minimum recharge is ₹' + min + '.' : input.value && v > 50000 ? 'The maximum recharge is ₹50,000.' : 'Minimum recharge ₹' + min + '. Your balance never expires.';

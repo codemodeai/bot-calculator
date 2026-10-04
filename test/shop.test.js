@@ -297,3 +297,33 @@ test('new sb_secret_ keys go only in the apikey header; legacy JWT keys also in 
   await wallet.wallet(USER, Object.assign({}, LIVE, { supabaseService: 'eyJhbGciOi.legacy' }));
   assert.ok(seen.every((h) => h.Authorization === 'Bearer eyJhbGciOi.legacy'));
 });
+
+test('80% markup rounds up to tidy prices: ₹0.16 cost -> ₹0.30 per 1000', async () => {
+  assert.equal(C.niceRate(C.retailRate(0.16, 80)), 0.3);
+  assert.equal(C.niceRate(C.retailRate(11.616, 80)), 21);
+  assert.equal(C.niceRate(C.retailRate(90, 80)), 165);
+  assert.equal(C.niceRate(0.3), 0.3, 'already tidy prices stay put');
+  shop._resetCache();
+  const db = fakeBackend();
+  db.panelServices = [{ service: 931, name: 'Instagram Video Views', category: 'Instagram Views', rate: '0.16', min: '100', max: '1000000' }];
+  const cfg = Object.assign({}, LIVE, { markup: 80, roundPrices: true });
+  const cat = await shop.catalogue(cfg);
+  assert.equal(cat.services[0].rate, 0.3);
+  assert.equal((await shop.priceOrder({ serviceId: '931', quantity: 1000, link: 'https://instagram.com/p/x' }, cfg)).charge, 0.3);
+});
+
+test('recharge adds the Razorpay fee on top; the wallet gets the full amount', async () => {
+  shop._resetCache();
+  const db = fakeBackend();
+  const cfg = Object.assign({}, LIVE, { feePercent: 2.36 });
+  assert.equal(C.gatewayFee(100, 2.36), 2.36);
+  assert.equal(C.gatewayFee(1, 2.36), 0.03);
+  assert.equal(C.gatewayFee(100, 0), 0);
+  const o = await wallet.createRecharge(USER, { amount: 100 }, cfg);
+  assert.equal(o.amount, 10236, 'customer pays ₹102.36');
+  assert.equal(o.fee, 2.36);
+  const payId = db.pay(o.orderId);
+  const r = await wallet.verifyRecharge(USER, { razorpay_order_id: o.orderId, razorpay_payment_id: payId, razorpay_signature: db.sign(o.orderId, payId) }, cfg);
+  assert.equal(r.balance, 100, 'wallet gets ₹100');
+  assert.equal(r.paid, 102.36);
+});

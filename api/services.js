@@ -12,6 +12,7 @@ module.exports = handler(['GET'], async (req, res) => {
     supabaseUrl: cfg.supabaseUrl,
     supabaseAnonKey: cfg.supabaseAnon,
     minRecharge: 1,
+    feePercent: cfg.feePercent,
     currency: 'INR',
     priceSource: cat.source,
     pricesFetchedAt: cat.fetchedAt,

@@ -32,12 +32,20 @@ Prices come **live from your smmorange.com account** through `SMM_API_KEY`: the 
 services list (`action=services`), refreshed every 5 minutes.
 
 ```
-price = panel rate per 1000 × quantity ÷ 1000 × (1 + MARKUP_PERCENT ÷ 100)
+rate per 1000 = panel rate × (1 + MARKUP_PERCENT ÷ 100), rounded up to a tidy number
+price         = rate per 1000 × quantity ÷ 1000
 ```
 
+Example: smmorange's ₹0.16 Instagram views × 1.8 = ₹0.288, shown as **₹0.30 per 1,000**.
+
 Orders cost exactly that, rounded up to 1/100 of a paisa (₹0.0001); there's no minimum order.
-Only adding money has a minimum (₹1, Razorpay's smallest payment). `MARKUP_PERCENT` defaults to 50. Set it
-to `0` to sell at exactly the panel price.
+Only adding money has a minimum (₹1, Razorpay's smallest payment). `MARKUP_PERCENT` defaults to 80. Tidy rounding goes up in steps of
+₹0.05 under ₹1, ₹0.10 under ₹10, ₹1 under ₹100 and ₹5 above; set `ROUND_PRICES=0` to turn it off.
+Set `MARKUP_PERCENT=0` and `ROUND_PRICES=0` to sell at exactly the panel price.
+
+**Razorpay's fee** is added when customers add money: `RAZORPAY_FEE_PERCENT` (default 2.36, Razorpay's
+2% plus 18% GST). Adding ₹100 costs the customer ₹102.36 and puts ₹100 in the wallet. Set it to `0`
+to absorb the fee yourself.
 
 - The footer of the store says **Live prices · updated HH:MM** when the prices come from your
   panel.
@@ -72,7 +80,7 @@ Three services are involved:
   to their wallet with these. Start with `rzp_test_...` keys, then switch to live keys once
   Razorpay activates your account.
 - **Supabase** (supabase.com) keeps customer logins and wallets. Create a project, run
-  `supabase/migrations/001_wallet.sql` in its SQL editor, and copy the URL and keys from
+  the files in `supabase/migrations/` in order in its SQL editor, and copy the URL and keys from
   Project Settings → API.
 
 Set them as environment variables: in Vercel → Project → Settings → Environment Variables, or in a
@@ -87,7 +95,9 @@ in the code or commit them.**
 | `RAZORPAY_WEBHOOK_SECRET` | optional backup: add a webhook to `https://YOUR-SITE/api/webhook` for `payment.captured` |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Supabase project URL and public (anon) key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase secret key, server only |
-| `MARKUP_PERCENT` | your margin on top of the panel price (default `50`) |
+| `MARKUP_PERCENT` | your margin on top of the panel price (default `80`) |
+| `ROUND_PRICES` | round prices up to tidy numbers, e.g. ₹0.288 → ₹0.30 (default on; `0` = off) |
+| `RAZORPAY_FEE_PERCENT` | added to each recharge to cover Razorpay (default `2.36`; `0` = you pay it) |
 | `PANEL_TO_INR_RATE` | only if your panel account isn't in INR |
 | `STORE_NAME`, `SUPPORT_CONTACT` | shown in the store |
 

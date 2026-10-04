@@ -247,6 +247,18 @@
     return round(rate * (1 + (Number(markup) || 0) / 100), 4);
   }
 
+  // Round a selling rate per 1000 up to a tidy number: ₹0.288 -> ₹0.30, ₹20.91 -> ₹21, ₹152 -> ₹155.
+  function niceRate(rate) {
+    var step = rate < 1 ? 0.05 : rate < 10 ? 0.1 : rate < 100 ? 1 : 5;
+    return round(Math.ceil(round(rate / step, 6)) * step, 2);
+  }
+
+  // Razorpay's fee on a payment of `amount` (percent, e.g. 2.36 = 2% + 18% GST), rounded up to the paisa.
+  function gatewayFee(amount, percent) {
+    var p = Number(percent) || 0;
+    return p > 0 ? Math.ceil(round(amount * p, 6)) / 100 : 0;
+  }
+
   // What a customer is charged for `qty` units at `rate` per 1000: rounded up to the paisa / cent, at least 1.
   function chargeAmount(rate, qty) {
     var exact = round(rate * qty / 1000, 6);
@@ -478,6 +490,8 @@
     quote: quote,
     quantityForBudget: quantityForBudget,
     retailRate: retailRate,
+    niceRate: niceRate,
+    gatewayFee: gatewayFee,
     chargeAmount: chargeAmount,
     exactCharge: exactCharge,
     formatPrice: formatPrice,
