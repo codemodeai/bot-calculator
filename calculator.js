@@ -247,10 +247,36 @@
     return round(rate * (1 + (Number(markup) || 0) / 100), 4);
   }
 
+  // Round a selling rate per 1000 up to a tidy number: ₹0.288 -> ₹0.30, ₹20.91 -> ₹21, ₹152 -> ₹155.
+  function niceRate(rate) {
+    var step = rate < 1 ? 0.05 : rate < 10 ? 0.1 : rate < 100 ? 1 : 5;
+    return round(Math.ceil(round(rate / step, 6)) * step, 2);
+  }
+
+  // Razorpay's fee on a payment of `amount` (percent, e.g. 2.36 = 2% + 18% GST), rounded up to the paisa.
+  function gatewayFee(amount, percent) {
+    var p = Number(percent) || 0;
+    return p > 0 ? Math.ceil(round(amount * p, 6)) / 100 : 0;
+  }
+
   // What a customer is charged for `qty` units at `rate` per 1000: rounded up to the paisa / cent, at least 1.
   function chargeAmount(rate, qty) {
     var exact = round(rate * qty / 1000, 6);
     return Math.max(1, Math.ceil(exact * 100 - 1e-9) / 100);
+  }
+
+  // Exact price for `qty` units at `rate` per 1000, used for wallet orders: rounded up to 1/100 paisa (4 dp), no minimum.
+  function exactCharge(rate, qty) {
+    var exact = round(rate * qty / 1000, 8);
+    return Math.ceil(exact * 10000 - 1e-6) / 10000;
+  }
+
+  // "₹12.50", "₹0.24", "₹0.024", "₹11.616": two decimals, up to four when the amount has them.
+  function formatPrice(value, currency) {
+    if (!isFinite(value)) return '—';
+    var dp = 4;
+    while (dp > 2 && round(value, dp - 1) === round(value, dp)) dp--;
+    return formatMoney(round(value, dp), currency, dp);
   }
 
   function formatMoney(value, currency, dp) {
@@ -464,7 +490,11 @@
     quote: quote,
     quantityForBudget: quantityForBudget,
     retailRate: retailRate,
+    niceRate: niceRate,
+    gatewayFee: gatewayFee,
     chargeAmount: chargeAmount,
+    exactCharge: exactCharge,
+    formatPrice: formatPrice,
     formatMoney: formatMoney,
     toCsv: toCsv,
     round: round

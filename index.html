@@ -181,6 +181,46 @@
   .note { font-size: 13px; padding: 10px 12px; border-radius: 12px; background: var(--warn-soft); color: var(--warn); margin: 0; }
   .err { font-size: 14px; padding: 10px 12px; border-radius: 12px; background: var(--bad-soft); color: var(--bad); margin: 0; font-weight: 600; }
 
+  /* wallet */
+  .wallet { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px 7px 8px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .wallet i { width: 24px; height: 24px; border-radius: 50%; background: var(--grad); display: grid; place-items: center; color: var(--on-grad); font-style: normal; }
+  .wallet i svg { width: 14px; height: 14px; }
+  .wallet:hover { border-color: var(--line-strong); }
+  @media (max-width: 420px) { .nav [data-view="order"] { display: none; } }
+  .lines .low { color: var(--warn); }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; }
+  .presets button { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .presets button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .amtin { display: flex; align-items: center; gap: 6px; border: 2px solid var(--line); border-radius: 14px; padding: 0 14px; background: var(--surface); }
+  .amtin:focus-within { border-color: var(--accent); }
+  .amtin span { font-size: 26px; font-weight: 800; color: var(--muted); }
+  .amtin input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 28px; font-weight: 800; padding: 10px 0; outline: none; font-variant-numeric: tabular-nums; }
+  .modal form { display: grid; gap: 10px; }
+  .modal .left { text-align: left; display: grid; gap: 12px; }
+  .fees { display: grid; gap: 6px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); font-size: 14px; font-variant-numeric: tabular-nums; }
+  .fees div { display: flex; justify-content: space-between; gap: 10px; }
+  .fees span { color: var(--muted); }
+  .fees .sum { padding-top: 6px; border-top: 1px dashed var(--line); font-weight: 800; }
+  .codein { letter-spacing: .4em; text-align: center; font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .toast { position: fixed; z-index: 60; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; box-shadow: var(--shadow); max-width: calc(100% - 32px); }
+  @media (min-width: 900px) { .toast { bottom: 24px; } }
+  .wcard { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .wcard span { display: block; font-size: 13px; color: var(--muted); }
+  .wcard b { display: block; font-size: 36px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .wcard small { color: var(--faint); }
+  .wcard .acts { display: flex; gap: 8px; }
+  .wcard .pay { width: auto; padding: 12px 18px; }
+  .olist { display: grid; gap: 8px; }
+  .orow { display: grid; gap: 4px; text-align: left; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); width: 100%; }
+  .orow:hover { border-color: var(--line-strong); }
+  .orow .top2 { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .orow .top2 b { font-size: 15px; }
+  .orow .top2 span { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+  .orow .sub2 { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--muted); align-items: center; }
+  .orow .sub2 span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .odetail { padding: 4px 2px 8px; }
+  .muted { color: var(--muted); font-size: 14px; margin: 0; }
+
   /* phone pay bar */
   .bar { position: fixed; z-index: 20; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line); display: flex; align-items: center; gap: 12px; box-shadow: 0 -10px 30px rgba(0,0,0,.1); }
   .bar .t { flex: 1; min-width: 0; }
@@ -266,7 +306,11 @@
     </a>
     <nav class="nav">
       <button type="button" data-view="order" aria-current="page">Order</button>
-      <button type="button" data-view="track">Track order</button>
+      <button type="button" data-view="orders">My orders</button>
+      <button type="button" class="wallet" id="walletBtn" aria-label="Wallet">
+        <i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h15a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z"/><path d="M3 7V6a2 2 0 0 1 2-2h11"/><circle cx="16.5" cy="13.5" r="1.2" fill="currentColor"/></svg></i>
+        <span id="walletText">Sign in</span>
+      </button>
       <button type="button" class="icon" id="themeBtn" aria-label="Switch dark / light">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       </button>
@@ -278,9 +322,9 @@
     <section class="hero">
       <span class="eyebrow"><span class="dot"></span><span id="liveText">Orders start in under an hour</span></span>
       <h1>Grow your <span class="gt" id="heroPlat">Instagram</span> in minutes, not months.</h1>
-      <p>Followers, likes and views delivered automatically. No password needed. Pay by UPI, card or netbanking.</p>
+      <p>Add money to your wallet once with UPI, card or netbanking. Then order followers, likes and views at their exact price, from a few paise.</p>
       <div class="trust">
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Secure Razorpay checkout</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Exact prices, no minimum order</span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Starts automatically</span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Live order tracking</span>
       </div>
@@ -327,10 +371,6 @@
             <input class="tin" id="link" type="text" autocomplete="off" autocapitalize="off" spellcheck="false">
             <p class="hint" id="linkHint"></p>
           </div>
-          <div class="field">
-            <label for="email">Email <small>(optional, for your receipt)</small></label>
-            <input class="tin" id="email" type="email" autocomplete="email" placeholder="you@example.com">
-          </div>
           <div class="safe">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
             <span>We never ask for your password. Keep the account <b>public</b> until the order finishes.</span>
@@ -348,49 +388,39 @@
           <div><span>Refill guarantee</span><b id="sumRefill">—</b></div>
           <div><span>Price per 1,000</span><b id="sumRate">—</b></div>
           <div><span>Goes to</span><b id="sumLink">Add your link</b></div>
+          <div><span>Wallet balance</span><b id="sumBal">—</b></div>
         </div>
         <div class="total"><span>Total</span><b id="sumTotal">—</b></div>
-        <p class="minnote" id="minNote" hidden><span id="minText"></span><button type="button" id="minUse"></button></p>
         <p class="err" id="payErr" hidden></p>
         <p class="note" id="demoNote" hidden></p>
         <button class="pay" id="payBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-          <span id="payText">Pay</span>
+          <span id="payText">Place order</span>
         </button>
+        <p class="secure">Orders are paid from your wallet. Add money (from ₹1, plus Razorpay’s fee) with:</p>
         <div class="methods" aria-label="Payment methods"><span>UPI</span><span>GPAY</span><span>PHONEPE</span><span>CARDS</span><span>NETBANKING</span></div>
-        <p class="secure">Payments are processed by Razorpay. We never see your card or UPI PIN.</p>
       </aside>
     </div>
 
     <section class="how" aria-label="How it works">
       <div class="card">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></div>
-        <h3>1. Paste your link</h3><p>Pick a package and tell us which profile or post to boost.</p>
+        <h3>1. Pick and paste</h3><p>Choose a package and the profile or post to boost. You see the exact price.</p>
       </div>
       <div class="card">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
-        <h3>2. Pay securely</h3><p>UPI, cards or netbanking through Razorpay. Takes about 20 seconds.</p>
+        <h3>2. Pay from your wallet</h3><p>Add money once (from ₹1) with UPI, cards or netbanking, then order as often as you like.</p>
       </div>
       <div class="card">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></div>
-        <h3>3. Watch it grow</h3><p>Your order starts automatically. Track it live with your tracking ID.</p>
+        <h3>3. Watch it grow</h3><p>Your order starts automatically. Follow it live under My orders.</p>
       </div>
     </section>
   </main>
 
-  <!-- TRACK -->
-  <main id="viewTrack" hidden>
-    <section class="track">
-      <h1>Track your <span class="gt">order</span></h1>
-      <p>Enter the tracking ID from your payment confirmation.</p>
-      <form class="tform" id="trackForm">
-        <input class="tin" id="trackId" placeholder="pay_XXXXXXXXXXXX" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Tracking ID">
-        <button class="pay" type="submit">Check</button>
-      </form>
-      <p class="err" id="trackErr" hidden></p>
-      <div class="card" id="trackCard" hidden></div>
-      <div class="recent" id="recent"></div>
-    </section>
+  <!-- MY ORDERS -->
+  <main id="viewOrders" hidden>
+    <section class="track" id="ordersView"></section>
   </main>
 
   <footer>
@@ -401,9 +431,10 @@
 
 <div class="bar" id="bar">
   <div class="t"><b id="barTotal">—</b><span id="barWhat"></span></div>
-  <button class="pay" type="button" id="barPay">Pay</button>
+  <button class="pay" type="button" id="barPay">Place order</button>
 </div>
 
+<div class="toast" id="toast" role="status" hidden></div>
 <div class="scrim" id="scrim" hidden><div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"></div></div>
 
 <script src="calculator.js"></script>
@@ -414,7 +445,9 @@
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); };
   var num = function (n) { return Number(n).toLocaleString('en-IN'); };
-  var KEY = 'boostly.v1', ORDERS = 'boostly.orders.v1';
+  var KEY = 'boostly.v1', DEMO_WALLET = 'boostly.demoWallet.v1';
+  var SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';
+  var price = function (v) { return C.formatPrice(v, store.currency); };
 
   var ICONS = {
     Instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>',
@@ -467,9 +500,9 @@
 
   var saved = {};
   try { saved = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
-  var state = { platform: saved.platform || 'Instagram', kind: saved.kind || 'Followers', optKey: saved.optKey || 'smart', qty: saved.qty || 1000, link: '', email: saved.email || '', pickedId: null, showAll: false };
+  var state = { platform: saved.platform || 'Instagram', kind: saved.kind || 'Followers', optKey: saved.optKey || 'smart', qty: saved.qty || 1000, link: '', pickedId: null, showAll: false };
   function remember() {
-    try { localStorage.setItem(KEY, JSON.stringify({ platform: state.platform, kind: state.kind, optKey: state.optKey, qty: state.qty, email: state.email })); } catch (e) {}
+    try { localStorage.setItem(KEY, JSON.stringify({ platform: state.platform, kind: state.kind, optKey: state.optKey, qty: state.qty })); } catch (e) {}
   }
 
   function loadScript(src) {
@@ -499,9 +532,10 @@
         loadScript('data/services.js').then(function () {
           var d = window.SERVICES_DATA || { services: [] };
           store.mode = 'preview';
+          store.feePercent = 2.36;
           store.services = d.services.map(function (s) { return C.normaliseService(s, d.currency); })
             .filter(function (s) { return s.id && isFinite(s.rate) && s.rate > 0; })
-            .map(function (s) { s.platform = C.platformOf(s); s.kind = C.serviceType(s); s.rate = C.retailRate(s.rate, 50); return s; })
+            .map(function (s) { s.platform = C.platformOf(s); s.kind = C.serviceType(s); s.rate = C.niceRate(C.retailRate(s.rate, 80)); return s; })
             .filter(function (s) { return s.platform !== 'Other' && !/\bcustom\b/.test(C.plain(s.name)); });
           start();
         }, function () { start(); });
@@ -521,16 +555,16 @@
     if (store.mode !== 'live' && store.mode !== 'error') {
       $('demoNote').hidden = false;
       $('demoNote').textContent = store.mode === 'demo'
-        ? 'Demo mode: sample prices, checkout is simulated and no order is placed. Add your panel and Razorpay keys to go live.'
-        : 'Preview: the payment server isn’t running, so checkout is simulated.';
+        ? 'Demo mode: sample prices and a pretend wallet. Nothing is charged and no order is placed.'
+        : 'Preview: the server isn’t running, so the wallet is pretend.';
     }
     document.querySelector('.builder').hidden = store.mode === 'error';
     if (store.mode === 'error') $('bar').classList.add('gone');
     if (!all.some(function (s) { return s.platform === state.platform; })) state.platform = 'Instagram';
     $('qty').value = state.qty;
-    $('email').value = state.email;
     route();
     renderAll();
+    initWallet();
   }
 
   // ---------- render ----------
@@ -569,14 +603,14 @@
     $('pkgSub').textContent = opts.length > 1 ? opts.length + ' options' : '';
     $('pkgs').innerHTML = opts.map(function (o) {
       var s = o.service, t = approx(o.estimateHours);
-      var price = o.fits && state.qty > 0 ? money(C.chargeAmount(s.rate, state.qty)) : money(s.rate) + '<small style="font-size:13px;font-weight:600;color:var(--muted)"> /1k</small>';
+      var amt = o.fits && state.qty > 0 ? esc(price(C.exactCharge(s.rate, state.qty))) : esc(perK(s.rate)) + '<small style="font-size:13px;font-weight:600;color:var(--muted)"> /1k</small>';
       var badge = o.key === 'smart' ? '<span class="badge">Popular</span>' :
         (!o.fits ? '<span class="badge soft">' + (state.qty < s.min ? 'Min ' + num(s.min) : 'Max ' + num(s.max)) + '</span>' : '');
       var feats = C.features(s).filter(function (f) { return f !== o.refill.label; }).slice(0, 1);
       return '<button type="button" class="pkg" data-o="' + o.key + '" aria-pressed="' + (o === chosen) + '">' + badge +
         '<span class="lbl">' + esc(NICE[o.key]) + '</span>' +
         '<span class="why">' + esc(WHY[o.key]) + '</span>' +
-        '<span class="amt">' + price + '</span>' +
+        '<span class="amt">' + amt + '</span>' +
         '<span class="per">' + esc(perK(s.rate)) + ' per 1,000</span>' +
         '<ul><li>' + esc(t ? 'Done in ' + t : 'Starts within the hour') + '</li><li>' + esc(o.refill.label) + '</li>' +
         feats.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul></button>';
@@ -584,7 +618,7 @@
   }
 
   // "₹0.24", "₹0.054": enough digits that cheap services don't all read ₹0.00 / ₹1.00.
-  function perK(rate) { return C.formatMoney(rate, store.currency, rate >= 1 ? 2 : rate >= 0.1 ? 2 : 3); }
+  function perK(rate) { return price(rate); }
 
   // Every service in the group, cheapest first; a row is skipped when a cheaper one gives the same thing at least as fast.
   function renderAllOptions(g) {
@@ -602,10 +636,10 @@
       return true;
     }).map(function (s) {
       var fits = C.fitsQuantity(s, state.qty), t = approx(C.estimateHours(s, q));
-      var price = fits && state.qty > 0 ? money(C.chargeAmount(s.rate, state.qty)) : money(s.rate) + ' /1k';
+      var cost = fits && state.qty > 0 ? price(C.exactCharge(s.rate, state.qty)) : perK(s.rate) + ' /1k';
       var limit = fits ? '' : ' · ' + (state.qty < s.min ? 'min ' + num(s.min) : 'max ' + num(s.max));
       return '<button type="button" class="row' + (fits ? '' : ' off') + '" data-s="' + esc(s.id) + '" aria-pressed="' + (cur.service === s) + '">' +
-        '<span><b>' + esc(C.features(s).join(' · ')) + '</b>' + esc((t ? ' · done in ' + t : '') + limit) + '</span><b>' + esc(price) + '</b></button>';
+        '<span><b>' + esc(C.features(s).join(' · ')) + '</b>' + esc((t ? ' · done in ' + t : '') + limit) + '</span><b>' + esc(cost) + '</b></button>';
     }).join('');
   }
 
@@ -662,32 +696,25 @@
     $('sumMark').outerHTML = markHtml(p).replace('class="pmark"', 'class="pmark" id="sumMark"');
     if (!s) { $('sumTitle').textContent = '—'; return; }
     var q = C.quote(s, { quantity: state.qty });
-    var total = q.valid ? C.chargeAmount(s.rate, state.qty) : null;
+    var total = q.valid ? C.exactCharge(s.rate, state.qty) : null;
     cur.total = total;
     var title = num(state.qty || 0) + ' ' + p.label + ' ' + state.kind;
     $('sumTitle').textContent = title;
     $('sumPkg').textContent = cur.option ? NICE[cur.option.key] + ' package' : 'Your pick';
     $('sumTime').textContent = approx(C.estimateHours(s, state.qty)) || 'Starts within the hour';
     $('sumRefill').textContent = C.refillInfo(s).label;
-    $('sumRate').textContent = money(s.rate);
+    $('sumRate').textContent = price(s.rate);
     $('sumLink').textContent = state.link.trim() ? state.link.trim().replace(/^https?:\/\/(www\.)?/, '') : 'Add your link';
-    $('sumTotal').textContent = total != null ? money(total) : '—';
-    // Razorpay's smallest payment is ₹1; say so when it applies, and offer the quantity ₹1 actually buys.
-    var exact = s.rate * state.qty / 1000, forOne = Math.floor(1000 / s.rate + 1e-9);
-    if (s.max > 0) forOne = Math.min(forOne, s.max);
-    var showMin = total != null && exact < 1 && s.rate > 0;
-    $('minNote').hidden = !showMin;
-    if (showMin) {
-      $('minText').textContent = '₹1 is the minimum payment. ₹1 gets you up to ' + num(forOne) + '.';
-      $('minUse').textContent = 'Get ' + num(forOne);
-      $('minUse').hidden = forOne <= state.qty;
-      $('minUse').setAttribute('data-q', forOne);
-    }
-    $('barTotal').textContent = total != null ? money(total) : '—';
+    $('sumTotal').textContent = total != null ? price(total) : '—';
+    $('barTotal').textContent = total != null ? price(total) : '—';
+    var short = acct.signedIn && acct.balance != null && total != null && acct.balance + 1e-9 < total;
+    $('sumBal').textContent = !acct.signedIn ? (acct.loading ? 'Loading…' : 'Sign in to see') :
+      acct.balance == null ? 'Loading…' : price(acct.balance) + (short ? ' (' + price(total - acct.balance) + ' short)' : '');
+    $('sumBal').className = short ? 'low' : '';
     var issue = problems();
     $('barWhat').textContent = issue || title;
-    var label = total != null ? 'Pay ' + money(total) : 'Pay';
-    if (!busy) { $('payText').textContent = label; $('barPay').textContent = issue ? 'Continue' : label; }
+    var label = issue ? 'Place order' : !acct.signedIn ? 'Sign in to order' : short ? 'Add money to order' : 'Place order · ' + price(total);
+    if (!busy) { $('payText').textContent = label; $('barPay').textContent = issue ? 'Continue' : label.replace(/ · .*/, ''); }
     $('payBtn').disabled = !!issue || busy;
     $('payBtn').title = issue || '';
   }
@@ -708,7 +735,6 @@
     var b = e.target.closest('[data-o]'); if (!b) return;
     state.optKey = b.getAttribute('data-o'); state.pickedId = null; renderSoft();
   });
-  $('minUse').addEventListener('click', function () { setQty(+this.getAttribute('data-q')); });
   $('moreBtn').addEventListener('click', function () { state.showAll = !state.showAll; renderSoft(); });
   $('all').addEventListener('click', function (e) {
     var b = e.target.closest('[data-s]'); if (!b) return;
@@ -722,7 +748,6 @@
   $('qMinus').addEventListener('click', function () { var s = cur.service; setQty(Math.max(s ? s.min : 1, state.qty - stepOf(state.qty - 1))); });
   $('qPlus').addEventListener('click', function () { var s = cur.service, m = s && s.max > 0 ? s.max : Infinity; setQty(Math.min(m, state.qty + stepOf(state.qty))); });
   $('link').addEventListener('input', function () { state.link = this.value; renderLink(); renderCheckout(); });
-  $('email').addEventListener('input', function () { state.email = this.value.trim(); remember(); });
   $('themeBtn').addEventListener('click', function () {
     var root = document.documentElement;
     var dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
@@ -731,37 +756,242 @@
 
   // ---------- views ----------
   function route() {
-    var m = location.hash.match(/^#track(?:=(.+))?/);
-    var track = !!m;
-    $('viewOrder').hidden = track; $('viewTrack').hidden = !track; $('bar').hidden = track;
+    var orders = /^#(orders|track)/.test(location.hash);
+    $('viewOrder').hidden = orders; $('viewOrders').hidden = !orders; $('bar').hidden = orders;
     document.querySelectorAll('[data-view]').forEach(function (b) {
-      if ((b.getAttribute('data-view') === 'track') === track) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+      if ((b.getAttribute('data-view') === 'orders') === orders) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
-    if (track) {
-      renderRecent();
-      if (m[1]) { $('trackId').value = decodeURIComponent(m[1]); checkStatus(); }
-    }
+    if (orders) renderOrders();
   }
   window.addEventListener('hashchange', route);
   document.querySelectorAll('[data-view]').forEach(function (b) {
-    b.addEventListener('click', function () { location.hash = b.getAttribute('data-view') === 'track' ? 'track' : ''; if (!location.hash) route(); window.scrollTo(0, 0); });
+    b.addEventListener('click', function () {
+      if (b.getAttribute('data-view') === 'orders') location.hash = 'orders';
+      else { history.pushState('', '', location.pathname); route(); }
+      window.scrollTo(0, 0);
+    });
   });
   $('home').addEventListener('click', function (e) { e.preventDefault(); history.pushState('', '', location.pathname); route(); window.scrollTo(0, 0); });
 
-  // ---------- checkout ----------
+  // ---------- API ----------
+  function api(path, body) {
+    var headers = { Accept: 'application/json' };
+    if (body) headers['Content-Type'] = 'application/json';
+    if (token) headers.Authorization = 'Bearer ' + token;
+    return fetch(path, { method: body ? 'POST' : 'GET', headers: headers, body: body ? JSON.stringify(body) : undefined })
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          if (!r.ok) { var e = new Error(d.error || 'Request failed (' + r.status + ')'); e.status = r.status; e.data = d; throw e; }
+          return d;
+        });
+      });
+  }
+
+  // ---------- wallet & sign-in ----------
+  // Live: Supabase email sign-in, balance from /api/wallet. Demo/preview: a pretend wallet kept in this browser.
+  var sb = null, token = null;
+  var acct = { signedIn: false, loading: false, demo: false, email: '', balance: null, orders: [], recharges: [] };
+  var afterSignIn = null;
+
+  function initWallet() {
+    if (store.mode !== 'live') {
+      var w = {};
+      try { w = JSON.parse(localStorage.getItem(DEMO_WALLET)) || {}; } catch (e) {}
+      acct = { signedIn: true, demo: true, email: 'Demo wallet', balance: w.balance || 0, orders: w.orders || [], recharges: w.recharges || [] };
+      renderWallet();
+      return;
+    }
+    acct.loading = true; renderWallet();
+    loadScript(SUPABASE_JS).then(function () {
+      sb = window.supabase.createClient(store.supabaseUrl, store.supabaseAnonKey);
+      sb.auth.onAuthStateChange(function (ev, session) { setSession(session); });
+      return sb.auth.getSession().then(function (r) { setSession(r.data && r.data.session); });
+    }).catch(function () {
+      acct.loading = false; renderWallet();
+      toast('Sign-in couldn’t load. Check your connection and refresh.');
+    });
+  }
+
+  function saveDemo() {
+    try { localStorage.setItem(DEMO_WALLET, JSON.stringify({ balance: acct.balance, orders: acct.orders.slice(0, 30), recharges: acct.recharges.slice(0, 10) })); } catch (e) {}
+  }
+
+  function setSession(session) {
+    var t = (session && session.access_token) || null;
+    if (t === token && (acct.signedIn || !t)) { acct.loading = false; renderWallet(); return; }
+    token = t;
+    if (!token) {
+      acct = { signedIn: false, loading: false, demo: false, email: '', balance: null, orders: [], recharges: [] };
+      renderWallet();
+      return;
+    }
+    acct.signedIn = true; acct.email = (session.user && session.user.email) || '';
+    refreshWallet().then(function () {
+      if (afterSignIn) { var f = afterSignIn; afterSignIn = null; f(); }
+    });
+  }
+
+  function refreshWallet() {
+    if (acct.demo) { renderWallet(); return Promise.resolve(); }
+    if (!token) return Promise.resolve();
+    return api('/api/wallet').then(function (w) {
+      acct.loading = false; acct.balance = w.balance; acct.orders = w.orders; acct.recharges = w.recharges; acct.email = w.email || acct.email;
+      renderWallet();
+    }).catch(function (e) {
+      acct.loading = false; renderWallet();
+      if (e.status === 401 && sb) sb.auth.signOut(); else toast(e.message);
+    });
+  }
+
+  function renderWallet() {
+    $('walletText').textContent = acct.signedIn && acct.balance != null ? price(acct.balance) : acct.loading ? '…' : 'Sign in';
+    if (cur.service) renderCheckout();
+    if (!$('viewOrders').hidden) renderOrders();
+  }
+
+  $('walletBtn').addEventListener('click', function () {
+    if (!acct.signedIn) signIn(); else { location.hash = 'orders'; window.scrollTo(0, 0); }
+  });
+
+  function signIn(then) {
+    if (then) afterSignIn = then;
+    if (!sb) { toast(acct.loading ? 'Sign-in is still loading, try again in a moment.' : 'Sign-in isn’t available right now.'); return; }
+    modal('<div class="left"><h2 id="modalTitle">Sign in</h2><p>Enter your email and we’ll send you a one-time code. No password needed.</p>' +
+      '<form id="siForm"><input class="tin" id="siEmail" type="email" required autocomplete="email" placeholder="you@example.com" aria-label="Email">' +
+      '<button class="pay" type="submit" id="siSend">Send code</button></form><p class="err" id="siErr" hidden></p>' +
+      '<button class="ghost" id="mClose" type="button">Cancel</button></div>');
+    $('mClose').onclick = function () { afterSignIn = null; closeModal(); };
+    $('siEmail').focus();
+    $('siForm').onsubmit = function (e) {
+      e.preventDefault();
+      var email = $('siEmail').value.trim();
+      $('siSend').disabled = true; $('siSend').textContent = 'Sending…'; $('siErr').hidden = true;
+      sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.origin + location.pathname } }).then(function (r) {
+        if (r.error) throw r.error;
+        codeStep(email);
+      }).catch(function (err) {
+        $('siSend').disabled = false; $('siSend').textContent = 'Send code';
+        $('siErr').hidden = false; $('siErr').textContent = err.message || 'Couldn’t send the code. Try again.';
+      });
+    };
+  }
+
+  function codeStep(email) {
+    modal('<div class="left"><h2 id="modalTitle">Check your email</h2><p>We sent a code to <b>' + esc(email) + '</b>. Enter it below, or tap the sign-in link in the same email.</p>' +
+      '<form id="coForm"><input class="tin codein" id="coCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" required placeholder="••••••" aria-label="Code">' +
+      '<button class="pay" type="submit" id="coBtn">Sign in</button></form><p class="err" id="coErr" hidden></p>' +
+      '<button class="ghost" id="mClose" type="button">Use a different email</button></div>');
+    $('mClose').onclick = function () { signIn(); };
+    $('coCode').focus();
+    $('coForm').onsubmit = function (e) {
+      e.preventDefault();
+      $('coBtn').disabled = true; $('coBtn').textContent = 'Checking…'; $('coErr').hidden = true;
+      sb.auth.verifyOtp({ email: email, token: $('coCode').value.replace(/\s/g, ''), type: 'email' }).then(function (r) {
+        if (r.error) throw r.error;
+        closeModal();
+        toast('Signed in as ' + email);
+      }).catch(function (err) {
+        $('coBtn').disabled = false; $('coBtn').textContent = 'Sign in';
+        $('coErr').hidden = false; $('coErr').textContent = /expired|invalid/i.test(err.message || '') ? 'That code is wrong or expired. Check the latest email, or send a new code.' : (err.message || 'Couldn’t sign in.');
+      });
+    };
+  }
+
+  function signOut() {
+    if (sb) sb.auth.signOut();
+    toast('Signed out');
+  }
+
+  // ---------- add money ----------
+  function addMoney(suggest) {
+    if (!acct.signedIn) { signIn(function () { addMoney(suggest); }); return; }
+    var min = store.minRecharge || 1;
+    var picks = [10, 50, 100, 500];
+    if (suggest && picks.indexOf(suggest) === -1) picks.unshift(suggest);
+    var amount = suggest || 50;
+    modal('<div class="left"><h2 id="modalTitle">Add money</h2>' +
+      '<p>Wallet balance: <b>' + esc(price(acct.balance || 0)) + '</b>' + (suggest ? '. Add at least <b>' + esc(price(suggest)) + '</b> for this order.' : '') + '</p>' +
+      '<form id="amForm"><div class="amtin"><span>₹</span><input id="amIn" type="number" inputmode="decimal" min="' + min + '" max="50000" step="0.01" required aria-label="Amount"></div>' +
+      '<div class="presets" id="amPicks">' + picks.map(function (v) { return '<button type="button" data-a="' + v + '">₹' + num(v) + '</button>'; }).join('') + '</div>' +
+      '<p class="hint" id="amHint">Minimum recharge ₹' + min + '. Your balance never expires.</p>' +
+      '<div class="fees" id="amFees"></div>' +
+      '<button class="pay" type="submit" id="amBtn"></button></form>' +
+      (acct.demo ? '<p class="note">Demo wallet: no money is charged.</p>' : '<div class="methods"><span>UPI</span><span>GPAY</span><span>PHONEPE</span><span>CARDS</span><span>NETBANKING</span></div>') +
+      '<button class="ghost" id="mClose" type="button">Cancel</button></div>');
+    var input = $('amIn');
+    function sync() {
+      var v = Number(input.value);
+      var ok = v >= min && v <= 50000;
+      var fee = ok ? C.gatewayFee(v, store.feePercent) : 0;
+      $('amBtn').textContent = ok ? 'Pay ' + price(C.round(v + fee, 2)) : 'Add money';
+      $('amFees').hidden = !ok;
+      if (ok) {
+        $('amFees').innerHTML = '<div><span>Added to wallet</span><b>' + esc(price(v)) + '</b></div>' +
+          (fee ? '<div><span>Razorpay fee (' + esc(store.feePercent) + '%)</span><b>' + esc(price(fee)) + '</b></div>' : '') +
+          '<div class="sum"><span>You pay</span><b>' + esc(price(C.round(v + fee, 2))) + '</b></div>';
+      }
+      $('amBtn').disabled = !ok;
+      $('amHint').className = 'hint' + (input.value && !ok ? ' bad' : '');
+      $('amHint').textContent = input.value && v < min ? 'The minimum recharge is ₹' + min + '.' : input.value && v > 50000 ? 'The maximum recharge is ₹50,000.' : 'Minimum recharge ₹' + min + '. Your balance never expires.';
+      document.querySelectorAll('#amPicks button').forEach(function (b) { b.setAttribute('aria-pressed', Number(b.getAttribute('data-a')) === v); });
+    }
+    input.value = amount; sync();
+    input.addEventListener('input', sync);
+    $('amPicks').addEventListener('click', function (e) { var b = e.target.closest('[data-a]'); if (b) { input.value = b.getAttribute('data-a'); sync(); } });
+    $('mClose').onclick = closeModal;
+    $('amForm').onsubmit = function (e) {
+      e.preventDefault();
+      var v = Math.round(Number(input.value) * 100) / 100;
+      if (acct.demo) {
+        acct.balance = C.round(acct.balance + v, 4);
+        acct.recharges.unshift({ amount: v, paymentId: 'demo', at: new Date().toISOString() });
+        saveDemo(); closeModal(); renderWallet(); toast(price(v) + ' added to your demo wallet');
+        return;
+      }
+      $('amBtn').disabled = true; $('amBtn').innerHTML = '<span class="spin" aria-hidden="true"></span> Opening payment…';
+      api('/api/recharge', { amount: v }).then(function (o) {
+        return loadRazorpay().then(function () { closeModal(); openRazorpay(o); });
+      }).catch(function (err) { sync(); $('amHint').className = 'hint bad'; $('amHint').textContent = err.message; });
+    };
+  }
+
+  var rzpLoaded = null;
+  function loadRazorpay() { return rzpLoaded || (rzpLoaded = loadScript('https://checkout.razorpay.com/v1/checkout.js')); }
+
+  function openRazorpay(o) {
+    var rz = new window.Razorpay({
+      key: o.keyId, order_id: o.orderId, amount: o.amount, currency: o.currency,
+      name: o.storeName || store.storeName, description: 'Wallet recharge',
+      prefill: o.email ? { email: o.email } : {},
+      theme: { color: '#e1306c' },
+      handler: function (resp) {
+        modal(loadingHtml('Adding money to your wallet…'));
+        api('/api/recharge', resp).then(function (r) {
+          acct.balance = r.balance; closeModal(); renderWallet(); refreshWallet();
+          toast(price(r.amount) + ' added. Balance ' + price(r.balance));
+        }).catch(function (e) {
+          modal('<div class="tick fail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg></div>' +
+            '<h2 id="modalTitle">Payment received, still updating</h2><p>' + esc(e.message) + ' Your money is safe: it will show in your wallet shortly. Payment reference:</p>' +
+            '<div class="tid"><div><code>' + esc(resp.razorpay_payment_id) + '</code></div><button class="ghost" id="copyId" type="button">Copy</button></div>' +
+            (store.support ? '<p>Support: <b>' + esc(store.support) + '</b></p>' : '') + '<button class="ghost" id="mClose" type="button">Close</button>');
+          $('copyId').onclick = function () { copy(resp.razorpay_payment_id, this); };
+          $('mClose').onclick = function () { closeModal(); refreshWallet(); };
+        });
+      }
+    });
+    rz.on('payment.failed', function (r) { toast((r.error && r.error.description) || 'Payment failed. You weren’t charged.'); });
+    rz.open();
+  }
+
+  // ---------- place order ----------
   var busy = false;
   function setBusy(b) {
     busy = b;
     $('payBtn').disabled = b;
-    $('payText').innerHTML = b ? '<span class="spin" aria-hidden="true"></span> Processing…' : '';
-    if (!b) renderCheckout();
+    if (b) $('payText').innerHTML = '<span class="spin" aria-hidden="true"></span> Placing order…';
+    else renderCheckout();
   }
   function showErr(msg) { $('payErr').hidden = !msg; $('payErr').textContent = msg || ''; }
-
-  function api(path, body) {
-    return fetch(path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {})
-      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { if (!r.ok) { var e = new Error(d.error || 'Request failed (' + r.status + ')'); e.data = d; throw e; } return d; }); });
-  }
 
   function onPay() {
     var issue = problems();
@@ -772,144 +1002,127 @@
       return;
     }
     showErr('');
-    var order = { serviceId: cur.service.id, quantity: state.qty, link: state.link.trim(), email: state.email };
+    if (!acct.signedIn) { signIn(); return; }
+    if (acct.balance == null) return;
+    var total = cur.total;
+    if (acct.balance + 1e-9 < total) { addMoney(Math.max(store.minRecharge || 1, Math.ceil(total - acct.balance))); return; }
+    var order = { serviceId: cur.service.id, quantity: state.qty, link: state.link.trim() };
     var title = $('sumTitle').textContent;
-    if (store.mode === 'preview') { demoCheckout({ amount: Math.round(cur.total * 100), title: title, local: true }, order); return; }
+    if (acct.demo) {
+      acct.balance = C.round(acct.balance - total, 4);
+      var o = { id: acct.orders.length + 1, title: title, link: order.link, quantity: order.quantity, charge: total, status: 'placed', created_at: new Date().toISOString() };
+      acct.orders.unshift(o); saveDemo(); renderWallet();
+      placed({ orderId: o.id, charge: total, balance: acct.balance, title: title, demo: true });
+      return;
+    }
     setBusy(true);
-    api('/api/create-order', order).then(function (o) {
-      if (o.demo) { setBusy(false); demoCheckout(o, order); return; }
-      return loadRazorpay().then(function () { openRazorpay(o, order); });
-    }).catch(function (e) { setBusy(false); showErr(e.message); });
+    api('/api/order', order).then(function (r) {
+      setBusy(false);
+      acct.balance = r.balance; renderWallet(); refreshWallet();
+      placed(r);
+    }).catch(function (e) {
+      setBusy(false);
+      if (e.data && e.data.balance != null) { acct.balance = e.data.balance; renderWallet(); }
+      if (e.status === 402 && e.data && e.data.needed) { addMoney(Math.max(store.minRecharge || 1, Math.ceil(e.data.needed))); return; }
+      if (e.status === 401) { signIn(onPay); return; }
+      showErr(e.message);
+      refreshWallet();
+    });
   }
   $('payBtn').addEventListener('click', onPay);
   $('barPay').addEventListener('click', onPay);
 
-  var rzpLoaded = null;
-  function loadRazorpay() { return rzpLoaded || (rzpLoaded = loadScript('https://checkout.razorpay.com/v1/checkout.js')); }
-
-  function openRazorpay(o, order) {
-    var rz = new window.Razorpay({
-      key: o.keyId, order_id: o.orderId, amount: o.amount, currency: o.currency,
-      name: o.storeName || store.storeName, description: o.title,
-      prefill: order.email ? { email: order.email } : {},
-      notes: { link: order.link },
-      theme: { color: '#e1306c' },
-      handler: function (resp) {
-        modal(loadingHtml('Confirming your payment…'));
-        api('/api/verify-payment', resp).then(function (r) { setBusy(false); success(r, o.title, o.amount, order); })
-          .catch(function (e) { setBusy(false); failure(e.message, (e.data && e.data.trackingId) || resp.razorpay_payment_id); });
-      },
-      modal: { ondismiss: function () { setBusy(false); } }
-    });
-    rz.on('payment.failed', function (r) { showErr((r.error && r.error.description) || 'Payment failed. You weren’t charged.'); });
-    rz.open();
-  }
-
-  // Simulated checkout for demo / preview mode: nothing is charged, no order is placed.
-  function demoCheckout(o, order) {
-    modal('<div class="demo-sheet"><span class="pill pending">Test checkout</span><h2 id="modalTitle">' + esc(o.title) + '</h2>' +
-      '<div class="amt">' + esc(money(o.amount / 100)) + '</div>' +
-      '<p>This is a simulation. No money is charged and no order is placed. Add your Razorpay and panel keys to take real payments.</p>' +
-      '<button class="pay" id="demoOk" type="button">Simulate successful payment</button>' +
-      '<button class="ghost" id="demoCancel" type="button">Cancel</button></div>');
-    $('demoCancel').onclick = closeModal;
-    $('demoOk').onclick = function () {
-      modal(loadingHtml('Confirming your payment…'));
-      var done = function (r) { success(r, o.title, o.amount, order); };
-      if (o.local) setTimeout(function () { done({ demo: true, trackingId: 'demo_' + Math.random().toString(16).slice(2, 12) }); }, 700);
-      else api('/api/verify-payment', { demo: true, orderId: o.orderId }).then(done).catch(function (e) { failure(e.message); });
-    };
+  function placed(r) {
+    modal('<div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
+      '<h2 id="modalTitle">Order placed</h2>' +
+      '<p>' + esc(r.title) + ' for <b>' + esc(price(r.charge)) + '</b>. ' + (r.demo ? 'Demo order: nothing is delivered.' : 'Delivery starts automatically.') + '</p>' +
+      '<div class="tid"><div><span>Order</span><code>#' + esc(r.orderId) + '</code></div><div style="text-align:right"><span>Wallet left</span><code>' + esc(price(r.balance)) + '</code></div></div>' +
+      '<div class="row2"><button class="ghost" id="mClose" type="button">New order</button><button class="pay" id="mTrack" type="button">My orders</button></div>');
+    $('mClose').onclick = function () { closeModal(); state.link = ''; $('link').value = ''; renderLink(); renderCheckout(); };
+    $('mTrack').onclick = function () { closeModal(); location.hash = 'orders'; window.scrollTo(0, 0); };
   }
 
   function loadingHtml(t) { return '<div class="tick"><span class="spin" style="width:32px;height:32px;border-width:3.5px"></span></div><h2 id="modalTitle">' + esc(t) + '</h2><p>Please don’t close this page.</p>'; }
-
-  function success(r, title, amount, order) {
-    saveOrder({ id: r.trackingId, title: title, amount: amount / 100, link: order.link, at: Date.now(), demo: !!r.demo });
-    modal('<div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
-      '<h2 id="modalTitle">' + (r.demo ? 'Demo order complete' : 'Order placed!') + '</h2>' +
-      '<p>' + esc(title) + ' for ' + esc(money(amount / 100)) + '. ' + (r.demo ? 'Nothing was charged.' : 'Delivery starts automatically.') + '</p>' +
-      '<div class="tid"><div><span>Tracking ID. Save it.</span><code>' + esc(r.trackingId) + '</code></div><button class="ghost" id="copyId" type="button">Copy</button></div>' +
-      '<div class="row2"><button class="ghost" id="mClose" type="button">New order</button><button class="pay" id="mTrack" type="button">Track order</button></div>');
-    $('copyId').onclick = function () { copy(r.trackingId, this); };
-    $('mClose').onclick = function () { closeModal(); state.link = ''; $('link').value = ''; renderLink(); renderCheckout(); };
-    $('mTrack').onclick = function () { closeModal(); location.hash = 'track=' + encodeURIComponent(r.trackingId); };
-  }
-
-  function failure(msg, trackingId) {
-    modal('<div class="tick fail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg></div>' +
-      '<h2 id="modalTitle">We need to check this one</h2><p>' + esc(msg) + '</p>' +
-      (trackingId ? '<div class="tid"><div><span>Payment reference</span><code>' + esc(trackingId) + '</code></div><button class="ghost" id="copyId" type="button">Copy</button></div>' : '') +
-      (store.support ? '<p>Contact support: <b>' + esc(store.support) + '</b></p>' : '') +
-      '<button class="ghost" id="mClose" type="button">Close</button>');
-    if (trackingId) { saveOrder({ id: trackingId, title: $('sumTitle').textContent, amount: cur.total, at: Date.now() }); $('copyId').onclick = function () { copy(trackingId, this); }; }
-    $('mClose').onclick = closeModal;
-  }
 
   function copy(text, btn) {
     var done = function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1400); };
     try { navigator.clipboard.writeText(text).then(done, function () {}); } catch (e) {}
   }
 
+  var toastTimer = null;
+  function toast(msg) {
+    $('toast').textContent = msg; $('toast').hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { $('toast').hidden = true; }, 3500);
+  }
+
   var lastFocus = null;
   function modal(html) {
     if ($('scrim').hidden) lastFocus = document.activeElement;
     $('modal').innerHTML = html; $('scrim').hidden = false;
-    var f = $('modal').querySelector('button'); if (f) f.focus();
+    var f = $('modal').querySelector('input, button'); if (f) f.focus();
   }
-  function closeModal() { $('scrim').hidden = true; if (lastFocus) lastFocus.focus(); }
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('scrim').hidden && $('modal').querySelector('#mClose, #demoCancel')) closeModal(); });
+  function closeModal() { $('scrim').hidden = true; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('scrim').hidden && $('modal').querySelector('#mClose')) $('mClose').click(); });
 
-  // ---------- tracking ----------
-  function getOrders() { try { return JSON.parse(localStorage.getItem(ORDERS)) || []; } catch (e) { return []; } }
-  function saveOrder(o) {
-    var list = getOrders().filter(function (x) { return x.id !== o.id; });
-    list.unshift(o);
-    try { localStorage.setItem(ORDERS, JSON.stringify(list.slice(0, 20))); } catch (e) {}
+  // ---------- my orders ----------
+  var openOrder = null;
+  var STATE_OF = { placed: 'progress', refunded: 'error', checking: 'pending', placing: 'pending' };
+  var LABEL_OF = { placed: 'Placed', refunded: 'Refunded', checking: 'Being checked', placing: 'Placing' };
+
+  function renderOrders() {
+    var v = $('ordersView');
+    var head = '<h1>My <span class="gt">orders</span></h1>';
+    if (!acct.signedIn) {
+      v.innerHTML = head + '<p>Sign in to see your wallet and orders.</p><div><button class="pay" id="ovSignIn" type="button" style="width:auto;padding:12px 24px">Sign in</button></div>';
+      $('ovSignIn').onclick = function () { signIn(); };
+      return;
+    }
+    var orders = acct.orders || [];
+    v.innerHTML = head +
+      '<div class="card wcard"><div><span>Wallet balance</span><b>' + esc(acct.balance == null ? '…' : price(acct.balance)) + '</b><small>' + esc(acct.email) + '</small></div>' +
+      '<div class="acts"><button class="pay" id="ovAdd" type="button">Add money</button>' + (acct.demo ? '' : '<button class="ghost" id="ovOut" type="button">Sign out</button>') + '</div></div>' +
+      '<div class="recent"><h3>Orders</h3>' + (orders.length ? '<div class="olist">' + orders.map(function (o) {
+        var st = STATE_OF[o.status] || 'pending';
+        return '<div><button type="button" class="orow" data-oid="' + esc(o.id) + '" aria-expanded="' + (openOrder === o.id) + '">' +
+          '<span class="top2"><b>' + esc(o.title) + '</b><span>' + esc(price(o.charge)) + '</span></span>' +
+          '<span class="sub2"><span>#' + esc(o.id) + ' · ' + esc(o.link) + '</span><span class="pill ' + st + '">' + esc(LABEL_OF[o.status] || o.status) + '</span></span></button>' +
+          '<div class="odetail" id="od' + esc(o.id) + '"' + (openOrder === o.id ? '' : ' hidden') + '></div></div>';
+      }).join('') + '</div>' : '<p class="muted">No orders yet. Your orders show up here with live delivery progress.</p>') + '</div>' +
+      (acct.recharges && acct.recharges.length ? '<div class="recent"><h3>Money added</h3><div class="olist">' + acct.recharges.map(function (r) {
+        return '<div class="orow" style="cursor:default"><span class="top2"><b>+ ' + esc(price(r.amount)) + '</b><span class="muted">' + esc(new Date(r.at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })) + '</span></span></div>';
+      }).join('') + '</div></div>' : '');
+    $('ovAdd').onclick = function () { addMoney(); };
+    if ($('ovOut')) $('ovOut').onclick = signOut;
+    if (openOrder != null) loadStatus(openOrder);
   }
-  function renderRecent() {
-    var list = getOrders();
-    $('recent').innerHTML = list.length ? '<h3>Your recent orders</h3>' + list.map(function (o) {
-      return '<button type="button" class="ritem" data-id="' + esc(o.id) + '"><div><b>' + esc(o.title) + '</b><br><code>' + esc(o.id) + '</code></div>' +
-        '<span>' + esc(o.amount != null ? money(o.amount) : '') + '<br>' + esc(new Date(o.at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })) + '</span></button>';
-    }).join('') : '';
-  }
-  $('recent').addEventListener('click', function (e) {
-    var b = e.target.closest('[data-id]'); if (!b) return;
-    $('trackId').value = b.getAttribute('data-id'); checkStatus();
+
+  $('ordersView').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-oid]'); if (!b) return;
+    var id = b.getAttribute('data-oid');
+    var box = $('od' + id);
+    var open = box.hidden;
+    openOrder = open ? (isNaN(+id) ? id : +id) : null;
+    box.hidden = !open; b.setAttribute('aria-expanded', open);
+    if (open) loadStatus(id);
   });
-  $('trackForm').addEventListener('submit', function (e) { e.preventDefault(); checkStatus(); });
 
-  function checkStatus() {
-    var id = $('trackId').value.trim();
-    $('trackErr').hidden = true;
-    if (!id) return;
-    $('trackCard').hidden = false;
-    $('trackCard').innerHTML = '<div style="display:grid;place-items:center;padding:20px"><span class="spin" style="border-color:var(--line);border-top-color:var(--accent)"></span></div>';
-    var p = /^demo_/.test(id) && store.mode === 'preview'
-      ? Promise.resolve({ trackingId: id, demo: true, status: 'In progress', state: 'progress', startCount: 1200, remains: 400, quantity: 1000, title: 'Demo order' })
+  function loadStatus(id) {
+    var box = $('od' + id); if (!box) return;
+    box.innerHTML = '<div style="display:grid;place-items:center;padding:12px"><span class="spin" style="border-color:var(--line);border-top-color:var(--accent)"></span></div>';
+    var o = (acct.orders || []).filter(function (x) { return String(x.id) === String(id); })[0] || {};
+    var p = acct.demo
+      ? Promise.resolve({ status: 'In progress', state: 'progress', quantity: o.quantity, remains: Math.round((o.quantity || 0) * 0.4), startCount: 1200, demo: true })
       : api('/api/order-status?id=' + encodeURIComponent(id));
-    p.then(renderStatus).catch(function (e) { $('trackCard').hidden = true; $('trackErr').hidden = false; $('trackErr').textContent = e.message; });
-  }
-
-  function renderStatus(s) {
-    var known = getOrders().filter(function (o) { return o.id === s.trackingId; })[0] || {};
-    var qty = s.quantity || null;
-    var delivered = qty != null && s.remains != null ? Math.max(0, qty - s.remains) : (s.state === 'done' ? qty : null);
-    var pct = qty ? Math.round(100 * (delivered || 0) / qty) : (s.state === 'done' ? 100 : 0);
-    if (s.state === 'done') pct = 100;
-    $('trackCard').innerHTML =
-      '<div class="st-head"><b>' + esc(s.title || known.title || 'Order') + '</b><span class="pill ' + esc(s.state) + '">' + esc(s.status) + '</span></div>' +
-      (s.note ? '<p class="hint bad">' + esc(s.note) + (store.support ? ' ' + esc(store.support) : '') + '</p>' : '') +
-      '<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><i style="width:' + pct + '%"></i></div>' +
-      '<p class="hint">' + (delivered != null && qty ? num(delivered) + ' of ' + num(qty) + ' delivered (' + pct + '%)' : 'Progress shows here once delivery starts.') + '</p>' +
-      '<div class="kv">' +
-        '<div><span>Tracking ID</span><b>' + esc(s.trackingId) + '</b></div>' +
-        '<div><span>Started from</span><b>' + (s.startCount != null ? num(s.startCount) : '—') + '</b></div>' +
-        '<div><span>Remaining</span><b>' + (s.remains != null ? num(s.remains) : '—') + '</b></div>' +
-        '<div><span>Paid</span><b>' + (s.paid != null ? esc(money(s.paid)) : known.amount != null ? esc(money(known.amount)) : '—') + '</b></div>' +
-      '</div>' +
-      (s.link || known.link ? '<p class="hint" style="overflow-wrap:anywhere">Link: ' + esc(s.link || known.link) + '</p>' : '') +
-      (s.demo ? '<p class="hint">Demo order: sample numbers.</p>' : '');
+    p.then(function (s) {
+      var qty = s.quantity || o.quantity || null;
+      var delivered = qty != null && s.remains != null ? Math.max(0, qty - s.remains) : null;
+      var pct = s.state === 'done' ? 100 : qty && delivered != null ? Math.round(100 * delivered / qty) : 0;
+      box.innerHTML = '<div class="st-head"><span class="muted">Delivery</span><span class="pill ' + esc(s.state) + '">' + esc(s.status) + '</span></div>' +
+        (s.note ? '<p class="hint bad">' + esc(s.note) + (store.support ? ' Support: ' + esc(store.support) : '') + '</p>' : '') +
+        '<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><i style="width:' + pct + '%"></i></div>' +
+        '<p class="hint">' + (delivered != null && qty ? num(delivered) + ' of ' + num(qty) + ' delivered (' + pct + '%)' : 'Progress shows here once delivery starts.') +
+        (s.startCount != null ? ' · started from ' + num(s.startCount) : '') + (s.demo ? ' · demo numbers' : '') + '</p>';
+    }).catch(function (e) { box.innerHTML = '<p class="hint bad">' + esc(e.message) + '</p>'; });
   }
 
   boot();
