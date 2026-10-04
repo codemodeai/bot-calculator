@@ -11,6 +11,8 @@ module.exports = handler(['GET'], async (req, res) => {
     support: cfg.support,
     currency: 'INR',
     priceSource: cat.source,
+    pricesFetchedAt: cat.fetchedAt,
+    pricesStale: cat.stale,
     services: cat.services
   }, { 'Cache-Control': 'public, max-age=60' });
 });
