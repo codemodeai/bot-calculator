@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SMM Price Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+  /* Layout: one narrow column of four steps; the total sits under the steps and in a bar pinned to the bottom on phones. */
+  :root {
+    --bg: #fbf7f3; --surface: #ffffff; --sunk: #f4ede6; --line: #eadfd4;
+    --text: #23180f; --muted: #7a6a5c; --accent: #f26b1d; --accent-ink: #ffffff; --accent-soft: #fff0e6;
+    --good: #23824f; --good-soft: #e5f4eb; --warn: #a15c00; --warn-soft: #fff3dc;
+    --mark-dark: #1d1d1f; --mark-dark-ink: #ffffff;
+    --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --radius: 14px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17120e; --surface: #211a14; --sunk: #2a221b; --line: #3a2f26;
+      --text: #f5ece4; --muted: #b3a294; --accent: #ff8a3d; --accent-ink: #1e0f04; --accent-soft: #3a2416;
+      --good: #6fd39b; --good-soft: #193526; --warn: #f2bb5c; --warn-soft: #3a2c14;
+      --mark-dark: #f5ece4; --mark-dark-ink: #17120e;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17120e; --surface: #211a14; --sunk: #2a221b; --line: #3a2f26;
+    --text: #f5ece4; --muted: #b3a294; --accent: #ff8a3d; --accent-ink: #1e0f04; --accent-soft: #3a2416;
+    --good: #6fd39b; --good-soft: #193526; --warn: #f2bb5c; --warn-soft: #3a2c14;
+    --mark-dark: #f5ece4; --mark-dark-ink: #17120e;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 16px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px 140px; display: grid; gap: 22px; }
+  @media (min-width: 761px) { .wrap { padding-bottom: 48px; } }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.02em; text-wrap: balance; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .tag { font-size: 13px; color: var(--muted); }
+  .step { display: grid; gap: 12px; min-width: 0; }
+  .step h2 { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: flex; gap: 10px; align-items: center; }
+  .step h2 b { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 12px; letter-spacing: 0; }
+  .step[data-off] { opacity: .45; pointer-events: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  /* platforms */
+  .platforms { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 620px) { .platforms { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .plat { display: grid; justify-items: center; gap: 8px; padding: 14px 6px 12px; background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius); }
+  .plat:hover { border-color: var(--muted); }
+  .plat[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .mark { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; font-size: 15px; color: #fff; }
+  .plat span { font-size: 14px; font-weight: 600; }
+
+  /* service types */
+  .types { display: flex; flex-wrap: wrap; gap: 8px; }
+  .type { padding: 10px 18px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); font-weight: 600; font-size: 15px; }
+  .type:hover { border-color: var(--muted); }
+  .type[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .type small { font-weight: 500; opacity: .7; margin-left: 4px; }
+
+  /* options */
+  .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+  .opt { text-align: left; display: grid; gap: 6px; align-content: start; padding: 14px; border-radius: var(--radius); border: 2px solid var(--line); background: var(--surface); min-width: 0; }
+  .opt:hover { border-color: var(--muted); }
+  .opt[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .opt .kind { font-weight: 800; font-size: 16px; }
+  .opt .why { font-size: 13px; color: var(--muted); }
+  .opt .rate { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .opt .rate small { font-size: 12px; font-weight: 500; color: var(--muted); }
+  .opt ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 13px; }
+  .opt li::before { content: "·"; color: var(--accent); font-weight: 800; margin-right: 6px; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--good-soft); color: var(--good); justify-self: start; }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .more { justify-self: start; background: none; border: 0; padding: 4px 0; color: var(--accent); font-weight: 600; font-size: 14px; }
+  .all { display: grid; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); max-height: 340px; overflow: auto; }
+  .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; text-align: left; padding: 10px 12px; border: 0; border-bottom: 1px solid var(--line); background: none; font-size: 13px; }
+  .row:last-child { border-bottom: 0; }
+  .row:hover { background: var(--sunk); }
+  .row[aria-pressed="true"] { background: var(--accent-soft); }
+  .row b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .row span { min-width: 0; overflow-wrap: anywhere; }
+  .row .off { color: var(--muted); }
+
+  /* quantity */
+  .qty { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .qty input { font: inherit; font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; width: 100%; max-width: 260px; padding: 10px 14px; border-radius: var(--radius); border: 2px solid var(--line); background: var(--surface); color: var(--text); }
+  .qty input:focus { border-color: var(--accent); outline: none; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .chip:hover { border-color: var(--muted); }
+  .hint { font-size: 13px; color: var(--muted); margin: 0; }
+  .hint.bad { color: var(--warn); font-weight: 600; }
+
+  /* total */
+  .total { background: var(--surface); border: 2px solid var(--accent); border-radius: 18px; padding: 18px; display: grid; gap: 10px; }
+  .total .sum { font-size: 44px; line-height: 1.05; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--accent); overflow-wrap: anywhere; }
+  .total .what { font-size: 15px; font-weight: 600; }
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  @media (max-width: 480px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .fact { background: var(--sunk); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+  .fact span { display: block; font-size: 12px; color: var(--muted); }
+  .fact b { font-size: 15px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .svc-name { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; margin: 0; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { padding: 10px 16px; border-radius: 10px; border: 2px solid var(--accent); background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+  .btn.ghost { background: transparent; color: var(--text); border-color: var(--line); }
+
+  /* phone: total pinned to the bottom */
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; box-shadow: 0 -6px 20px rgba(0,0,0,.08); }
+  .bar .s { font-size: 24px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .bar .d { font-size: 12px; color: var(--muted); }
+  @media (min-width: 761px) { .bar { display: none; } }
+  footer { font-size: 12px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
+  footer a { color: inherit; }
+  .theme { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; color: var(--muted); }
+  @media (prefers-reduced-motion: no-preference) {
+    .plat, .type, .opt, .chip, .row { transition: border-color .15s, background-color .15s; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>SMM <em>Price</em> Calculator</h1>
+      <div class="tag" id="tagline">Prices from smmorange.com</div>
+    </div>
+    <button class="theme" id="themeBtn" type="button">Dark / light</button>
+  </header>
+
+  <section class="step" aria-labelledby="h1s">
+    <h2 id="h1s"><b>1</b>Choose platform</h2>
+    <div class="platforms" id="platforms"></div>
+  </section>
+
+  <section class="step" aria-labelledby="h2s" id="stepType">
+    <h2 id="h2s"><b>2</b>What do you need?</h2>
+    <div class="types" id="types"></div>
+  </section>
+
+  <section class="step" aria-labelledby="h3s" id="stepOpt">
+    <h2 id="h3s"><b>3</b>Pick a speed / quality</h2>
+    <div class="options" id="options"></div>
+    <button class="more" id="moreBtn" type="button" aria-expanded="false"></button>
+    <div class="all" id="all" hidden></div>
+  </section>
+
+  <section class="step" aria-labelledby="h4s" id="stepQty">
+    <h2 id="h4s"><b>4</b>How many?</h2>
+    <div class="qty">
+      <input id="qty" type="number" inputmode="numeric" min="1" step="1" value="1000" aria-label="Quantity">
+    </div>
+    <div class="chips" id="chips"></div>
+    <p class="hint" id="qtyHint"></p>
+  </section>
+
+  <section class="total" aria-live="polite" id="total">
+    <div class="what" id="tWhat"></div>
+    <div class="sum" id="tSum">—</div>
+    <div class="facts">
+      <div class="fact"><span>Delivery time</span><b id="tTime">—</b></div>
+      <div class="fact"><span>Refill</span><b id="tRefill">—</b></div>
+      <div class="fact"><span>Service ID</span><b id="tId">—</b></div>
+    </div>
+    <p class="svc-name" id="tSvc"></p>
+    <div class="actions">
+      <button class="btn" id="copyBtn" type="button">Copy details</button>
+    </div>
+  </section>
+
+  <footer>
+    <span id="updated"></span>
+    <span><a href="/">Store →</a> · <a href="advanced.html" id="advLink">Advanced calculator →</a></span>
+  </footer>
+</div>
+
+<div class="bar" aria-hidden="true">
+  <div><div class="s" id="bSum">—</div><div class="d" id="bWhat"></div></div>
+  <button class="btn" type="button" onclick="document.getElementById('total').scrollIntoView({behavior:'smooth'})">Details</button>
+</div>
+
+<script src="calculator.js"></script>
+<script src="data/services.js"></script>
+<script>
+(function () {
+  'use strict';
+  var C = window.SmmCalc;
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'smmcalc.simple.v1';
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); };
+  var num = function (n) { return Number(n).toLocaleString('en-IN'); };
+
+  var PLATFORMS = [
+    { id: 'Instagram', label: 'Instagram', code: 'IG', color: 'linear-gradient(135deg,#feda75,#fa7e1e 30%,#d62976 60%,#962fbf 85%,#4f5bd5)' },
+    { id: 'YouTube', label: 'YouTube', code: 'YT', color: '#ff0033' },
+    { id: 'TikTok', label: 'TikTok', code: 'TT', color: 'var(--mark-dark)', ink: 'var(--mark-dark-ink)' },
+    { id: 'Facebook', label: 'Facebook', code: 'FB', color: '#1877f2' },
+    { id: 'Telegram', label: 'Telegram', code: 'TG', color: '#229ed9' },
+    { id: 'Twitter', label: 'X / Twitter', code: 'X', color: 'var(--mark-dark)', ink: 'var(--mark-dark-ink)' }
+  ];
+  var TYPE_ORDER = ['Followers', 'Likes', 'Views', 'Subscribers', 'Members', 'Comments', 'Comment Likes', 'Other'];
+  var WHY = {
+    cheap: 'Lowest price',
+    smart: 'Better quality for a little more',
+    fast: 'Quickest delivery',
+    best: 'Strongest refill and accounts'
+  };
+
+  var data = window.SERVICES_DATA || { services: [] };
+  var all = data.services.map(function (s) { return C.normaliseService(s, data.currency); })
+    .filter(function (s) { return s.id && isFinite(s.rate); });
+  all.forEach(function (s) { s.platform = C.platformOf(s); s.kind = C.serviceType(s); });
+  var currency = data.currency || 'INR';
+  var money = function (v, dp) { return C.formatMoney(v, currency, dp); };
+
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+  var state = {
+    platform: saved.platform || 'Instagram',
+    kind: saved.kind || 'Followers',
+    optKey: saved.optKey || 'smart',
+    pickedId: null,          // set when the user picks from "See all options"
+    qty: saved.qty || 1000,
+    showAll: false
+  };
+
+  function remember() {
+    try { localStorage.setItem(KEY, JSON.stringify({ platform: state.platform, kind: state.kind, optKey: state.optKey, qty: state.qty })); } catch (e) {}
+  }
+
+  function group() {
+    return all.filter(function (s) { return s.platform === state.platform && s.kind === state.kind; });
+  }
+
+  // "Real accounts · Lifetime refill · done in ~2 hours" for the current quantity
+  function describe(s) {
+    var t = approx(C.estimateHours(s, state.qty || 1000));
+    return C.features(s).concat(t ? ['done in ' + t] : []).join(' · ');
+  }
+
+  // "~3 hours", "under 1 hour"
+  function approx(h) { var t = C.formatHours(h); return t ? (/^under/.test(t) ? t : '~' + t) : null; }
+
+  // ---------- render ----------
+  function renderPlatforms() {
+    $('platforms').innerHTML = PLATFORMS.filter(function (p) {
+      return all.some(function (s) { return s.platform === p.id; });
+    }).map(function (p) {
+      return '<button type="button" class="plat" data-p="' + p.id + '" aria-pressed="' + (p.id === state.platform) + '">' +
+        '<div class="mark" style="background:' + p.color + (p.ink ? ';color:' + p.ink : '') + '">' + p.code + '</div>' +
+        '<span>' + esc(p.label) + '</span></button>';
+    }).join('');
+  }
+
+  function renderTypes() {
+    var counts = {};
+    all.forEach(function (s) { if (s.platform === state.platform) counts[s.kind] = (counts[s.kind] || 0) + 1; });
+    var kinds = TYPE_ORDER.filter(function (k) { return counts[k]; });
+    if (kinds.indexOf(state.kind) === -1) state.kind = kinds[0];
+    $('types').innerHTML = kinds.map(function (k) {
+      return '<button type="button" class="type" data-k="' + esc(k) + '" aria-pressed="' + (k === state.kind) + '">' + esc(k) + '</button>';
+    }).join('');
+  }
+
+  var current = { options: [], service: null, option: null };
+
+  function renderOptions() {
+    var g = group();
+    var opts = C.pickOptions(g, state.qty);
+    current.options = opts;
+    var picked = state.pickedId && g.filter(function (s) { return s.id === state.pickedId; })[0];
+    var chosen = picked ? null : (opts.filter(function (o) { return o.key === state.optKey; })[0] || opts.filter(function (o) { return o.key === 'smart'; })[0] || opts[0]);
+    current.option = chosen;
+    current.service = picked || (chosen && chosen.service);
+
+    $('options').innerHTML = opts.map(function (o) {
+      var s = o.service, time = approx(o.estimateHours);
+      var items = [
+        '<li>' + (time ? 'Done in ' + esc(time) : 'Delivery time not listed') + '</li>',
+        '<li>' + esc(o.refill.label) + '</li>'
+      ];
+      var total = o.fits && state.qty > 0 ? money(C.quote(s, { quantity: state.qty }).price, 2) : money(s.rate);
+      var unit = o.fits && state.qty > 0 ? 'for ' + num(state.qty) : '/ 1000';
+      var pill = o.alsoFastest ? '<span class="pill">Also the fastest</span>' :
+        (!o.fits ? '<span class="pill warn">' + (state.qty < s.min ? 'Min ' + num(s.min) : 'Max ' + num(s.max)) + '</span>' : '');
+      return '<button type="button" class="opt" data-o="' + o.key + '" aria-pressed="' + (!picked && chosen === o) + '">' +
+        '<span class="kind">' + esc(o.label) + '</span>' +
+        '<span class="why">' + esc(WHY[o.key]) + '</span>' +
+        '<span class="rate">' + esc(total) + ' <small>' + esc(unit) + '</small></span>' +
+        '<ul>' + items.join('') + '</ul>' + pill + '</button>';
+    }).join('');
+
+    $('moreBtn').hidden = g.length <= 1;
+    $('moreBtn').textContent = state.showAll ? 'Hide other options' : 'See other options';
+    $('moreBtn').setAttribute('aria-expanded', state.showAll);
+    $('all').hidden = !state.showAll;
+    if (state.showAll) {
+      // Sorted by price: skip a row when a cheaper one gives the same thing at least as fast.
+      var fastest = {}, q = state.qty || 1000;
+      var shownHours = function (s) {   // the rounded time the page shows: under 1 hour, N hours, N days
+        var h = C.estimateHours(s, q);
+        return h == null ? Infinity : h < 1 ? 0 : h < 24 ? Math.ceil(h) : Math.ceil(h / 24) * 24;
+      };
+      $('all').innerHTML = g.slice().sort(function (a, b) { return a.rate - b.rate || shownHours(a) - shownHours(b); }).filter(function (s) {
+        var key = C.features(s).join('|'), h = shownHours(s);
+        if (key in fastest && fastest[key] <= h) return false;
+        fastest[key] = h;
+        return true;
+      }).map(function (s) {
+        var fits = C.fitsQuantity(s, state.qty);
+        var price = fits && state.qty > 0 ? money(C.quote(s, { quantity: state.qty }).price, 2) : money(s.rate) + ' / 1000';
+        return '<button type="button" class="row" data-s="' + esc(s.id) + '" aria-pressed="' + (current.service === s) + '">' +
+          '<span class="' + (fits ? '' : 'off') + '">' + esc(describe(s)) +
+          (fits ? '' : ' · ' + (state.qty < s.min ? 'min ' + num(s.min) : 'max ' + num(s.max))) + '</span>' +
+          '<b>' + esc(price) + '</b></button>';
+      }).join('');
+    }
+  }
+
+  function renderQtyChips() {
+    var s = current.service;
+    if (!s) { $('chips').innerHTML = ''; return; }
+    var max = s.max > 0 ? s.max : Infinity;
+    var picks = [100, 500, 1000, 5000, 10000, 50000, 100000].filter(function (v) { return v >= s.min && v <= max; });
+    if (picks.indexOf(s.min) === -1) picks.unshift(s.min);
+    $('chips').innerHTML = picks.slice(0, 7).map(function (v) {
+      return '<button type="button" class="chip" data-q="' + v + '">' + (v === s.min ? 'Min ' : '') + num(v) + '</button>';
+    }).join('');
+  }
+
+  function renderTotal() {
+    var s = current.service, qty = state.qty;
+    var plat = PLATFORMS.filter(function (p) { return p.id === state.platform; })[0];
+    var label = current.option ? current.option.label : 'Selected service';
+    if (!s) { $('tSum').textContent = '—'; return; }
+    var r = C.quote(s, { quantity: qty });
+    var bad = !r.valid;
+    $('qtyHint').className = 'hint' + (bad ? ' bad' : '');
+    $('qtyHint').textContent = bad ? r.errors.join(' ') : 'This option takes ' + num(s.min) + ' to ' + (s.max > 0 && s.max < 2e9 ? num(s.max) : 'unlimited') + '.';
+    var what = num(qty || 0) + ' ' + (plat ? plat.label : '') + ' ' + state.kind + ' · ' + label;
+    $('tWhat').textContent = what;
+    $('tSum').textContent = bad ? '—' : money(r.price, 2);
+    $('tTime').textContent = approx(C.estimateHours(s, qty)) || 'Not listed';
+    $('tRefill').textContent = C.refillInfo(s).label;
+    $('tId').textContent = '#' + s.id;
+    var extra = C.features(s).filter(function (f) { return f !== C.refillInfo(s).label; });
+    $('tSvc').textContent = extra.join(' · ');
+    $('tSvc').hidden = !extra.length;
+    $('bSum').textContent = bad ? '—' : money(r.price, 2);
+    $('bWhat').textContent = bad ? r.errors[0] : what;
+  }
+
+  function renderAll() {
+    renderPlatforms(); renderTypes(); renderOptions(); renderQtyChips(); renderTotal(); remember();
+  }
+
+  // ---------- events ----------
+  $('platforms').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-p]'); if (!b) return;
+    state.platform = b.getAttribute('data-p'); state.pickedId = null; state.showAll = false; renderAll();
+  });
+  $('types').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-k]'); if (!b) return;
+    state.kind = b.getAttribute('data-k'); state.pickedId = null; state.showAll = false; renderAll();
+  });
+  $('options').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-o]'); if (!b) return;
+    state.optKey = b.getAttribute('data-o'); state.pickedId = null; renderAll();
+  });
+  $('moreBtn').addEventListener('click', function () { state.showAll = !state.showAll; renderOptions(); });
+  $('all').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-s]'); if (!b) return;
+    state.pickedId = b.getAttribute('data-s'); renderOptions(); renderQtyChips(); renderTotal();
+  });
+  $('qty').addEventListener('input', function () {
+    state.qty = parseInt(this.value, 10) || 0; renderOptions(); renderTotal(); remember();
+  });
+  $('chips').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-q]'); if (!b) return;
+    state.qty = +b.getAttribute('data-q'); $('qty').value = state.qty; renderOptions(); renderTotal(); remember();
+  });
+  $('copyBtn').addEventListener('click', function () {
+    var btn = this, s = current.service; if (!s) return;
+    var text = $('tWhat').textContent + '\nTotal: ' + $('tSum').textContent + '\nDelivery: ' + $('tTime').textContent +
+      ' · ' + $('tRefill').textContent + '\nService ID: ' + s.id;
+    var done = function () { btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = 'Copy details'; }, 1400); };
+    try {
+      navigator.clipboard.writeText(text).then(done, function () { selectText(); });
+    } catch (e) { selectText(); }
+    function selectText() { var r = document.createRange(); r.selectNodeContents($('total')); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+  });
+  $('themeBtn').addEventListener('click', function () {
+    var root = document.documentElement;
+    var dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+  });
+
+  // ---------- boot ----------
+  if (!all.some(function (s) { return s.platform === state.platform; })) state.platform = 'Instagram';
+  $('qty').value = state.qty;
+  $('updated').textContent = all.length + ' services' + (data.fetchedAt ? ' · prices updated ' + String(data.fetchedAt).slice(0, 10) : '') + ' · prices in ' + currency;
+  if (data.demo) $('tagline').textContent = 'Demo prices — load the real list with tools/fetch_services.py';
+  renderAll();
+})();
+</script>
+</body>
+</html>
