@@ -1,3 +1,6 @@
 tools/
 test/
 .gitignore
+dev-server.js
+.env
+.env.*

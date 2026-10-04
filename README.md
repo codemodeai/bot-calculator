@@ -19,6 +19,11 @@ Delivery time is estimated from the start time and speed in each service's name 
 example "Start: 0-1 Hours | Speed: 300K/Day"). Some services don't list a speed, and then
 the page shows "Speed not listed".
 
+**Store (`boost.html`, served at `/boost`).** A shop for your customers: platform → service →
+package → quantity → link → **Pay with Razorpay** (UPI, cards, netbanking). After payment the order
+is placed on smmorange.com automatically, and the customer gets a tracking ID for `/boost#track`.
+See [Store and payments](#store-and-payments).
+
 **Advanced calculator (`advanced.html`).** Shows every service, with search, budget mode,
 drip-feed runs, reseller markup and discount, currency conversion, a multi-item order
 and CSV import/export.
@@ -68,6 +73,57 @@ const svc = C.normaliseService(services.find(s => s.id === '1023'));
 C.quote(svc, { quantity: 5000, markup: 30 });   // { price, cost, profit, valid, errors, ... }
 C.quantityForBudget(svc, 10);                    // { quantity, affordable }
 ```
+
+## Store and payments
+
+```
+customer --pays--> Razorpay --> /api/verify-payment --checks signature--> smmorange.com API (action=add)
+                                     ^                                     paid from your panel balance
+               /api/webhook (backup if the customer closes the tab)
+```
+
+Two different keys are involved:
+
+- **SMM panel API key** (smmorange.com → Account → API). It places orders and pays for them from
+  your panel balance. It can't take money from customers.
+- **Razorpay keys** (dashboard.razorpay.com → Account & Settings → API Keys). These take the
+  customer's payment. Start with `rzp_test_...` keys, then switch to live keys once Razorpay
+  activates your account.
+
+Set them as environment variables: in Vercel → Project → Settings → Environment Variables, or in a
+local `.env` copied from `.env.example`. **Never put keys in the code or commit them.**
+
+| Variable | |
+|---|---|
+| `SMM_API_KEY` | smmorange.com API key |
+| `SMM_API_URL` | defaults to `https://smmorange.com/api/v2` |
+| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | Razorpay API keys |
+| `RAZORPAY_WEBHOOK_SECRET` | optional backup: add a webhook to `https://YOUR-SITE/api/webhook` for `payment.captured` |
+| `MARKUP_PERCENT` | your margin on top of the panel price (default `50`) |
+| `STORE_NAME`, `SUPPORT_CONTACT` | shown in the store |
+
+Unless both Razorpay keys **and** the panel key are set, the store runs in **demo mode**: checkout
+is simulated and no order is ever placed.
+
+How it stays safe:
+
+- The server works out the price from the panel price plus your markup. It ignores any price the
+  browser sends and asks Razorpay for exactly that amount.
+- The order details (service, link, quantity) are saved on the Razorpay order. After payment they
+  are read back from there, not from the browser.
+- The panel order is placed only after the Razorpay signature checks out and the payment is
+  captured. The panel order ID is saved in the Razorpay payment's notes, so a retry or the webhook
+  never orders twice.
+- When the panel key is set, live panel prices are used (cached for 10 minutes). If the panel
+  raises a price, the store charges the new price, so you don't sell at a loss.
+- If the panel refuses an order (for example, low balance), the customer sees their payment
+  reference, and the reason is saved on the payment in Razorpay (`smm_error` note). Top up your
+  balance and place the order by hand, or refund it from the Razorpay dashboard.
+
+API routes (`api/`, Vercel serverless functions): `GET /api/services`, `POST /api/create-order`,
+`POST /api/verify-payment`, `GET /api/order-status?id=pay_…`, `POST /api/webhook`.
+
+To run it locally, run `node dev-server.js` and open http://localhost:3000/boost.
 
 ## Tests
 

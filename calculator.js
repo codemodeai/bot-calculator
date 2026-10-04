@@ -242,6 +242,17 @@
     return { quantity: qty, affordable: !(isFinite(service.min) && qty < service.min) };
   }
 
+  // Selling rate per 1000 after the store's markup (percent).
+  function retailRate(rate, markup) {
+    return round(rate * (1 + (Number(markup) || 0) / 100), 4);
+  }
+
+  // What a customer is charged for `qty` units at `rate` per 1000: rounded up to the paisa / cent, at least 1.
+  function chargeAmount(rate, qty) {
+    var exact = round(rate * qty / 1000, 6);
+    return Math.max(1, Math.ceil(exact * 100 - 1e-9) / 100);
+  }
+
   function formatMoney(value, currency, dp) {
     if (!isFinite(value)) return '—';
     dp = dp == null ? (Math.abs(value) < 1 && value !== 0 ? 4 : 2) : dp;
@@ -452,6 +463,8 @@
     platformOf: platformOf,
     quote: quote,
     quantityForBudget: quantityForBudget,
+    retailRate: retailRate,
+    chargeAmount: chargeAmount,
     formatMoney: formatMoney,
     toCsv: toCsv,
     round: round
