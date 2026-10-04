@@ -476,6 +476,110 @@
     @keyframes confetti { 0% { opacity: 1; transform: rotate(var(--a)) translateY(0) scale(1); } 100% { opacity: 0; transform: rotate(var(--a)) translateY(var(--d)) rotate(160deg) scale(.6); } }
   }
 
+  /* ---------- profile menu (top right) ---------- */
+  .user { position: relative; }
+  .userbtn { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px 0 4px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 13px; font-weight: 500; }
+  .userbtn:hover { background: var(--hover); }
+  .userbtn .avatar { width: 28px; height: 28px; font-size: 12px; overflow: hidden; }
+  .userbtn .avatar img, .umenu .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .userbtn svg { width: 14px; height: 14px; color: var(--muted); }
+  .userbtn.signin { padding: 0 16px; border: 0; background: linear-gradient(180deg, var(--accent-2), var(--accent)); color: var(--on-accent); }
+  .userbtn.signin:hover { filter: brightness(1.06); }
+  .uname { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .umenu { position: absolute; z-index: 35; right: 0; top: calc(100% + 8px); width: 260px; padding: 6px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 16px 40px -12px rgba(16, 24, 40, .25); }
+  .umenu .uhead { display: flex; gap: 10px; align-items: center; padding: 10px; }
+  .umenu .uhead div { min-width: 0; }
+  .umenu .uhead b { display: block; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .umenu .uhead div span { display: block; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .umenu .ubal { display: flex; justify-content: space-between; align-items: center; margin: 0 4px 6px; padding: 10px 12px; border-radius: 10px; background: var(--sunk); font-size: 13px; color: var(--muted); }
+  .umenu .ubal b { color: var(--text); font-weight: 600; }
+  .umenu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border: 0; border-radius: 9px; background: none; font-size: 13.5px; color: var(--text-2); text-align: left; }
+  .umenu button:hover { background: var(--hover); color: var(--text); }
+  .umenu button svg { width: 17px; height: 17px; color: var(--muted); }
+  .umenu hr { border: 0; border-top: 1px solid var(--line); margin: 6px 4px; }
+  .umenu .out, .umenu .out svg { color: var(--bad); }
+  .pay.danger { background: var(--bad); }
+
+  /* ---------- sign-in page ---------- */
+  .auth { position: fixed; inset: 0; z-index: 45; overflow-y: auto; display: grid; place-items: center; padding: 24px; background: #17181c; }
+  .auth-card { width: min(1100px, 100%); min-height: min(700px, calc(100dvh - 48px)); display: grid; grid-template-columns: 1.08fr 1fr; padding: 8px; border-radius: 32px; background: var(--panel); box-shadow: 0 30px 80px -20px rgba(0, 0, 0, .5); }
+  .auth-hero { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; padding: 40px 42px; border-radius: 26px; color: #fff;
+    background: radial-gradient(55% 45% at 32% 22%, rgba(255, 255, 255, .42), transparent 70%), radial-gradient(60% 55% at 85% 55%, rgba(98, 214, 255, .95), transparent 70%),
+      radial-gradient(70% 60% at 10% 95%, rgba(30, 64, 220, .9), transparent 70%), linear-gradient(160deg, #2747d4 0%, #3f86f5 45%, #5cc8fb 68%, #2034b8 100%); background-size: 140% 140%; }
+  .auth-brand { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 600; letter-spacing: -.02em; }
+  .auth-brand .logo { width: 32px; height: 32px; background: rgba(255, 255, 255, .2); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35); }
+  .auth-chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 16px; border-radius: 999px; background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .25); backdrop-filter: blur(8px); font-size: 15px; }
+  .auth-hero h1 { margin: 18px 0 10px; font-size: clamp(36px, 4.4vw, 56px); line-height: 1.04; font-weight: 500; letter-spacing: -.035em; }
+  .auth-hero p { margin: 0; font-size: 16px; opacity: .88; }
+  .auth-steps { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .auth-steps li { min-height: 132px; display: flex; flex-direction: column; justify-content: space-between; gap: 18px; padding: 14px; border-radius: 18px; background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .22); backdrop-filter: blur(10px); font-size: 14px; line-height: 1.35; color: rgba(255, 255, 255, .92); }
+  .auth-steps b { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 500; border: 1px solid rgba(255, 255, 255, .55); }
+  .auth-steps li.on { background: #fff; color: #101828; border-color: #fff; font-weight: 500; }
+  .auth-steps li.on b { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .auth-side { position: relative; display: flex; flex-direction: column; padding: 28px 40px; }
+  .auth-back { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; margin-left: -10px; border: 0; border-radius: 9px; background: none; color: var(--muted); font-size: 13.5px; font-weight: 500; }
+  .auth-back:hover { background: var(--hover); color: var(--text); }
+  .auth-back svg { width: 16px; height: 16px; }
+  .auth-inner { flex: 1; width: 100%; max-width: 380px; margin: 0 auto; display: flex; flex-direction: column; justify-content: center; gap: 16px; padding: 24px 0; }
+  .auth-inner h2 { margin: 0; text-align: center; font-size: 34px; font-weight: 500; letter-spacing: -.03em; }
+  .auth-inner .sub { margin: -6px 0 6px; text-align: center; color: var(--muted); font-size: 14px; font-weight: 400; }
+  .auth-inner .sub b { color: var(--text); font-weight: 500; }
+  .auth-inner label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .auth-field { display: grid; gap: 8px; }
+  .auth-input { width: 100%; height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid transparent; background: var(--sunk); font-size: 15px; outline: none; transition: border-color .15s, box-shadow .15s, background .15s; }
+  .auth-input:focus { background: var(--panel); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-ring); }
+  .auth-input.bad { border-color: var(--bad); }
+  .auth-hint { margin: 0; font-size: 12px; color: var(--muted); }
+  .auth-go { height: 54px; border: 0; border-radius: 14px; background: #1d43d8; color: #fff; font-size: 16px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 8px 20px -8px rgba(29, 67, 216, .6); }
+  .auth-go:hover { background: #1a3cc4; }
+  .auth-go:disabled { opacity: .6; cursor: not-allowed; }
+  .auth-go .spin { border-color: rgba(255, 255, 255, .4); border-top-color: #fff; }
+  .auth-alt { margin: 0; text-align: center; font-size: 13px; color: var(--muted); }
+  .auth-alt button { border: 0; background: none; padding: 0; color: var(--accent); font-weight: 600; font-size: 13px; }
+  .auth-alt button:disabled { color: var(--faint); cursor: default; }
+  .auth-or { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 13px; }
+  .auth-or::before, .auth-or::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+  .auth-google { height: 54px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--panel); color: var(--text); font-size: 15.5px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 12px; }
+  .auth-google:hover { background: var(--hover); }
+  .auth-google:disabled { opacity: .55; cursor: not-allowed; }
+  .auth-google svg { width: 20px; height: 20px; }
+  .auth-legal { margin: 8px 0 0; text-align: center; font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+  .auth-legal b { color: var(--accent); font-weight: 500; }
+  .auth-err { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--bad-soft); color: var(--bad); font-size: 13px; font-weight: 500; }
+  .otp { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .otp input { width: 100%; height: 58px; padding: 0; border-radius: 14px; border: 1px solid transparent; background: var(--sunk); text-align: center; font-size: 24px; font-weight: 600; outline: none; caret-color: var(--accent); }
+  .otp input:focus { background: var(--panel); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-ring); }
+  .otp.bad input { border-color: var(--bad); }
+  .auth-done { display: grid; justify-items: center; gap: 10px; text-align: center; }
+  .auth-done .co-check { width: 76px; height: 76px; }
+  @media (max-width: 900px) {
+    .auth { padding: 0; place-items: stretch; background: var(--panel); }
+    .auth-card { grid-template-columns: 1fr; min-height: 100dvh; border-radius: 0; padding: 0; box-shadow: none; }
+    .auth-hero { border-radius: 0 0 26px 26px; padding: 22px 22px 26px; gap: 18px; }
+    .auth-hero h1 { font-size: 32px; margin: 12px 0 6px; }
+    .auth-hero p { font-size: 14px; }
+    .auth-chip { font-size: 13px; padding: 5px 12px; }
+    .auth-steps { margin-top: 18px; gap: 8px; }
+    .auth-steps li { min-height: 0; padding: 10px; gap: 10px; font-size: 12px; border-radius: 14px; }
+    .auth-side { padding: 14px 20px 28px; }
+    .auth-inner { justify-content: flex-start; padding-top: 8px; }
+    .auth-inner h2 { font-size: 28px; }
+    .uname { display: none; }
+    .userbtn { padding-right: 8px; }
+  }
+  @media (max-width: 600px) {
+    .auth-steps, .auth-hero p { display: none; }
+    .auth-hero h1 { margin-bottom: 0; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .auth-hero { animation: drift 16s ease-in-out infinite alternate; }
+    @keyframes drift { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
+    .auth-inner > * { animation: fadeUp .35s ease-out both; }
+    .auth-done .co-check circle { stroke-dashoffset: 260; animation: draw .6s ease-out forwards; }
+    .auth-done .co-check path { stroke-dashoffset: 60; animation: draw .35s .45s ease-out forwards; }
+    .umenu { animation: fadeUp .15s ease-out; }
+  }
+
   .mbar { display: none; }
 
   /* ---------- responsive ---------- */
@@ -563,7 +667,9 @@
   <div class="main">
     <header class="topbar">
       <div><small id="hello">Welcome</small><h1 id="welcome">Grow your <span class="gt">Instagram</span></h1></div>
-      <div class="topr"><div class="themes" role="group" aria-label="Theme"><button type="button" data-set-theme="light" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg>Light</button><button type="button" data-set-theme="dark" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>Dark</button></div></div>
+      <div class="topr"><div class="themes" role="group" aria-label="Theme"><button type="button" data-set-theme="light" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg>Light</button><button type="button" data-set-theme="dark" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>Dark</button></div>
+        <div class="user" id="userBox"><button type="button" class="userbtn" id="userBtn" aria-haspopup="menu" aria-expanded="false"></button><div class="umenu" id="uMenu" role="menu" hidden></div></div>
+      </div>
     </header>
     <div class="notes"><p class="err" id="loadErr" hidden></p></div>
 
@@ -650,6 +756,28 @@
     <section class="ordersv" id="viewOrders" hidden aria-label="My orders"><div class="inner" id="ordersView"></div></section>
   </div>
 </div>
+
+<section class="auth" id="authView" hidden aria-labelledby="authTitle">
+  <div class="auth-card">
+    <aside class="auth-hero">
+      <div class="auth-brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5 2 4 14h7l-1.5 8L20 10h-7l.5-8z"/></svg></span><span id="authStore">Boostly</span></div>
+      <div>
+        <span class="auth-chip">Grow with us 🚀</span>
+        <h1>Start growing today</h1>
+        <p>Three quick steps to your first order.</p>
+        <ol class="auth-steps">
+          <li class="on"><b>1</b><span>Sign in with your email or Google</span></li>
+          <li><b>2</b><span>Add money by UPI, no extra fees</span></li>
+          <li><b>3</b><span>Place your order, delivery starts automatically</span></li>
+        </ol>
+      </div>
+    </aside>
+    <div class="auth-side">
+      <button type="button" class="auth-back" id="authBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>Back to store</button>
+      <div class="auth-inner" id="authInner"></div>
+    </div>
+  </div>
+</section>
 
 <nav class="mbar" aria-label="Menu">
   <button type="button" data-nav="order" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Order</button>
@@ -1054,7 +1182,7 @@
     });
   });
   $('home').addEventListener('click', function (e) { e.preventDefault(); goOrder(); });
-  $('acctBtn').addEventListener('click', function () { if (acct.signedIn && !acct.demo) signOut(); else if (!acct.signedIn) signIn(); });
+  $('acctBtn').addEventListener('click', function () { if (acct.signedIn && !acct.demo) confirmSignOut(); else if (!acct.signedIn) signIn(); });
   $('wAdd').addEventListener('click', function () { addMoney(); });
 
   function supportModal() {
@@ -1075,7 +1203,7 @@
       (acct.signedIn ? (acct.demo ? '' : '<button class="ghost" id="mOut" type="button">Log out</button>') : '<button class="pay" id="mIn" type="button">Sign in</button>') +
       '<button class="ghost" id="mClose" type="button">Close</button></div>');
     $('mTheme').onclick = function () { toggleTheme(); accountModal(); };
-    if ($('mOut')) $('mOut').onclick = function () { closeModal(); signOut(); };
+    if ($('mOut')) $('mOut').onclick = function () { confirmSignOut(); };
     if ($('mIn')) $('mIn').onclick = function () { signIn(); };
     $('mClose').onclick = closeModal;
   }
@@ -1135,7 +1263,9 @@
       renderWallet();
       return;
     }
+    var meta = (session.user && session.user.user_metadata) || {};
     acct.signedIn = true; acct.email = (session.user && session.user.email) || '';
+    acct.name = meta.full_name || meta.name || ''; acct.picture = /^https:\/\//.test(meta.avatar_url || meta.picture || '') ? (meta.avatar_url || meta.picture) : '';
     refreshWallet().then(function () { if (afterSignIn) { var f = afterSignIn; afterSignIn = null; f(); } });
   }
   function refreshWallet() {
@@ -1153,6 +1283,7 @@
   function displayName() {
     var e = acct.email || '';
     if (acct.demo) return 'Guest';
+    if (acct.name) return acct.name.split(' ')[0];
     var n = e.split('@')[0].replace(/[._-]+/g, ' ').replace(/\d+/g, '').trim();
     return n ? n.charAt(0).toUpperCase() + n.slice(1) : 'there';
   }
@@ -1167,6 +1298,7 @@
     $('acctText').textContent = acct.signedIn ? (acct.demo ? 'Demo mode' : 'Log out') : 'Sign in';
     $('planBal').textContent = bal;
     $('acctBtn').title = $('acctText').textContent;
+    renderUser();
     $('hello').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
     $('welcome').innerHTML = acct.signedIn ? 'Welcome, <span class="gt">' + esc(displayName()) + '</span>' : 'Grow your <span class="gt">' + esc(plat(state.platform).label) + '</span>';
     var orders = acct.orders || [];
@@ -1184,49 +1316,233 @@
       '<span class="b"><span>#' + esc(o.id) + ' · ' + esc(o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '') + '</span><span class="pill ' + (STATE_OF[o.status] || 'pending') + '">' + esc(LABEL_OF[o.status] || o.status) + '</span></span></button>';
   }
 
+  // ---------- sign-in page: email code or Google ----------
+  var GOOGLE_G = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>';
+  var googleOn = null;        // is Google sign-in switched on in Supabase? (null = not checked yet)
+  var resendTimer = null;
+  function checkGoogle() {
+    if (googleOn !== null || !store.supabaseUrl) return Promise.resolve(googleOn);
+    return fetch(store.supabaseUrl + '/auth/v1/settings', { headers: { apikey: store.supabaseAnonKey } })
+      .then(function (r) { return r.json(); })
+      .then(function (s) { googleOn = !!(s && s.external && s.external.google); return googleOn; })
+      .catch(function () { googleOn = false; return false; });
+  }
   function signIn(then) {
     if (then) afterSignIn = then;
-    if (!sb) { toast(acct.loading ? 'Sign-in is still loading, try again in a moment.' : 'Sign-in isn’t available right now.'); return; }
-    modal('<div class="left"><h2 id="modalTitle">Sign in</h2><p>Enter your email and we’ll send you a one-time code. No password needed.</p>' +
-      '<form id="siForm"><input class="tin" id="siEmail" type="email" required autocomplete="email" placeholder="you@example.com" aria-label="Email">' +
-      '<button class="pay" type="submit" id="siSend">Send code</button></form><p class="err" id="siErr" hidden></p>' +
-      '<button class="ghost" id="mClose" type="button">Cancel</button></div>');
-    $('mClose').onclick = function () { afterSignIn = null; closeModal(); };
-    $('siEmail').focus();
-    $('siForm').onsubmit = function (e) {
+    closeMenu();
+    if ($('scrim').hidden === false) closeModal();
+    $('authStore').textContent = store.storeName;
+    $('authView').hidden = false;
+    document.body.style.overflow = 'hidden';
+    emailStep();
+  }
+  function closeAuth(keepCallback) {
+    clearInterval(resendTimer);
+    $('authView').hidden = true;
+    document.body.style.overflow = '';
+    if (!keepCallback) afterSignIn = null;
+  }
+  $('authBack').onclick = function () { closeAuth(); };
+  function authReady() {
+    if (store.mode !== 'live') return 'This is the demo store: sign-in works once the store is live.';
+    if (!sb) return acct.loading ? 'Sign-in is still loading. Try again in a moment.' : 'Sign-in couldn’t load. Check your connection and refresh.';
+    return '';
+  }
+  function emailStep(prefill) {
+    $('authInner').innerHTML =
+      '<h2 id="authTitle">Welcome</h2>' +
+      '<p class="sub">Sign in or create your account. No password needed.</p>' +
+      '<form id="aForm" class="auth-field" novalidate><label for="aEmail">Email address</label>' +
+        '<input class="auth-input" id="aEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" value="' + esc(prefill || '') + '">' +
+        '<p class="auth-hint">We’ll email you a 6-digit code to sign in.</p></form>' +
+      '<p class="auth-err" id="aErr" hidden></p>' +
+      '<button class="auth-go" type="submit" form="aForm" id="aGo">Continue</button>' +
+      '<div class="auth-or">Or</div>' +
+      '<button class="auth-google" type="button" id="aGoogle">' + GOOGLE_G + 'Continue with Google</button>' +
+      '<p class="auth-legal">By continuing you agree to ' + esc(store.storeName) + '’s <b>terms of service</b>. We never ask for your social media passwords.</p>';
+    var input = $('aEmail');
+    setTimeout(function () { input.focus(); }, 30);
+    var fail = function (msg) { $('aErr').hidden = !msg; $('aErr').textContent = msg || ''; input.classList.toggle('bad', !!msg); };
+    input.oninput = function () { fail(''); };
+    $('aForm').onsubmit = function (e) {
       e.preventDefault();
-      var email = $('siEmail').value.trim();
-      $('siSend').disabled = true; $('siSend').textContent = 'Sending…'; $('siErr').hidden = true;
-      sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.origin + location.pathname } }).then(function (r) {
-        if (r.error) throw r.error;
-        codeStep(email);
-      }).catch(function (err) {
-        $('siSend').disabled = false; $('siSend').textContent = 'Send code';
-        $('siErr').hidden = false; $('siErr').textContent = err.message || 'Couldn’t send the code. Try again.';
+      var email = input.value.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { fail('Enter a valid email address.'); input.focus(); return; }
+      var why = authReady(); if (why) { fail(why); return; }
+      $('aGo').disabled = true; $('aGo').innerHTML = '<span class="spin" aria-hidden="true"></span> Sending code…';
+      sendCode(email).then(function () { codeStep(email); }).catch(function (err) {
+        $('aGo').disabled = false; $('aGo').textContent = 'Continue';
+        fail(/rate|too many|seconds/i.test(err.message || '') ? 'Too many codes asked for. Wait a minute and try again.' : (err.message || 'Couldn’t send the code. Try again.'));
       });
     };
+    $('aGoogle').onclick = function () {
+      var why = authReady(); if (why) { fail(why); return; }
+      if (googleOn === false) { fail('Google sign-in isn’t switched on yet. Use your email for now.'); return; }
+      $('aGoogle').disabled = true; $('aGoogle').innerHTML = '<span class="spin" aria-hidden="true" style="border-color:var(--line);border-top-color:var(--accent)"></span> Opening Google…';
+      sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname, queryParams: { prompt: 'select_account' } } }).then(function (r) {
+        if (r.error) throw r.error;            // on success the browser goes to Google
+      }).catch(function (err) {
+        $('aGoogle').disabled = false; $('aGoogle').innerHTML = GOOGLE_G + 'Continue with Google';
+        fail(err.message || 'Couldn’t open Google sign-in.');
+      });
+    };
+    checkGoogle().then(function (on) {
+      if (on === false && $('aGoogle')) { $('aGoogle').title = 'Google sign-in isn’t switched on yet'; $('aGoogle').disabled = store.mode === 'live'; }
+    });
+  }
+  function sendCode(email) {
+    return sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.origin + location.pathname } })
+      .then(function (r) { if (r.error) throw r.error; });
   }
   function codeStep(email) {
-    modal('<div class="left"><h2 id="modalTitle">Check your email</h2><p>We sent a code to <b>' + esc(email) + '</b>. Enter it below, or tap the sign-in link in the same email.</p>' +
-      '<form id="coForm"><input class="tin codein" id="coCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" required placeholder="••••••" aria-label="Code">' +
-      '<button class="pay" type="submit" id="coBtn">Sign in</button></form><p class="err" id="coErr" hidden></p>' +
-      '<button class="ghost" id="mClose" type="button">Use a different email</button></div>');
-    $('mClose').onclick = function () { signIn(); };
-    $('coCode').focus();
-    $('coForm').onsubmit = function (e) {
+    var boxes = '';
+    for (var i = 0; i < 6; i++) boxes += '<input inputmode="numeric" autocomplete="' + (i ? 'off' : 'one-time-code') + '" maxlength="6" aria-label="Digit ' + (i + 1) + '">';
+    $('authInner').innerHTML =
+      '<h2 id="authTitle">Check your email</h2>' +
+      '<p class="sub">We sent a 6-digit code to <b>' + esc(email) + '</b></p>' +
+      '<form id="cForm" class="auth-field"><label>Enter the code</label><div class="otp" id="otp">' + boxes + '</div>' +
+        '<p class="auth-hint">You can also tap the sign-in link in the same email.</p></form>' +
+      '<p class="auth-err" id="cErr" hidden></p>' +
+      '<button class="auth-go" type="submit" form="cForm" id="cGo">Verify and sign in</button>' +
+      '<p class="auth-alt">Didn’t get it? Check spam, or <button type="button" id="cResend">send a new code</button></p>' +
+      '<p class="auth-alt"><button type="button" id="cBack">Use a different email</button></p>';
+    var inputs = [].slice.call(document.querySelectorAll('#otp input'));
+    var code = function () { return inputs.map(function (x) { return x.value; }).join(''); };
+    var fail = function (msg) { $('cErr').hidden = !msg; $('cErr').textContent = msg || ''; $('otp').classList.toggle('bad', !!msg); };
+    var fill = function (digits, from) {
+      digits.split('').forEach(function (d, k) { if (inputs[from + k]) inputs[from + k].value = d; });
+      var next = Math.min(5, from + digits.length);
+      inputs[next].focus();
+      if (code().length === 6) $('cForm').requestSubmit();
+    };
+    inputs.forEach(function (box, idx) {
+      box.oninput = function () {
+        var d = box.value.replace(/\D/g, '');
+        fail('');
+        if (!d) { box.value = ''; return; }
+        box.value = d[0];
+        if (d.length > 1) fill(d, idx); else if (idx < 5) inputs[idx + 1].focus(); else if (code().length === 6) $('cForm').requestSubmit();
+      };
+      box.onkeydown = function (e) {
+        if (e.key === 'Backspace' && !box.value && idx > 0) { inputs[idx - 1].value = ''; inputs[idx - 1].focus(); e.preventDefault(); }
+        if (e.key === 'ArrowLeft' && idx > 0) inputs[idx - 1].focus();
+        if (e.key === 'ArrowRight' && idx < 5) inputs[idx + 1].focus();
+      };
+      box.onpaste = function (e) {
+        var d = ((e.clipboardData || window.clipboardData).getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        if (d) { e.preventDefault(); fill(d, 0); }
+      };
+      box.onfocus = function () { box.select(); };
+    });
+    setTimeout(function () { inputs[0].focus(); }, 30);
+    var startResend = function () {
+      var left = 30, btn = $('cResend');
+      clearInterval(resendTimer);
+      btn.disabled = true; btn.textContent = 'send a new code in ' + left + 's';
+      resendTimer = setInterval(function () {
+        if (!document.body.contains(btn)) { clearInterval(resendTimer); return; }
+        left--;
+        if (left <= 0) { clearInterval(resendTimer); btn.disabled = false; btn.textContent = 'send a new code'; }
+        else btn.textContent = 'send a new code in ' + left + 's';
+      }, 1000);
+    };
+    startResend();
+    $('cResend').onclick = function () {
+      $('cResend').disabled = true;
+      sendCode(email).then(function () { toast('New code sent to ' + email); startResend(); })
+        .catch(function (err) { $('cResend').disabled = false; fail(err.message || 'Couldn’t send a new code.'); });
+    };
+    $('cBack').onclick = function () { clearInterval(resendTimer); emailStep(email); };
+    $('cForm').onsubmit = function (e) {
       e.preventDefault();
-      $('coBtn').disabled = true; $('coBtn').textContent = 'Checking…'; $('coErr').hidden = true;
-      sb.auth.verifyOtp({ email: email, token: $('coCode').value.replace(/\s/g, ''), type: 'email' }).then(function (r) {
+      var c = code();
+      if (c.length !== 6) { fail('Enter all 6 digits.'); inputs[c.length] && inputs[c.length].focus(); return; }
+      if ($('cGo').disabled) return;
+      $('cGo').disabled = true; $('cGo').innerHTML = '<span class="spin" aria-hidden="true"></span> Checking…';
+      sb.auth.verifyOtp({ email: email, token: c, type: 'email' }).then(function (r) {
         if (r.error) throw r.error;
-        closeModal();
-        toast('Signed in as ' + email);
+        clearInterval(resendTimer);
+        $('authInner').innerHTML = '<div class="auth-done" role="status"><svg class="co-check" viewBox="0 0 88 88" aria-hidden="true"><circle cx="44" cy="44" r="41"/><path d="M27 45.5l11.5 11.5L62 33.5"/></svg>' +
+          '<h2 id="authTitle">You’re in</h2><p class="sub">Signed in as <b>' + esc(email) + '</b></p></div>';
+        setTimeout(function () { closeAuth(true); toast('Signed in as ' + email); }, 1100);
       }).catch(function (err) {
-        $('coBtn').disabled = false; $('coBtn').textContent = 'Sign in';
-        $('coErr').hidden = false; $('coErr').textContent = /expired|invalid/i.test(err.message || '') ? 'That code is wrong or expired. Check the latest email, or send a new code.' : (err.message || 'Couldn’t sign in.');
+        $('cGo').disabled = false; $('cGo').textContent = 'Verify and sign in';
+        fail(/expired|invalid|otp/i.test(err.message || '') ? 'That code is wrong or has expired. Check the latest email, or send a new code.' : (err.message || 'Couldn’t sign in.'));
+        inputs.forEach(function (x) { x.value = ''; }); inputs[0].focus();
       });
     };
   }
-  function signOut() { if (sb) sb.auth.signOut(); toast('Signed out'); }
+
+  // ---------- log out ----------
+  function confirmSignOut() {
+    closeMenu();
+    modal('<div class="left"><h2 id="modalTitle">Log out?</h2>' +
+      '<p>Your wallet balance and orders stay safe. Sign back in any time with your email or Google.</p>' +
+      '<div class="row2"><button class="ghost" id="mClose" type="button">Cancel</button><button class="pay danger" id="mOut" type="button">Log out</button></div></div>');
+    $('mClose').onclick = closeModal;
+    $('mOut').onclick = function () { closeModal(); signOut(); };
+  }
+  function signOut() {
+    if (!sb) return;
+    sb.auth.signOut().finally(function () { setSession(null); goOrder(); toast('You’ve been logged out'); });
+  }
+
+  // ---------- profile menu (top right) ----------
+  var ICON = {
+    orders: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+    wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h15a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z"/><path d="M3 7V6a2 2 0 0 1 2-2h11"/><path d="M17 13.5h.01"/></svg>',
+    settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.8 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+    help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg>',
+    out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3"/><path d="M14 8l4 4-4 4M18 12H9"/></svg>'
+  };
+  function avatarHtml() {
+    return acct.picture ? '<img src="' + esc(acct.picture) + '" alt="" referrerpolicy="no-referrer">' : esc(displayName().charAt(0).toUpperCase());
+  }
+  function renderUser() {
+    var btn = $('userBtn');
+    if (!acct.signedIn) {
+      btn.className = 'userbtn signin'; btn.removeAttribute('aria-haspopup');
+      btn.innerHTML = acct.loading ? '<span class="spin" aria-hidden="true"></span>' : 'Sign in';
+      closeMenu();
+      return;
+    }
+    btn.className = 'userbtn'; btn.setAttribute('aria-haspopup', 'menu');
+    btn.innerHTML = '<span class="avatar">' + avatarHtml() + '</span><span class="uname">' + esc(acct.demo ? 'Demo wallet' : displayName()) + '</span>' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+    $('uMenu').innerHTML =
+      '<div class="uhead"><span class="avatar">' + avatarHtml() + '</span><div><b>' + esc(acct.demo ? 'Demo wallet' : displayName()) + '</b><span>' + esc(acct.demo ? 'Nothing is charged' : acct.email) + '</span></div></div>' +
+      '<div class="ubal"><span>Wallet</span><b>' + esc(acct.balance == null ? '…' : price(acct.balance)) + '</b></div>' +
+      '<button type="button" role="menuitem" data-u="wallet">' + ICON.wallet + 'Add money</button>' +
+      '<button type="button" role="menuitem" data-u="orders">' + ICON.orders + 'My orders</button>' +
+      '<button type="button" role="menuitem" data-u="account">' + ICON.settings + 'Settings</button>' +
+      '<button type="button" role="menuitem" data-u="support">' + ICON.help + 'Help &amp; Support</button>' +
+      (acct.demo ? '' : '<hr><button type="button" role="menuitem" class="out" data-u="out">' + ICON.out + 'Log out</button>');
+  }
+  function closeMenu() { $('uMenu').hidden = true; $('userBtn').setAttribute('aria-expanded', 'false'); }
+  $('userBtn').addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (!acct.signedIn) { if (!acct.loading) signIn(); return; }
+    var open = $('uMenu').hidden;
+    $('uMenu').hidden = !open; this.setAttribute('aria-expanded', String(open));
+    if (open) { var f = $('uMenu').querySelector('button'); if (f) f.focus(); }
+  });
+  $('uMenu').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-u]'); if (!b) return;
+    var u = b.getAttribute('data-u');
+    closeMenu();
+    if (u === 'out') confirmSignOut();
+    else if (u === 'wallet') addMoney();
+    else if (u === 'orders') { location.hash = 'orders'; window.scrollTo(0, 0); }
+    else if (u === 'account') accountModal();
+    else if (u === 'support') supportModal();
+  });
+  document.addEventListener('click', function (e) { if (!$('uMenu').hidden && !$('userBox').contains(e.target)) closeMenu(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (!$('uMenu').hidden) { closeMenu(); $('userBtn').focus(); }
+    else if (!$('authView').hidden && $('scrim').hidden) closeAuth();
+  });
+
 
   // ---------- add money: UPI straight to the store's bank account ----------
   var BOLT = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5 2 4 14h7l-1.5 8L20 10h-7l.5-8z"/></svg>';
@@ -1559,7 +1875,7 @@
           (r.utr ? '<span class="b"><span>UPI · UTR ' + esc(r.utr) + '</span></span>' : '') + '</div>';
       }).join('') + '</div>' : '');
     $('ovAdd').onclick = function () { addMoney(); };
-    if ($('ovOut')) $('ovOut').onclick = signOut;
+    if ($('ovOut')) $('ovOut').onclick = confirmSignOut;
     if (openOrder != null) loadStatus(openOrder);
   }
   $('ordersView').addEventListener('click', function (e) {

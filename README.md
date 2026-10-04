@@ -154,6 +154,19 @@ Unless all of the panel, UPI, Gmail and Supabase keys are set, the store runs in
 pretend wallet kept in the visitor's browser, a sample QR that can't be paid with a **Simulate a
 payment** button, and no order is ever placed.
 
+**Sign-in page:** customers sign in on a full-screen page with a 6-digit email code (no password) or
+**Continue with Google**. Signed-in customers get a profile menu in the top right (wallet, My orders,
+Settings, Help, **Log out**); logging out asks to confirm first.
+
+**Google sign-in** (optional; the Google button stays greyed out until it's on):
+
+1. Google Cloud Console → APIs & Services → **OAuth consent screen**: set it up as External with your store
+   name and email.
+2. **Credentials → Create credentials → OAuth client ID** → Web application. Under *Authorized redirect URIs* add
+   `https://ibnvinskryfrkfejxqvl.supabase.co/auth/v1/callback`.
+3. Supabase → Authentication → **Sign In / Providers → Google**: turn it on and paste the Client ID and Client
+   secret.
+
 **Supabase sign-in settings** (Authentication in the Supabase dashboard):
 
 - **URL Configuration → Site URL**: your store address, e.g. `https://your-project.vercel.app`.
