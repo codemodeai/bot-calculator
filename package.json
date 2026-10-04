@@ -1,12 +1,20 @@
 {
   "name": "bot-calculator",
   "version": "1.0.0",
-  "description": "SMM panel services price calculator (smmorange.com services list)",
+  "description": "Boostly: SMM panel store with a UPI wallet (live panel prices, Supabase logins, bank-alert payment verification)",
   "main": "calculator.js",
   "scripts": {
     "test": "node --test test/*.test.js",
     "fetch": "python3 tools/fetch_services.py"
   },
   "license": "UNLICENSED",
-  "private": true
+  "private": true,
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "imapflow": "^2.2.4",
+    "mailparser": "^3.9.34",
+    "qrcode": "^1.5.4"
+  }
 }

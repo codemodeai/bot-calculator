@@ -253,18 +253,6 @@
     return round(Math.ceil(round(rate / step, 6)) * step, 2);
   }
 
-  // Razorpay's fee on a payment of `amount` (percent, e.g. 2.36 = 2% + 18% GST), rounded up to the paisa.
-  function gatewayFee(amount, percent) {
-    var p = Number(percent) || 0;
-    return p > 0 ? Math.ceil(round(amount * p, 6)) / 100 : 0;
-  }
-
-  // What a customer is charged for `qty` units at `rate` per 1000: rounded up to the paisa / cent, at least 1.
-  function chargeAmount(rate, qty) {
-    var exact = round(rate * qty / 1000, 6);
-    return Math.max(1, Math.ceil(exact * 100 - 1e-9) / 100);
-  }
-
   // Exact price for `qty` units at `rate` per 1000, used for wallet orders: rounded up to 1/100 paisa (4 dp), no minimum.
   function exactCharge(rate, qty) {
     var exact = round(rate * qty / 1000, 8);
@@ -491,8 +479,6 @@
     quantityForBudget: quantityForBudget,
     retailRate: retailRate,
     niceRate: niceRate,
-    gatewayFee: gatewayFee,
-    chargeAmount: chargeAmount,
     exactCharge: exactCharge,
     formatPrice: formatPrice,
     formatMoney: formatMoney,

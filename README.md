@@ -1,7 +1,8 @@
 # Boostly store
 
-A store for SMM panel services, buying from [smmzio.com](https://smmzio.com). Customers add money to a wallet with
-Razorpay (UPI, cards, netbanking), order at exact prices, and orders go to the panel automatically.
+A store for SMM panel services, buying from [smmzio.com](https://smmzio.com). Customers add money to a wallet by
+**UPI, straight into your bank account** (no payment gateway, no fee), order at exact prices, and orders go to the
+panel automatically.
 
 The store is the home page (`index.html`), laid out as a dashboard:
 
@@ -19,7 +20,7 @@ On wide screens the price calculator has its own column on the far right; on nar
 Place order, and on phones everything stacks with a bottom menu. The **Light / Dark** switch is in the top-right
 corner and is remembered in the browser.
 
-Customers pay from a **wallet**: they sign in with their email, add money once with Razorpay
+Customers pay from a **wallet**: they sign in with their email, add money once by UPI
 (minimum ₹1), and every order then takes its **exact price** from the balance, even ₹0.24 for
 1,000 views. **My orders** (`/#orders`) shows the balance, money added, and each order's live
 delivery status from the panel.
@@ -41,13 +42,9 @@ Example: a ₹0.16 panel rate × 1.8 = ₹0.288, shown as **₹0.30 per 1,000**.
 are converted with `PANEL_TO_INR_RATE` first.
 
 Orders cost exactly that, rounded up to 1/100 of a paisa (₹0.0001); there's no minimum order.
-Only adding money has a minimum (₹1, Razorpay's smallest payment). `MARKUP_PERCENT` defaults to 80. Tidy rounding goes up in steps of
+Only adding money has a minimum (₹1). `MARKUP_PERCENT` defaults to 80. Tidy rounding goes up in steps of
 ₹0.05 under ₹1, ₹0.10 under ₹10, ₹1 under ₹100 and ₹5 above; set `ROUND_PRICES=0` to turn it off.
 Set `MARKUP_PERCENT=0` and `ROUND_PRICES=0` to sell at exactly the panel price.
-
-**Razorpay's fee** is added when customers add money: `RAZORPAY_FEE_PERCENT` (default 2.36, Razorpay's
-2% plus 18% GST). Adding ₹100 costs the customer ₹102.36 and puts ₹100 in the wallet. Set it to `0`
-to absorb the fee yourself.
 
 - If the panel rejects the key or can't be reached, the store shows the error instead of guessing
   prices. During a short outage (under an hour) it keeps using the last live prices.
@@ -61,24 +58,73 @@ Cost prices never reach the browser: `/api/services` sends only selling prices, 
 `/lib/` aren't served.
 
 **Check your setup:** open `https://YOUR-SITE/api/status`. It shows which keys are set, whether the
-panel accepted the key, the panel currency and how many services loaded. It never shows the keys
-or your balance.
+panel accepted the key, the panel currency, how many services loaded and when the bank-alert inbox
+was last read. `?check=1` reads the inbox right now. It never shows the keys or your balance.
 
 ## Wallet and payments
 
 ```
-add money:  customer --pays ≥ ₹1--> Razorpay --> /api/recharge (checks signature) --> wallet balance
+add money:  customer --scans QR / taps UPI app--> pays ₹100.37 into YOUR bank account
+            your bank --credit alert email--> your Gmail <--reads (IMAP, read-only)-- /api/recharge
+            genuine alert, amount ₹100.37 (or the note BST…) --> matched --> wallet +₹100.37
 order:      customer --> /api/order --> exact price taken from wallet --> smmzio.com API (action=add)
             panel refuses (e.g. low balance) --> price goes straight back to the wallet
 ```
 
-Three services are involved:
+### How UPI payments work
+
+1. The customer picks an amount (say ₹100). The store makes a **UPI QR and payment link** for a unique
+   amount, ₹100 plus 1 to 99 paise (₹100.37), with a reference note like `BSTK7Q2M9XH`. No two open
+   payments ever share an amount. The QR is valid for 10 minutes (`UPI_QR_MINUTES`).
+2. The customer scans it with Google Pay, PhonePe, Paytm, BHIM or any UPI app (on phones they tap their
+   app instead). The money goes **straight into your bank account**: no gateway, no fee, no settlement wait.
+3. Your bank emails you a credit alert. The checkout asks the server every few seconds; the server reads
+   new emails from your Gmail inbox (at most once every 8 seconds, however many customers are waiting).
+4. A genuine alert for exactly ₹100.37 (or one that shows the reference note) credits **₹100.37** to the
+   wallet and the checkout shows the success animation. Customers get every rupee they paid.
+5. If the customer changed the amount in their app, or the bank's email is slow, they can tap
+   **Paid but still waiting? Enter your UTR** and type the 12-digit UPI reference from their app. It
+   still only counts once a genuine bank alert with that UTR has arrived; 5 tries per payment.
+6. If they close the page after paying, the money is added on their next visit (up to 30 minutes after
+   the QR expires automatically; with the UTR, up to 48 hours).
+
+**Fake emails don't work.** Anyone can email you "Rs 100.37 credited". An alert only counts if all of
+these are true:
+
+- the From address is a bank: `UPI_ALERT_SENDERS`, which defaults to the common Indian banks plus any
+  `*.bank.in` domain (only RBI-regulated banks can register those);
+- Gmail's own check, the top `Authentication-Results` header it adds on arrival, says the bank's DKIM
+  signature or DMARC **passed** for that same domain (headers a sender plants further down are ignored);
+- it reads as a credit, not a debit, with an amount and a 12-digit UTR.
+
+Each UTR can credit only one payment, ever. The inbox is opened read-only: nothing is marked read,
+moved or deleted.
+
+### Setting up UPI payments
+
+1. **Your UPI ID**: the one your money should land in, e.g. `yourname@okhdfcbank`. A business/merchant
+   UPI ID (PhonePe Business, Paytm for Business, Google Pay for Business, BharatPe…) is best: personal UPI
+   IDs have lower daily limits, and some apps limit payments to personal IDs from links.
+2. **Bank alerts by email**: turn on email alerts for UPI credits in your bank's app or net banking, sent to a
+   Gmail address. Best: a **new Gmail account used only for this**, either as the bank's registered email or
+   with a Gmail filter forwarding the bank's alerts to it.
+3. **Gmail app password** for that account: turn on 2-Step Verification, then Google Account → Security →
+   App passwords → create one (16 characters). IMAP is on by default for new accounts; if not, Gmail →
+   Settings → Forwarding and POP/IMAP → Enable IMAP.
+4. **Database**: run `supabase/migrations/003_upi.sql` in the Supabase SQL editor (after 001 and 002).
+5. **Vercel**: set `UPI_ID`, `UPI_NAME`, `GMAIL_ADDRESS` and `GMAIL_APP_PASSWORD`, and redeploy.
+6. **Test**: add ₹1 to a wallet from the store and pay it. If it doesn't go through, open
+   `/api/status?check=1` to see whether Gmail accepted the password and when the inbox was last read.
+   If your bank's alerts come from a domain that isn't on the default list, set `UPI_ALERT_SENDERS` to it
+   (for example `alerts@hdfcbank.net` or `sbi.co.in`). Setting it to your own bank is safest anyway.
+
+Bank emails usually arrive within seconds, but some banks take a few minutes. Your bank's emails must
+show the amount and the UTR (UPI reference number); all major Indian banks' UPI credit alerts do.
+
+### The other services
 
 - **SMM panel API key** (smmzio.com → Account → API). It loads prices, places orders, and pays
   for them from your panel balance.
-- **Razorpay keys** (dashboard.razorpay.com → Account & Settings → API Keys). Customers add money
-  to their wallet with these. Start with `rzp_test_...` keys, then switch to live keys once
-  Razorpay activates your account.
 - **Supabase** (supabase.com) keeps customer logins and wallets. Create a project, run
   the files in `supabase/migrations/` in order in its SQL editor, and copy the URL and keys from
   Project Settings → API.
@@ -91,18 +137,22 @@ in the code or commit them.**
 |---|---|
 | `SMM_API_KEY` | smmzio.com API key |
 | `SMM_API_URL` | defaults to `https://smmzio.com/api/v2` (any Perfect Panel–style API works) |
-| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | Razorpay API keys |
-| `RAZORPAY_WEBHOOK_SECRET` | optional backup: add a webhook to `https://YOUR-SITE/api/webhook` for `payment.captured` |
+| `UPI_ID` | the UPI ID customers pay, e.g. `yourname@okhdfcbank` |
+| `UPI_NAME` | the name their UPI app shows (defaults to `STORE_NAME`) |
+| `GMAIL_ADDRESS` | the Gmail inbox that receives your bank's UPI credit alerts |
+| `GMAIL_APP_PASSWORD` | a 16-character Google App Password for it (not your Gmail password) |
+| `UPI_ALERT_SENDERS` | optional: your bank's alert address or domain, comma-separated (default: common Indian banks) |
+| `UPI_QR_MINUTES` | how long a payment QR stays valid (default `10`) |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Supabase project URL and public (anon) key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase secret key, server only |
 | `MARKUP_PERCENT` | your margin on top of the panel price (default `80`) |
 | `ROUND_PRICES` | round prices up to tidy numbers, e.g. ₹0.288 → ₹0.30 (default on; `0` = off) |
-| `RAZORPAY_FEE_PERCENT` | added to each recharge to cover Razorpay (default `2.36`; `0` = you pay it) |
 | `PANEL_TO_INR_RATE` | rupees per 1 unit of the panel's currency; smmzio is in USD, so e.g. `98` |
 | `STORE_NAME`, `SUPPORT_CONTACT` | shown in the store |
 
-Unless all of the panel, Razorpay and Supabase keys are set, the store runs in **demo mode**: a
-pretend wallet kept in the visitor's browser, and no order is ever placed.
+Unless all of the panel, UPI, Gmail and Supabase keys are set, the store runs in **demo mode**: a
+pretend wallet kept in the visitor's browser, a sample QR that can't be paid with a **Simulate a
+payment** button, and no order is ever placed.
 
 **Supabase sign-in settings** (Authentication in the Supabase dashboard):
 
@@ -117,9 +167,9 @@ How it stays safe:
 
 - The server works out every price from the live panel price plus your markup. The browser only
   sends the service, quantity and link.
-- Balances change only inside the database functions in `supabase/migrations/001_wallet.sql`.
-  They lock the wallet row, so two tabs can't spend the same money, and a recharge is credited
-  once even if the page and the webhook both report it.
+- Balances change only inside the database functions in `supabase/migrations/` (`001_wallet.sql` for
+  orders, `003_upi.sql` for UPI). They lock the rows, so two tabs can't spend the same money, and each
+  payment (UTR) is credited once even if several checks see it.
 - The wallet tables have row-level security with no public access; only the server's service role
   key can read or change them.
 - If the panel refuses an order, the charge goes back to the wallet at once. If the panel doesn't
@@ -128,8 +178,8 @@ How it stays safe:
 - Every balance change is recorded in the `ledger` table.
 
 API routes (`api/`, Vercel serverless functions): `GET /api/services`, `GET /api/status`,
-`GET /api/wallet`, `POST /api/recharge`, `POST /api/order`, `GET /api/order-status?id=…`,
-`POST /api/webhook`.
+`GET /api/wallet`, `POST /api/recharge` (new payment, or `{ id, utr }`), `GET /api/recharge?id=…` (payment
+status), `POST /api/order`, `GET /api/order-status?id=…`.
 
 ## Running locally
 
@@ -141,8 +191,9 @@ npm test
 
 ## Deploying to Vercel
 
-There's no build step. `vercel.json` serves the repo root and the `api/` functions, and
-`.vercelignore` leaves out `tools/`, `test/`, `supabase/`, `dev-server.js` and `.env`.
+There's no build step. Vercel installs the three server packages (`imapflow` reads Gmail, `mailparser`
+reads the emails, `qrcode` draws the QR) with `npm ci`, then `vercel.json` serves the repo root and the
+`api/` functions; `.vercelignore` leaves out `tools/`, `test/`, `supabase/`, `dev-server.js` and `.env`.
 
 At vercel.com/new, import `codemodeai/bot-calculator` and click **Deploy** without changing any
 settings. Every push to the default branch then redeploys the site; other branches get preview
