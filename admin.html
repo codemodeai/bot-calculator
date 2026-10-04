@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin · Boostly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap">
+<script>(function () { try { var t = localStorage.getItem('boostly.theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {} })();</script>
+<style>
+  /* Admin panel. Same tokens as the store; chart series use the validated categorical slots 1-2. */
+  :root {
+    --bg: #f5f6f8; --panel: #ffffff; --sunk: #f7f8fa; --hover: #f2f4f7;
+    --line: #eaecf0; --line-strong: #d0d5dd;
+    --text: #101828; --text-2: #344054; --muted: #667085; --faint: #98a2b3;
+    --accent: #3e5bd8; --accent-2: #5a74e3; --accent-soft: #eef1fd; --accent-ring: rgba(62, 91, 216, .16);
+    --grad: linear-gradient(140deg, #8297ef 0%, #5a74e3 42%, #3a4fb4 100%);
+    --good: #067647; --good-soft: #ecfdf3; --warn: #b54708; --warn-soft: #fffaeb; --warn-line: #fedf89; --bad: #b42318; --bad-soft: #fef3f2;
+    --series-1: #2a78d6; --series-2: #eb6834;
+    --font: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d0f14; --panel: #151820; --sunk: #1a1e28; --hover: #1e2330; --line: #242936; --line-strong: #353c4c;
+      --text: #f0f2f6; --text-2: #cfd4de; --muted: #8e96a8; --faint: #636b7c;
+      --accent: #8399f3; --accent-2: #6d85ee; --accent-soft: #1c2340; --accent-ring: rgba(131, 153, 243, .22);
+      --good: #47cd89; --good-soft: #0f2a1d; --warn: #fdb022; --warn-soft: #2a2010; --warn-line: #4e3a12; --bad: #f97066; --bad-soft: #2d1513;
+      --series-1: #3987e5; --series-2: #d95926;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d0f14; --panel: #151820; --sunk: #1a1e28; --hover: #1e2330; --line: #242936; --line-strong: #353c4c;
+    --text: #f0f2f6; --text-2: #cfd4de; --muted: #8e96a8; --faint: #636b7c;
+    --accent: #8399f3; --accent-2: #6d85ee; --accent-soft: #1c2340; --accent-ring: rgba(131, 153, 243, .22);
+    --good: #47cd89; --good-soft: #0f2a1d; --warn: #fdb022; --warn-soft: #2a2010; --warn-line: #4e3a12; --bad: #f97066; --bad-soft: #2d1513;
+    --series-1: #3987e5; --series-2: #d95926;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+  svg { flex: none; }
+
+  .shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100dvh; }
+  .side { position: sticky; top: 0; height: 100dvh; display: flex; flex-direction: column; gap: 4px; padding: 16px 12px; background: var(--panel); border-right: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 16px; font-weight: 600; font-size: 15px; }
+  .brand small { display: block; font-weight: 500; font-size: 11.5px; color: var(--muted); }
+  .logo { width: 32px; height: 32px; border-radius: 9px; background: var(--grad); display: grid; place-items: center; }
+  .logo svg { width: 15px; height: 15px; }
+  .nav button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 10px; border: 0; border-radius: 10px; background: none; color: var(--text-2); text-align: left; font-size: 14px; }
+  .nav button svg { width: 19px; height: 19px; color: var(--muted); }
+  .nav button:hover { background: var(--hover); }
+  .nav button[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+  .nav button[aria-current="page"] svg { color: var(--accent); }
+  .nav .badge { margin-left: auto; min-width: 20px; padding: 0 6px; height: 20px; border-radius: 999px; background: var(--bad); color: #fff; font-size: 11.5px; font-weight: 600; display: grid; place-items: center; }
+  .sidefoot { margin-top: auto; display: grid; gap: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .me { padding: 6px 10px; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+  .me b { display: block; color: var(--text); font-weight: 500; font-size: 13px; }
+  .link { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; color: var(--text-2); text-decoration: none; border: 0; background: none; font-size: 13.5px; width: 100%; text-align: left; }
+  .link:hover { background: var(--hover); }
+  .link svg { width: 17px; height: 17px; color: var(--muted); }
+
+  main { min-width: 0; padding: 22px 28px 40px; }
+  .head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  .head h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+  .head p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+  .tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .seg { display: inline-flex; padding: 2px; border-radius: 10px; background: var(--sunk); border: 1px solid var(--line); }
+  .seg button { border: 0; background: none; border-radius: 8px; padding: 5px 11px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--text); box-shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 0 0 1px var(--line); }
+  .btn { height: 36px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--panel); font-weight: 500; font-size: 13.5px; display: inline-flex; align-items: center; gap: 8px; }
+  .btn:hover { background: var(--hover); }
+  .btn svg { width: 16px; height: 16px; }
+  .btn.primary { border: 0; background: linear-gradient(180deg, var(--accent-2), var(--accent)); color: #fff; }
+  .btn.danger { border-color: transparent; background: var(--bad); color: #fff; }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn.sm { height: 30px; padding: 0 10px; font-size: 12.5px; border-radius: 8px; }
+  .search { height: 36px; min-width: 240px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--panel); outline: none; }
+  .search:focus, .input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); outline: none; }
+
+  .alerts { display: grid; gap: 8px; margin-bottom: 16px; }
+  .alert { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; font-size: 13.5px; background: var(--warn-soft); color: var(--warn); border: 1px solid var(--warn-line); }
+  .alert.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+  .alert button { margin-left: auto; }
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .kpi { padding: 16px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); min-width: 0; }
+  .kpi span { display: block; font-size: 12.5px; color: var(--muted); font-weight: 500; }
+  .kpi b { display: block; margin: 6px 0 2px; font-size: 25px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; overflow-wrap: anywhere; }
+  .kpi small { font-size: 12px; color: var(--muted); }
+  .kpi small .up { color: var(--good); font-weight: 500; }
+  .kpi.hero { background: var(--grad); color: #fff; border: 0; }
+  .kpi.hero span, .kpi.hero small { color: rgba(255, 255, 255, .85); }
+  .grid2 { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; }
+  .card > h2 { margin: 0 0 4px; font-size: 14.5px; font-weight: 600; }
+  .card > .sub { margin: 0 0 12px; font-size: 12.5px; color: var(--muted); }
+  .legend { display: flex; gap: 14px; font-size: 12.5px; color: var(--text-2); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .chart { position: relative; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart .grid line { stroke: var(--line); }
+  .chart .axis text { fill: var(--faint); font-size: 10.5px; }
+  .chart .hit { fill: transparent; }
+  .chart .col:hover .hit, .chart .col.on .hit { fill: var(--hover); }
+  .tip { position: absolute; z-index: 5; pointer-events: none; min-width: 170px; padding: 10px 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 10px 24px -8px rgba(16, 24, 40, .25); font-size: 12.5px; }
+  .tip b { display: block; margin-bottom: 6px; font-weight: 600; }
+  .tip div { display: flex; justify-content: space-between; gap: 14px; color: var(--muted); }
+  .tip div span:last-child { color: var(--text); font-weight: 500; }
+  .tip i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
+  .mini { display: grid; gap: 10px; }
+  .mini div { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; }
+  .mini div span { color: var(--muted); }
+  .mini div b { font-weight: 500; }
+
+  .table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+  .table th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--sunk); white-space: nowrap; }
+  .table td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .table tr:last-child td { border-bottom: 0; }
+  .table tbody tr[data-row] { cursor: pointer; }
+  .table tbody tr[data-row]:hover td { background: var(--hover); }
+  .table .num { text-align: right; white-space: nowrap; }
+  .table .muted, .muted { color: var(--muted); }
+  .table .clip { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 500; background: var(--sunk); color: var(--text-2); border: 1px solid var(--line); white-space: nowrap; }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .7; }
+  .pill.good { background: var(--good-soft); color: var(--good); border-color: transparent; }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); border-color: var(--warn-line); }
+  .pill.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+  .pill.blue { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .profit { color: var(--good); }
+  .empty { padding: 36px 16px; text-align: center; color: var(--muted); }
+  .pager { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+
+  /* tickets */
+  .tk { display: grid; grid-template-columns: minmax(280px, 380px) minmax(0, 1fr); gap: 12px; align-items: start; }
+  .tklist { display: grid; gap: 6px; }
+  .tkrow { display: grid; gap: 4px; text-align: left; width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); }
+  .tkrow:hover { background: var(--hover); }
+  .tkrow[aria-current="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+  .tkrow .a { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .tkrow b { font-weight: 500; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tkrow small { color: var(--muted); font-size: 12px; }
+  .thread { display: grid; gap: 10px; margin: 12px 0; max-height: 55vh; overflow-y: auto; padding-right: 4px; }
+  .msg { max-width: 80%; padding: 10px 12px; border-radius: 14px; background: var(--sunk); border: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13.5px; }
+  .msg.staff { margin-left: auto; background: var(--accent-soft); border-color: transparent; }
+  .msg small { display: block; margin-top: 6px; font-size: 11.5px; color: var(--muted); }
+  textarea, .input, select { width: 100%; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--panel); padding: 10px 12px; font-size: 14px; }
+  textarea { min-height: 96px; resize: vertical; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .row > .input { flex: 1; min-width: 160px; }
+
+  /* modal, toast, gate */
+  .scrim { position: fixed; inset: 0; z-index: 50; background: rgba(16, 24, 40, .45); backdrop-filter: blur(3px); display: grid; place-items: center; padding: 16px; }
+  .modal { width: 100%; max-width: 520px; max-height: calc(100dvh - 32px); overflow-y: auto; padding: 20px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); display: grid; gap: 12px; }
+  .modal h3 { margin: 0; font-size: 17px; font-weight: 600; }
+  .modal .kv { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 6px 12px; font-size: 13.5px; }
+  .modal .kv span { color: var(--muted); }
+  .modal .kv b { font-weight: 500; overflow-wrap: anywhere; }
+  .modal .acts { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+  .err { padding: 9px 12px; border-radius: 10px; background: var(--bad-soft); color: var(--bad); font-size: 13px; font-weight: 500; margin: 0; }
+  .toast { position: fixed; z-index: 60; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--text); color: var(--panel); padding: 10px 16px; border-radius: 12px; font-weight: 500; }
+  .gate { min-height: 100dvh; display: grid; place-items: center; padding: 24px; }
+  .gate .card { max-width: 420px; text-align: center; display: grid; gap: 12px; padding: 28px; }
+  .gate h1 { margin: 0; font-size: 20px; }
+  .gate p { margin: 0; color: var(--muted); }
+  .spin { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--accent); animation: spin .7s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading { display: grid; place-items: center; padding: 60px; }
+
+  @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid2, .tk { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) {
+    .shell { grid-template-columns: 1fr; }
+    .side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px; }
+    .brand { padding: 4px 8px; }
+    .nav { display: flex; overflow-x: auto; gap: 2px; order: 3; width: 100%; }
+    .nav button { width: auto; white-space: nowrap; }
+    .sidefoot { display: none; }
+    main { padding: 16px; }
+    .search { min-width: 0; flex: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="gate" id="gate"><div class="card"><div class="loading" style="padding:10px"><span class="spin"></span></div><p id="gateMsg">Checking your access…</p></div></div>
+
+<div class="shell" id="shell" hidden>
+  <aside class="side">
+    <div class="brand"><span class="logo"><svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5 2 4 14h7l-1.5 8L20 10h-7l.5-8z"/></svg></span><div><span id="storeName">Boostly</span><small>Admin</small></div></div>
+    <nav class="nav" id="nav">
+      <button type="button" data-view="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Overview</button>
+      <button type="button" data-view="orders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Orders<span class="badge" id="bChecking" hidden></span></button>
+      <button type="button" data-view="customers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></svg>Customers</button>
+      <button type="button" data-view="payments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h15a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z"/><path d="M3 7V6a2 2 0 0 1 2-2h11M17 13.5h.01"/></svg>Payments<span class="badge" id="bUnmatched" hidden></span></button>
+      <button type="button" data-view="tickets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Tickets<span class="badge" id="bTickets" hidden></span></button>
+      <button type="button" data-view="team"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Team &amp; access</button>
+    </nav>
+    <div class="sidefoot">
+      <div class="me"><b id="meEmail"></b><span id="meRole"></span></div>
+      <a class="link" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>Back to store</a>
+      <button type="button" class="link" id="themeBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>Light / dark</button>
+      <button type="button" class="link" id="outBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3M14 8l4 4-4 4M18 12H9"/></svg>Log out</button>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<div class="scrim" id="scrim" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+  var SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); };
+  var inr = function (n, dp) {
+    n = Number(n) || 0;
+    var d = dp != null ? dp : Math.abs(n) < 10 && n % 1 ? 2 : Math.abs(n) >= 1000 ? 0 : 2;
+    return (n < 0 ? '−₹' : '₹') + Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: d, maximumFractionDigits: Math.max(d, n % 1 && Math.abs(n) < 1 ? 4 : d) });
+  };
+  var num = function (n) { return Number(n || 0).toLocaleString('en-IN'); };
+  var when = function (t) { return t ? new Date(t).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '—'; };
+  var day = function (t) { return t ? new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; };
+
+  var sb = null, token = null, me = null, cfg = null;
+  var state = { view: 'overview', range: '30d', status: '', q: '', page: 0, ticketStatus: 'open', ticket: null };
+
+  function api(path, body) {
+    var h = { Accept: 'application/json', Authorization: 'Bearer ' + token };
+    if (body) h['Content-Type'] = 'application/json';
+    return fetch(path, { method: body ? 'POST' : 'GET', headers: h, body: body ? JSON.stringify(body) : undefined }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        if (!r.ok) { var e = new Error(d.error || 'Request failed (' + r.status + ')'); e.status = r.status; throw e; }
+        return d;
+      });
+    });
+  }
+  function loadScript(src) {
+    return new Promise(function (ok, fail) { var s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = fail; document.head.appendChild(s); });
+  }
+  function gate(html) { $('shell').hidden = true; $('gate').hidden = false; $('gate').innerHTML = '<div class="card">' + html + '</div>'; }
+
+  // ---------- sign-in check ----------
+  fetch('/api/services?only=config').then(function (r) { return r.json(); }).then(function (c) {
+    cfg = c;
+    document.title = 'Admin · ' + (c.storeName || 'Boostly');
+    if (c.mode !== 'live' || !c.supabaseUrl) { gate('<h1>Admin panel</h1><p>The store is in demo mode. The admin panel works once the store is live.</p><a class="btn" href="/" style="justify-self:center">Back to store</a>'); return; }
+    return loadScript(SUPABASE_JS).then(function () {
+      sb = window.supabase.createClient(c.supabaseUrl, c.supabaseAnonKey);
+      return sb.auth.getSession();
+    }).then(function (r) {
+      var s = r.data && r.data.session;
+      if (!s) {
+        gate('<h1>Admin sign-in</h1><p>Sign in with your admin account (your Gmail or email) to open the admin panel.</p>' +
+          '<a class="btn primary" href="/?signin=admin" style="justify-self:center">Sign in</a><a class="link" href="/" style="justify-content:center">Back to store</a>');
+        return;
+      }
+      token = s.access_token;
+      sb.auth.onAuthStateChange(function (ev, sess) { if (sess) token = sess.access_token; if (ev === 'SIGNED_OUT') location.href = '/'; });
+      return api('/api/admin?view=overview&range=' + state.range).then(function (d) {
+        me = d.me;
+        $('meEmail').textContent = me.email; $('meRole').textContent = me.role === 'owner' ? 'Owner' : 'Staff';
+        $('storeName').textContent = d.storeName || 'Boostly';
+        $('gate').hidden = true; $('shell').hidden = false;
+        var v = (location.hash || '').replace('#', '');
+        if (['overview', 'orders', 'customers', 'payments', 'tickets', 'team'].indexOf(v) >= 0 && v !== 'overview') go(v); else { state.view = 'overview'; markNav(); renderOverview(d); }
+      }).catch(function (e) {
+        if (e.status === 403) {
+          gate('<h1>No access</h1><p>You’re signed in as <b>' + esc(s.user && s.user.email) + '</b>, which isn’t on the admin team. Ask the store owner to add you under Team &amp; access.</p>' +
+            '<button class="btn" id="gOut" style="justify-self:center">Log out</button><a class="link" href="/" style="justify-content:center">Back to store</a>');
+          $('gOut').onclick = function () { sb.auth.signOut(); };
+        } else if (e.status === 401) { gate('<h1>Session expired</h1><p>Please sign in again.</p><a class="btn primary" href="/?signin=admin" style="justify-self:center">Sign in</a>'); }
+        else gate('<h1>Couldn’t load</h1><p>' + esc(e.message) + '</p><button class="btn" onclick="location.reload()" style="justify-self:center">Try again</button>');
+      });
+    });
+  }).catch(function () { gate('<h1>Couldn’t load</h1><p>Check your connection and refresh.</p>'); });
+
+  // ---------- navigation ----------
+  function markNav() {
+    document.querySelectorAll('#nav [data-view]').forEach(function (b) { if (b.getAttribute('data-view') === state.view) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  }
+  function go(view) {
+    state.view = view; state.page = 0; state.q = ''; state.status = '';
+    history.replaceState(null, '', view === 'overview' ? location.pathname : '#' + view);
+    markNav(); load();
+  }
+  $('nav').addEventListener('click', function (e) { var b = e.target.closest('[data-view]'); if (b) go(b.getAttribute('data-view')); });
+  $('outBtn').onclick = function () { confirmBox('Log out?', 'You’ll go back to the store.', 'Log out', function () { sb.auth.signOut(); }); };
+  $('themeBtn').onclick = function () {
+    var root = document.documentElement, dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+    try { localStorage.setItem('boostly.theme', root.dataset.theme); } catch (e) {}
+  };
+  function loading() { $('main').innerHTML = '<div class="loading"><span class="spin"></span></div>'; }
+  function head(title, sub, tools) { return '<div class="head"><div><h1>' + title + '</h1>' + (sub ? '<p>' + sub + '</p>' : '') + '</div><div class="tools">' + (tools || '') + '</div></div>'; }
+  var REFRESH = '<button class="btn" type="button" data-refresh><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Refresh</button>';
+  $('main').addEventListener('click', function (e) { if (e.target.closest('[data-refresh]')) load(); });
+
+  function load() {
+    var v = state.view;
+    if (v !== 'overview' || !$('main').children.length) loading();
+    var p = { view: v, page: state.page };
+    if (v === 'overview') p.range = state.range;
+    if (v === 'orders' || v === 'customers') { p.q = state.q; p.status = state.status; }
+    if (v === 'tickets') p.status = state.ticketStatus === 'all' ? '' : state.ticketStatus;
+    var qs = Object.keys(p).filter(function (k) { return p[k] !== '' && p[k] != null; }).map(function (k) { return k + '=' + encodeURIComponent(p[k]); }).join('&');
+    api('/api/admin?' + qs).then(function (d) {
+      if (state.view !== v) return;
+      ({ overview: renderOverview, orders: renderOrders, customers: renderCustomers, payments: renderPayments, tickets: renderTickets, team: renderTeam })[v](d);
+    }).catch(function (e) { $('main').innerHTML = head('Something went wrong', '') + '<p class="err">' + esc(e.message) + '</p>'; });
+  }
+  function badges(s) {
+    var set = function (id, n) { $(id).hidden = !n; $(id).textContent = n > 99 ? '99+' : n; };
+    set('bTickets', s.open_tickets); set('bUnmatched', s.unmatched_payments); set('bChecking', s.orders_checking);
+  }
+
+  // ---------- overview ----------
+  var RANGES = [['today', 'Today'], ['7d', '7 days'], ['30d', '30 days'], ['90d', '90 days'], ['all', 'All time']];
+  function renderOverview(d) {
+    var s = d.stats, rangeName = RANGES.filter(function (r) { return r[0] === d.range; })[0][1].toLowerCase();
+    badges(s);
+    var alerts = '';
+    if (d.provider && d.provider.inr != null && d.provider.inr < 300) alerts += '<div class="alert bad">Your smmzio balance is low: <b>' + esc(d.provider.balance.toFixed(2) + ' ' + d.provider.currency) + '</b> (≈ ' + inr(d.provider.inr) + '). Orders fail when it runs out.</div>';
+    if (s.orders_checking) alerts += '<div class="alert">' + s.orders_checking + (s.orders_checking === 1 ? ' order is' : ' orders are') + ' waiting to be checked on the panel.<button class="btn sm" data-go="orders" data-status="checking">Review</button></div>';
+    if (s.unmatched_payments) alerts += '<div class="alert">' + s.unmatched_payments + ' UPI ' + (s.unmatched_payments === 1 ? 'payment' : 'payments') + ' didn’t match any top-up.<button class="btn sm" data-go="payments">Review</button></div>';
+    if (s.open_tickets) alerts += '<div class="alert">' + s.open_tickets + ' support ' + (s.open_tickets === 1 ? 'ticket needs' : 'tickets need') + ' a reply.<button class="btn sm" data-go="tickets">Reply</button></div>';
+    $('main').innerHTML = head('Overview', 'Money in, provider spend and profit, ' + rangeName + '.',
+        '<div class="seg" id="ranges">' + RANGES.map(function (r) { return '<button type="button" data-range="' + r[0] + '" aria-pressed="' + (r[0] === d.range) + '">' + r[1] + '</button>'; }).join('') + '</div>' + REFRESH) +
+      (alerts ? '<div class="alerts">' + alerts + '</div>' : '') +
+      '<div class="kpis">' +
+        kpi('Profit', inr(s.profit), '<span class="up">' + s.margin + '% margin</span> on ' + inr(s.revenue) + ' of orders', 'hero') +
+        kpi('Money in (UPI)', inr(s.money_in), num(s.payments) + ' wallet ' + (s.payments === 1 ? 'top-up' : 'top-ups')) +
+        kpi('Order revenue', inr(s.revenue), num(s.orders) + ' orders · ' + num(s.orders_refunded) + ' refunded (' + inr(s.refunded_amount) + ')') +
+        kpi('Provider cost', inr(s.provider_cost), 'what smmzio charged, at your ₹ rate') +
+        kpi('Accounts', num(s.accounts), '+' + num(s.new_accounts) + ' new · ' + num(s.active_customers) + ' ordered') +
+        kpi('Held in wallets', inr(s.wallet_held), 'customers’ unspent balance (you owe in orders)') +
+        kpi('smmzio balance', d.provider ? esc(d.provider.balance.toFixed(2) + ' ' + d.provider.currency) : '—', d.provider && d.provider.inr != null ? '≈ ' + inr(d.provider.inr) + ' at your rate' : 'couldn’t read the panel') +
+        kpi('Support', num(s.open_tickets) + ' open', plural(s.orders_checking, 'order') + ' to check · ' + plural(s.unmatched_payments, 'unmatched payment')) +
+      '</div>' +
+      '<div class="grid2"><div class="card"><h2>Revenue per day</h2><p class="sub">Each bar is one day’s order revenue, split into what smmzio charged and what you kept.</p>' +
+        '<div class="legend"><span><i style="background:var(--series-1)"></i>Provider cost</span><span><i style="background:var(--series-2)"></i>Profit</span></div>' +
+        '<div class="chart" id="chart"></div></div>' +
+        '<div class="card"><h2>Recent orders</h2><p class="sub">Latest 8 across all customers.</p>' + recentList(d.recent) + '</div></div>';
+    drawChart(d.daily);
+    $('ranges').onclick = function (e) { var b = e.target.closest('[data-range]'); if (b) { state.range = b.getAttribute('data-range'); load(); } };
+    $('main').querySelectorAll('[data-go]').forEach(function (b) { b.onclick = function () { go(b.getAttribute('data-go')); if (b.getAttribute('data-status')) { state.status = b.getAttribute('data-status'); load(); } }; });
+  }
+  function plural(n, word) { return num(n) + ' ' + word + (Number(n) === 1 ? '' : 's'); }
+  function kpi(label, value, note, cls) { return '<div class="kpi ' + (cls || '') + '"><span>' + label + '</span><b>' + value + '</b><small>' + note + '</small></div>'; }
+  function recentList(rows) {
+    if (!rows.length) return '<p class="empty">No orders yet.</p>';
+    return '<div class="mini">' + rows.map(function (o) {
+      return '<div><span class="clip" style="max-width:62%">#' + o.id + ' · ' + esc(o.title) + '</span><b>' + inr(o.charge) + ' ' + statusPill(o.status) + '</b></div>';
+    }).join('') + '</div>';
+  }
+  function drawChart(days) {
+    var el = $('chart'); if (!el) return;
+    lastDays = days;
+    var W = Math.max(320, Math.round(el.clientWidth || 640)), H = 240, L = 44, B = 22, T = 8, max = 0;
+    days.forEach(function (d) { max = Math.max(max, d.revenue); });
+    if (!max) { el.innerHTML = '<p class="empty">No orders in this period yet. Bars appear once customers order.</p>'; return; }
+    var step = Math.pow(10, Math.floor(Math.log10(max))), top = Math.ceil(max / step) * step; if (top / step > 6) step *= 2; top = Math.ceil(max / step) * step;
+    var y = function (v) { return T + (H - T - B) * (1 - v / top); };
+    var n = days.length, bw = (W - L) / n, w = Math.max(2, Math.min(18, bw - 3));
+    var grid = '', svg = '';
+    for (var g = 0; g <= top + 1e-9; g += step) grid += '<line x1="' + L + '" x2="' + W + '" y1="' + y(g) + '" y2="' + y(g) + '"/><text x="' + (L - 6) + '" y="' + (y(g) + 3.5) + '" text-anchor="end">' + inr(g, 0) + '</text>';
+    days.forEach(function (d, i) {
+      var x = L + i * bw + (bw - w) / 2, base = y(0), cost = Math.min(d.cost, d.revenue), prof = Math.max(0, d.revenue - cost);
+      var yc = y(cost), yp = y(cost + prof), r = Math.min(4, w / 2);
+      var costTop = prof > 0;
+      svg += '<g class="col" data-i="' + i + '"><rect class="hit" x="' + (L + i * bw) + '" y="' + T + '" width="' + bw + '" height="' + (H - T - B) + '" rx="4"/>';
+      if (cost > 0) svg += barPath(x, yc, w, base - yc, costTop ? 0 : r, 'var(--series-1)');
+      if (prof > 0) svg += barPath(x, yp, w, Math.max(0, yc - yp - (cost > 0 ? 2 : 0)), r, 'var(--series-2)');
+      svg += '</g>';
+      if (i % Math.ceil(n / 6) === 0 || i === n - 1) svg += '<text x="' + (x + w / 2) + '" y="' + (H - 6) + '" text-anchor="middle" class="ax">' + new Date(d.day + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + '</text>';
+    });
+    el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Daily order revenue split into provider cost and profit"><g class="grid axis">' + grid + '</g><g class="axis">' + svg + '</g></svg><div class="tip" id="tip" hidden></div>';
+    var tip = $('tip');
+    el.querySelectorAll('.col').forEach(function (c) {
+      c.addEventListener('mouseenter', function () {
+        var d = days[+c.getAttribute('data-i')], box = el.getBoundingClientRect(), r = c.getBoundingClientRect();
+        tip.innerHTML = '<b>' + new Date(d.day + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }) + '</b>' +
+          '<div><span>Revenue</span><span>' + inr(d.revenue) + '</span></div><div><span><i style="background:var(--series-1)"></i>Provider cost</span><span>' + inr(d.cost) + '</span></div>' +
+          '<div><span><i style="background:var(--series-2)"></i>Profit</span><span>' + inr(d.profit) + '</span></div><div><span>Money in (UPI)</span><span>' + inr(d.moneyIn) + '</span></div><div><span>Orders</span><span>' + d.orders + '</span></div>';
+        tip.hidden = false;
+        var left = r.left - box.left + r.width / 2 - tip.offsetWidth / 2;
+        tip.style.left = Math.max(0, Math.min(box.width - tip.offsetWidth, left)) + 'px'; tip.style.top = '-8px';
+      });
+      c.addEventListener('mouseleave', function () { tip.hidden = true; });
+    });
+  }
+  var lastDays = null, rz = null;
+  window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(function () { if (lastDays && $('chart')) drawChart(lastDays); }, 150); });
+  // A bar segment with rounded top corners only (data end), anchored to the baseline.
+  function barPath(x, y, w, h, r, fill) {
+    if (h <= 0) return '';
+    r = Math.min(r, h, w / 2);
+    return '<path fill="' + fill + '" d="M' + x + ' ' + (y + h) + 'V' + (y + r) + 'Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + 'H' + (x + w - r) + 'Q' + (x + w) + ' ' + y + ' ' + (x + w) + ' ' + (y + r) + 'V' + (y + h) + 'Z"/>';
+  }
+
+  // ---------- orders ----------
+  var ORDER_STATUS = { placed: ['good', 'Placed'], checking: ['warn', 'Being checked'], refunded: ['bad', 'Refunded'], placing: ['blue', 'Placing'] };
+  function statusPill(s) { var x = ORDER_STATUS[s] || ['', s]; return '<span class="pill ' + x[0] + '">' + esc(x[1]) + '</span>'; }
+  var cache = {};
+  function listTools(placeholder, chips) {
+    return (chips ? '<div class="seg" id="chips">' + chips.map(function (c) { return '<button type="button" data-st="' + c[0] + '" aria-pressed="' + (state.status === c[0]) + '">' + c[1] + '</button>'; }).join('') + '</div>' : '') +
+      '<input class="search" id="q" type="search" placeholder="' + placeholder + '" value="' + esc(state.q) + '">' + REFRESH;
+  }
+  function wireList() {
+    var t = null;
+    if ($('q')) $('q').oninput = function () { var v = this.value; clearTimeout(t); t = setTimeout(function () { state.q = v; state.page = 0; load(); }, 350); };
+    if ($('chips')) $('chips').onclick = function (e) { var b = e.target.closest('[data-st]'); if (b) { state.status = b.getAttribute('data-st'); state.page = 0; load(); } };
+    if ($('prev')) $('prev').onclick = function () { state.page--; load(); };
+    if ($('next')) $('next').onclick = function () { state.page++; load(); };
+  }
+  function pager(count) { return '<div class="pager">' + (state.page ? '<button class="btn sm" id="prev">← Newer</button>' : '') + (count === 50 ? '<button class="btn sm" id="next">Older →</button>' : '') + '</div>'; }
+  function keepFocus() { var q = $('q'); if (q && state.q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } }
+
+  function renderOrders(d) {
+    cache.orders = d.orders;
+    $('main').innerHTML = head('Orders', 'Every order, what the customer paid and what smmzio charged.',
+        listTools('Search order #, email, link…', [['', 'All'], ['placed', 'Placed'], ['checking', 'Being checked'], ['refunded', 'Refunded']])) +
+      (d.orders.length ? '<div class="tablewrap"><table class="table"><thead><tr><th>#</th><th>Date</th><th>Customer</th><th>Service</th><th class="num">Qty</th><th class="num">Paid</th><th class="num">Cost</th><th class="num">Profit</th><th>Status</th><th>Panel #</th></tr></thead><tbody>' +
+        d.orders.map(function (o) {
+          var live = o.status === 'placed' || o.status === 'checking';
+          return '<tr data-row="' + o.id + '"><td>' + o.id + '</td><td class="muted">' + when(o.created_at) + '</td><td class="clip">' + esc(o.email || '—') + '</td><td class="clip" title="' + esc(o.link) + '">' + esc(o.title) + '</td>' +
+            '<td class="num">' + num(o.quantity) + '</td><td class="num">' + inr(o.charge) + '</td><td class="num muted">' + inr(o.cost) + '</td><td class="num ' + (live ? 'profit' : 'muted') + '">' + (live ? inr(o.charge - o.cost) : '—') + '</td>' +
+            '<td>' + statusPill(o.status) + '</td><td class="muted">' + esc(o.smm_order || '—') + '</td></tr>';
+        }).join('') + '</tbody></table></div>' + pager(d.orders.length) : '<div class="card empty">No orders found.</div>');
+    wireList(); keepFocus();
+    $('main').querySelectorAll('[data-row]').forEach(function (r) { r.onclick = function () { orderModal(cache.orders.filter(function (o) { return String(o.id) === r.getAttribute('data-row'); })[0]); }; });
+  }
+  function orderModal(o) {
+    modal('<h3>Order #' + o.id + ' ' + statusPill(o.status) + '</h3><div class="kv">' +
+      '<span>Customer</span><b>' + esc(o.email || '—') + '</b><span>Service</span><b>' + esc(o.title) + ' (service ' + esc(o.service_id) + ')</b>' +
+      '<span>Link</span><b><a href="' + esc(/^https?:/.test(o.link) ? o.link : '#') + '" target="_blank" rel="noopener noreferrer">' + esc(o.link) + '</a></b>' +
+      '<span>Customer paid</span><b>' + inr(o.charge) + '</b><span>Provider cost</span><b>' + inr(o.cost) + '</b>' +
+      '<span>Placed</span><b>' + when(o.created_at) + '</b><span>Panel order</span><b>' + esc(o.smm_order || '—') + '</b>' + (o.error ? '<span>Note</span><b>' + esc(o.error) + '</b>' : '') +
+      '</div><div id="live"></div><p class="err" id="mErr" hidden></p>' +
+      (o.status === 'checking' ? '<div class="row"><input class="input" id="smmNo" placeholder="Panel order number (if it went through)"><button class="btn" id="mPlaced">Mark placed</button></div>' : '') +
+      '<div class="acts">' + (o.smm_order ? '<button class="btn" id="mLive">Check on panel</button>' : '') +
+      (o.status === 'placed' || o.status === 'checking' ? '<button class="btn danger" id="mRefund">Refund ' + inr(o.charge) + ' to wallet</button>' : '') +
+      '<button class="btn" id="mClose">Close</button></div>');
+    $('mClose').onclick = closeModal;
+    var fail = function (e) { $('mErr').hidden = false; $('mErr').textContent = e.message; };
+    if ($('mLive')) $('mLive').onclick = function () {
+      this.disabled = true;
+      api('/api/admin', { action: 'orderStatus', orderId: o.id }).then(function (s) {
+        $('live').innerHTML = '<div class="kv"><span>Panel status</span><b>' + esc(s.status || '—') + '</b><span>Start count</span><b>' + esc(s.startCount == null ? '—' : s.startCount) + '</b><span>Remaining</span><b>' + esc(s.remains == null ? '—' : s.remains) + '</b></div>';
+      }).catch(fail).finally(function () { if ($('mLive')) $('mLive').disabled = false; });
+    };
+    if ($('mRefund')) $('mRefund').onclick = function () {
+      confirmBox('Refund order #' + o.id + '?', inr(o.charge) + ' goes back to ' + esc(o.email) + '’s wallet. If the panel did deliver, you lose the provider cost.', 'Refund', function () {
+        api('/api/admin', { action: 'refund', orderId: o.id, note: 'Refunded by support' }).then(function () { toast('Refunded to the wallet'); load(); }).catch(function (e) { toast(e.message); });
+      });
+    };
+    if ($('mPlaced')) $('mPlaced').onclick = function () {
+      api('/api/admin', { action: 'markPlaced', orderId: o.id, smmOrder: $('smmNo').value }).then(function () { closeModal(); toast('Marked as placed'); load(); }).catch(fail);
+    };
+  }
+
+  // ---------- customers ----------
+  function renderCustomers(d) {
+    cache.customers = d.customers;
+    $('main').innerHTML = head('Customers', 'Accounts, wallet balances and what each customer has spent.', listTools('Search email…')) +
+      (d.customers.length ? '<div class="tablewrap"><table class="table"><thead><tr><th>Email</th><th>Sign-in</th><th>Joined</th><th>Last seen</th><th class="num">Wallet</th><th class="num">Added</th><th class="num">Spent</th><th class="num">Orders</th><th class="num">Tickets</th></tr></thead><tbody>' +
+        d.customers.map(function (u) {
+          return '<tr data-row="' + esc(u.id) + '"><td class="clip">' + esc(u.email) + '</td><td class="muted">' + esc(u.provider === 'google' ? 'Google' : 'Email code') + '</td><td class="muted">' + day(u.created_at) + '</td><td class="muted">' + when(u.last_sign_in_at) + '</td>' +
+            '<td class="num">' + inr(u.balance) + '</td><td class="num">' + inr(u.added) + '</td><td class="num">' + inr(u.spent) + '</td><td class="num">' + num(u.orders) + '</td><td class="num">' + num(u.open_tickets) + '</td></tr>';
+        }).join('') + '</tbody></table></div>' + pager(d.customers.length) : '<div class="card empty">No customers found.</div>');
+    wireList(); keepFocus();
+    $('main').querySelectorAll('[data-row]').forEach(function (r) { r.onclick = function () { customerModal(cache.customers.filter(function (u) { return u.id === r.getAttribute('data-row'); })[0]); }; });
+  }
+  function customerModal(u) {
+    modal('<h3>' + esc(u.email) + '</h3><div class="kv"><span>Wallet</span><b>' + inr(u.balance) + '</b><span>Added by UPI</span><b>' + inr(u.added) + '</b><span>Spent on orders</span><b>' + inr(u.spent) + '</b>' +
+      '<span>Orders</span><b>' + num(u.orders) + '</b><span>Joined</span><b>' + day(u.created_at) + '</b></div>' +
+      '<label class="muted" for="adjAmt">Adjust wallet (use a minus sign to take money away)</label>' +
+      '<div class="row"><input class="input" id="adjAmt" type="number" step="0.01" placeholder="e.g. 50 or -20" style="max-width:150px"><input class="input" id="adjNote" maxlength="160" placeholder="Reason (saved in the ledger)"></div>' +
+      '<p class="err" id="mErr" hidden></p><div class="acts"><button class="btn" id="mOrders">See their orders</button><button class="btn primary" id="mAdj">Save adjustment</button><button class="btn" id="mClose">Close</button></div>');
+    $('mClose').onclick = closeModal;
+    $('mOrders').onclick = function () { closeModal(); state.view = 'orders'; history.replaceState(null, '', '#orders'); markNav(); state.q = u.email; state.status = ''; state.page = 0; load(); };
+    $('mAdj').onclick = function () {
+      api('/api/admin', { action: 'adjust', userId: u.id, amount: $('adjAmt').value, note: $('adjNote').value }).then(function (r) { closeModal(); toast('Wallet is now ' + inr(r.balance)); load(); })
+        .catch(function (e) { $('mErr').hidden = false; $('mErr').textContent = e.message; });
+    };
+  }
+
+  // ---------- payments ----------
+  var MATCH = { amount: 'Unique amount', ref: 'Note', utr: 'UTR' };
+  function renderPayments(d) {
+    var inbox = d.inbox || {};
+    $('main').innerHTML = head('Payments', 'UPI top-ups and bank alerts read from your Gmail. Inbox last checked ' + (inbox.last_run && Date.parse(inbox.last_run) > 0 ? when(inbox.last_run) : 'never') + '.',
+        '<button class="btn primary" id="sync">Check inbox now</button>' + REFRESH) +
+      (inbox.last_error ? '<div class="alerts"><div class="alert bad">Inbox problem: ' + esc(inbox.last_error) + '</div></div>' : '') +
+      (d.unmatched.length ? '<div class="card" style="margin-bottom:12px"><h2>Unmatched payments</h2><p class="sub">Money that reached your bank but didn’t match a top-up (wrong amount, no QR). Give it to the right customer.</p>' +
+        '<div class="tablewrap"><table class="table"><thead><tr><th>Received</th><th class="num">Amount</th><th>UTR</th><th>Bank</th><th>From</th><th></th></tr></thead><tbody>' +
+        d.unmatched.map(function (a) { return '<tr><td class="muted">' + when(a.received_at) + '</td><td class="num">' + inr(a.amount) + '</td><td>' + esc(a.utr) + '</td><td class="muted">' + esc(a.bank || '—') + '</td><td class="muted">' + esc(a.payer || '—') + '</td><td class="num"><button class="btn sm" data-utr="' + esc(a.utr) + '" data-amt="' + esc(a.amount) + '">Credit to customer</button></td></tr>'; }).join('') +
+        '</tbody></table></div></div>' : '') +
+      '<div class="card"><h2>Top-ups</h2><p class="sub">Paid top-ups, plus unpaid QRs from the last 2 days.</p>' +
+      (d.payments.length ? '<div class="tablewrap"><table class="table"><thead><tr><th>Created</th><th>Customer</th><th class="num">Asked</th><th class="num">Credited</th><th>Status</th><th>Matched by</th><th>UTR</th><th>Bank</th></tr></thead><tbody>' +
+        d.payments.map(function (r) {
+          var st = r.status === 'paid' ? '<span class="pill good">Paid</span>' : Date.parse(r.expires_at) > Date.now() ? '<span class="pill blue">Waiting</span>' : '<span class="pill">Expired</span>';
+          return '<tr><td class="muted">' + when(r.created_at) + '</td><td class="clip">' + esc(r.email || '—') + '</td><td class="num">' + inr(r.expected_amount) + '</td><td class="num">' + (r.credited != null ? inr(r.credited) : '—') + '</td><td>' + st + '</td><td class="muted">' + esc(MATCH[r.matched_by] || '—') + '</td><td class="muted">' + esc(r.utr || '—') + '</td><td class="muted">' + esc(r.bank || '—') + '</td></tr>';
+        }).join('') + '</tbody></table></div>' : '<p class="empty">No top-ups yet.</p>') + '</div>';
+    $('sync').onclick = function () {
+      var b = this; b.disabled = true; b.innerHTML = '<span class="spin"></span> Checking…';
+      api('/api/admin', { action: 'syncInbox' }).then(function (r) { toast(r.error ? r.error : r.skipped ? 'Checked a moment ago' : (r.credited ? r.credited + ' payment(s) matched' : 'No new payments')); load(); }).catch(function (e) { toast(e.message); load(); });
+    };
+    $('main').querySelectorAll('[data-utr]').forEach(function (b) { b.onclick = function () { creditModal(b.getAttribute('data-utr'), b.getAttribute('data-amt')); }; });
+  }
+  function creditModal(utr, amt) {
+    modal('<h3>Credit ' + inr(amt) + ' to a customer</h3><p class="muted" style="margin:0">UTR ' + esc(utr) + '. Ask the customer for a screenshot of the payment before crediting it.</p>' +
+      '<input class="input" id="cEmail" type="email" placeholder="Customer’s email"><p class="err" id="mErr" hidden></p>' +
+      '<div class="acts"><button class="btn" id="mClose">Cancel</button><button class="btn primary" id="mOk">Credit wallet</button></div>');
+    $('mClose').onclick = closeModal;
+    $('mOk').onclick = function () {
+      api('/api/admin', { action: 'creditAlert', utr: utr, email: $('cEmail').value }).then(function (r) { closeModal(); toast('Credited to ' + r.email); load(); })
+        .catch(function (e) { $('mErr').hidden = false; $('mErr').textContent = e.message; });
+    };
+  }
+
+  // ---------- tickets ----------
+  var TSTATUS = { open: ['warn', 'Needs reply'], answered: ['blue', 'Answered'], closed: ['', 'Closed'] };
+  var CAT = { order: 'Order', payment: 'Payment', account: 'Account', other: 'Other' };
+  function tPill(s) { var x = TSTATUS[s] || ['', s]; return '<span class="pill ' + x[0] + '">' + x[1] + '</span>'; }
+  function renderTickets(d) {
+    var tabs = [['open', 'Needs reply'], ['answered', 'Answered'], ['closed', 'Closed'], ['all', 'All']];
+    $('main').innerHTML = head('Support tickets', 'Customers’ questions from the store’s Help &amp; Support page.',
+        '<div class="seg" id="ttabs">' + tabs.map(function (t) { return '<button type="button" data-t="' + t[0] + '" aria-pressed="' + (state.ticketStatus === t[0]) + '">' + t[1] + '</button>'; }).join('') + '</div>' + REFRESH) +
+      '<div class="tk"><div class="tklist" id="tklist">' + (d.tickets.length ? d.tickets.map(function (t) {
+        return '<button type="button" class="tkrow" data-id="' + t.id + '" aria-current="' + (state.ticket === t.id) + '"><span class="a"><b>' + esc(t.subject) + '</b>' + tPill(t.status) + '</span>' +
+          '<small>#' + t.id + ' · ' + esc(t.email) + ' · ' + esc(CAT[t.category] || t.category) + ' · ' + when(t.updated_at) + '</small></button>';
+      }).join('') : '<div class="card empty">No tickets here.</div>') + '</div><div class="card" id="tkview"><p class="empty">Pick a ticket to read and reply.</p></div></div>';
+    $('ttabs').onclick = function (e) { var b = e.target.closest('[data-t]'); if (b) { state.ticketStatus = b.getAttribute('data-t'); load(); } };
+    $('tklist').onclick = function (e) { var b = e.target.closest('[data-id]'); if (b) openTicket(+b.getAttribute('data-id')); };
+    if (state.ticket) openTicket(state.ticket);
+  }
+  function openTicket(id) {
+    state.ticket = id;
+    document.querySelectorAll('.tkrow').forEach(function (b) { b.setAttribute('aria-current', String(+b.getAttribute('data-id') === id)); });
+    $('tkview').innerHTML = '<div class="loading" style="padding:30px"><span class="spin"></span></div>';
+    api('/api/admin?view=ticket&id=' + id).then(showTicket).catch(function (e) { $('tkview').innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+  }
+  function showTicket(d) {
+    var t = d.ticket, o = d.order;
+    $('tkview').innerHTML = '<div class="head" style="margin:0"><div><h1 style="font-size:17px">' + esc(t.subject) + '</h1><p>#' + t.id + ' · ' + esc(t.email) + ' · ' + esc(CAT[t.category] || t.category) + ' · opened ' + when(t.created_at) + '</p></div>' + tPill(t.status) + '</div>' +
+      (o ? '<p class="muted" style="margin:10px 0 0">Order #' + o.id + ': ' + esc(o.title) + ' · ' + inr(o.charge) + ' · ' + statusPill(o.status) + (o.smm_order ? ' · panel #' + esc(o.smm_order) : '') + '</p>' : '') +
+      '<div class="thread" id="thread">' + d.messages.map(function (m) {
+        return '<div class="msg' + (m.from_staff ? ' staff' : '') + '">' + esc(m.body) + '<small>' + (m.from_staff ? 'Support · ' + esc(m.author || '') : esc(t.email)) + ' · ' + when(m.created_at) + '</small></div>';
+      }).join('') + '</div>' +
+      '<textarea id="reply" placeholder="Write a reply… the customer sees it in their Help &amp; Support page."></textarea><p class="err" id="tErr" hidden></p>' +
+      '<div class="row" style="justify-content:flex-end;margin-top:8px">' + (t.status === 'closed' ? '<button class="btn" id="tReopen">Reopen</button>' : '<button class="btn" id="tClose">Close ticket</button>') +
+      '<button class="btn primary" id="tSend">Send reply</button></div>';
+    var th = $('thread'); th.scrollTop = th.scrollHeight;
+    var act = function (body, msg) {
+      api('/api/admin', body).then(function (r) {
+        toast(msg); showTicket(r); refreshCounts();
+        var row = document.querySelector('.tkrow[data-id="' + r.ticket.id + '"] .pill'); if (row) row.outerHTML = tPill(r.ticket.status);
+      }).catch(function (e) { $('tErr').hidden = false; $('tErr').textContent = e.message; });
+    };
+    $('tSend').onclick = function () { act({ action: 'reply', ticketId: t.id, message: $('reply').value }, 'Reply sent'); };
+    if ($('tClose')) $('tClose').onclick = function () { act({ action: 'ticketStatus', ticketId: t.id, status: 'closed' }, 'Ticket closed'); };
+    if ($('tReopen')) $('tReopen').onclick = function () { act({ action: 'ticketStatus', ticketId: t.id, status: 'open' }, 'Ticket reopened'); };
+  }
+  function refreshCounts() { api('/api/admin?view=overview&range=today').then(function (d) { badges(d.stats); }).catch(function () {}); }
+
+  // ---------- team ----------
+  function renderTeam(d) {
+    var owner = me.role === 'owner';
+    $('main').innerHTML = head('Team &amp; access', 'Only these people can open the admin panel. They sign in with this email (Gmail via Google, or an email code).', REFRESH) +
+      '<div class="tablewrap"><table class="table"><thead><tr><th>Email</th><th>Role</th><th>Added by</th><th>Since</th><th></th></tr></thead><tbody>' +
+      d.team.map(function (a) {
+        return '<tr><td>' + esc(a.email) + (a.email === me.email.toLowerCase() ? ' <span class="pill blue">You</span>' : '') + '</td><td>' + (a.role === 'owner' ? '<span class="pill good">Owner</span>' : '<span class="pill">Staff</span>') + '</td>' +
+          '<td class="muted">' + esc(a.added_by || '—') + '</td><td class="muted">' + (a.created_at ? day(a.created_at) : '—') + '</td>' +
+          '<td class="num">' + (owner && !a.fixed && a.email !== me.email.toLowerCase() ? '<button class="btn sm" data-rm="' + esc(a.email) + '">Remove</button>' : '') + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      (owner ? '<div class="card" style="margin-top:12px"><h2>Give someone access</h2><p class="sub"><b>Staff</b> can see everything and handle orders, payments and tickets. <b>Owners</b> can also add and remove people.</p>' +
+        '<div class="row"><input class="input" id="nEmail" type="email" placeholder="their.email@gmail.com"><select id="nRole" style="width:auto"><option value="staff">Staff</option><option value="owner">Owner</option></select><button class="btn primary" id="nAdd">Add</button></div><p class="err" id="nErr" hidden style="margin-top:8px"></p></div>'
+        : '<p class="muted" style="margin-top:12px">Only owners can change who has access.</p>');
+    if (owner) $('nAdd').onclick = function () {
+      api('/api/admin', { action: 'addAdmin', email: $('nEmail').value, role: $('nRole').value }).then(function (r) { toast('Access given'); renderTeam(r); })
+        .catch(function (e) { $('nErr').hidden = false; $('nErr').textContent = e.message; });
+    };
+    $('main').querySelectorAll('[data-rm]').forEach(function (b) {
+      b.onclick = function () {
+        var email = b.getAttribute('data-rm');
+        confirmBox('Remove ' + esc(email) + '?', 'They lose access to the admin panel immediately.', 'Remove', function () {
+          api('/api/admin', { action: 'removeAdmin', email: email }).then(function (r) { toast('Access removed'); renderTeam(r); }).catch(function (e) { toast(e.message); });
+        });
+      };
+    });
+  }
+
+  // ---------- modal / toast ----------
+  function modal(html) { $('modal').innerHTML = html; $('scrim').hidden = false; var f = $('modal').querySelector('input, textarea, button'); if (f) f.focus(); }
+  function closeModal() { $('scrim').hidden = true; }
+  $('scrim').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('scrim').hidden) closeModal(); });
+  function confirmBox(title, text, okLabel, ok) {
+    modal('<h3>' + title + '</h3><p class="muted" style="margin:0">' + text + '</p><div class="acts"><button class="btn" id="cNo">Cancel</button><button class="btn danger" id="cYes">' + esc(okLabel) + '</button></div>');
+    $('cNo').onclick = closeModal; $('cYes').onclick = function () { closeModal(); ok(); };
+  }
+  var tt = null;
+  function toast(m) { $('toast').textContent = m; $('toast').hidden = false; clearTimeout(tt); tt = setTimeout(function () { $('toast').hidden = true; }, 3200); }
+})();
+</script>
+</body>
+</html>

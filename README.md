@@ -149,6 +149,7 @@ in the code or commit them.**
 | `ROUND_PRICES` | round prices up to tidy numbers, e.g. ₹0.288 → ₹0.30 (default on; `0` = off) |
 | `PANEL_TO_INR_RATE` | rupees per 1 unit of the panel's currency; smmzio is in USD, so e.g. `98` |
 | `STORE_NAME`, `SUPPORT_CONTACT` | shown in the store |
+| `ADMIN_EMAILS` | optional: emails that are always admin-panel owners, comma-separated (more can be added in the panel) |
 
 Unless all of the panel, UPI, Gmail and Supabase keys are set, the store runs in **demo mode**: a
 pretend wallet kept in the visitor's browser, a sample QR that can't be paid with a **Simulate a
@@ -190,9 +191,40 @@ How it stays safe:
   through; check it on the panel and refund it in the `orders`/`wallets` tables if it didn't.
 - Every balance change is recorded in the `ledger` table.
 
-API routes (`api/`, Vercel serverless functions): `GET /api/services`, `GET /api/status`,
+API routes (`api/`, Vercel serverless functions): `GET /api/admin`, `POST /api/admin` (admins only),
+`GET/POST /api/tickets`, `GET /api/services`, `GET /api/status`,
 `GET /api/wallet`, `POST /api/recharge` (new payment, or `{ id, utr }`), `GET /api/recharge?id=…` (payment
 status), `POST /api/order`, `GET /api/order-status?id=…`.
+
+## Admin panel and support tickets
+
+**`/admin`** is the store's back office. It shows:
+
+| Page | What's there |
+|---|---|
+| Overview | Profit and margin, money in by UPI, order revenue, provider (smmzio) cost, accounts, money held in wallets, your smmzio balance (warns when low), revenue-per-day chart, and alerts for anything that needs you |
+| Orders | Every order with paid / cost / profit; check live status on the panel, refund to the wallet, or mark a "being checked" order as placed |
+| Customers | Accounts, sign-in method, wallet, money added and spent; adjust a wallet (with a reason saved in the ledger) |
+| Payments | UPI top-ups, inbox status, **Check inbox now**, and bank payments that matched no top-up, which you can credit to a customer |
+| Tickets | Customers' support tickets; read, reply, close or reopen |
+| Team & access | Who can open the admin panel; owners add or remove people |
+
+**Who can open it:** only people on the team. Each request checks, on the server, that the signed-in
+email is verified and listed in the `admins` table (owner or staff) or in the `ADMIN_EMAILS` environment
+variable (always an owner). Everyone else gets "No access" and no data. Admins see an **Admin panel** item in
+their profile menu in the store; customers never do. Sign in at `/?signin=admin` to go straight to the panel.
+Add `https://YOUR-SITE/**` under Supabase → Authentication → URL Configuration → Redirect URLs so Google
+sign-in can return to `/admin`.
+
+- **Owners** see everything and can add or remove admins.
+- **Staff** see everything and handle orders, payments and tickets, but can't change who has access.
+
+**Support tickets:** customers open tickets from **Help & Support** in the store, optionally about a
+specific order ("Get help with this order" in My orders). Replies from the admin panel appear in the
+customer's ticket with a red dot until they read it. Customers see replies as "*Store name* support", never
+the staff member's email.
+
+Run `supabase/migrations/004_admin.sql` (after 001–003) to add the admin and ticket tables.
 
 ## Running locally
 

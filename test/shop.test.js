@@ -254,7 +254,7 @@ test('wallet endpoints need a signed-in customer and a live setup', async () => 
   await assert.rejects(wallet.currentUser(req(), LIVE), /sign in/);
   await assert.rejects(wallet.currentUser(req('stolen'), LIVE), /session expired/);
   await assert.rejects(wallet.currentUser(req('good-token'), DEMO), /isn’t connected/);
-  assert.deepEqual(await wallet.currentUser(req('good-token'), LIVE), USER);
+  assert.deepEqual(await wallet.currentUser(req('good-token'), LIVE), Object.assign({ verified: false }, USER));
 });
 
 test('orders take the exact price from the wallet and place one panel order', async () => {
