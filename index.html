@@ -58,7 +58,7 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; }
   body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; letter-spacing: -.005em; }
-  button, input { font: inherit; color: inherit; letter-spacing: inherit; }
+  button, input, textarea, select { font: inherit; color: inherit; letter-spacing: inherit; }
   button { cursor: pointer; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   [hidden] { display: none !important; }
@@ -580,6 +580,34 @@
     .umenu { animation: fadeUp .15s ease-out; }
   }
 
+  /* ---------- help & support (tickets) ---------- */
+  .nbadge { margin-left: auto; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--bad); color: #fff; font-size: 11px; font-weight: 600; display: grid; place-items: center; }
+  .app.collapsed .nav button { position: relative; }
+  .app.collapsed .side .nbadge { position: absolute; top: 4px; right: 4px; min-width: 8px; height: 8px; padding: 0; font-size: 0; }
+  .sup-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .sup-head h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
+  .sup-head p { margin: 2px 0 0; color: var(--muted); font-size: 13.5px; }
+  .faq { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .faq div { padding: 14px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  .faq b { display: block; margin-bottom: 4px; color: var(--text); font-weight: 500; font-size: 13.5px; }
+  .trow { display: grid; gap: 4px; width: 100%; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); }
+  .trow:hover { background: var(--hover); }
+  .trow .a { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .trow b { font-weight: 500; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trow small { color: var(--muted); font-size: 12px; }
+  .trow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bad); display: inline-block; margin-right: 6px; }
+  .tform { display: grid; gap: 12px; }
+  .tform label { font-size: 13px; font-weight: 500; color: var(--text-2); display: grid; gap: 6px; }
+  .tform select, .tform textarea { width: 100%; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--panel); padding: 10px 12px; font-size: 14px; outline: none; }
+  .tform textarea { min-height: 120px; resize: vertical; }
+  .tform select:focus, .tform textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+  .tthread { display: grid; gap: 10px; }
+  .tmsg { max-width: 82%; padding: 10px 13px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
+  .tmsg.me { margin-left: auto; background: var(--accent-soft); border-color: transparent; }
+  .tmsg small { display: block; margin-top: 6px; color: var(--muted); font-size: 11.5px; }
+  .tback { border: 0; background: none; padding: 0; color: var(--accent); font-weight: 500; font-size: 13.5px; justify-self: start; }
+  @media (max-width: 900px) { .faq { grid-template-columns: 1fr; } .tmsg { max-width: 92%; } }
+
   .mbar { display: none; }
 
   /* ---------- responsive ---------- */
@@ -649,7 +677,7 @@
       <p class="sect">Account</p>
       <div class="nav">
         <button type="button" data-nav="account" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="txt">Settings</span></button>
-        <button type="button" data-nav="support" title="Help &amp; Support"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg><span class="txt">Help &amp; Support</span></button>
+        <button type="button" data-nav="support" title="Help &amp; Support"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg><span class="txt">Help &amp; Support</span><span class="nbadge" id="supBadge" hidden></span></button>
         <button type="button" id="acctBtn" title="Sign in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3"/><path d="M14 8l-4 4 4 4M10 12h11"/></svg><span class="txt" id="acctText">Sign in</span></button>
       </div>
       <div class="who"><span class="avatar" id="avatar">?</span><div><b id="whoName">Guest</b><span id="whoMail">Not signed in</span></div></div>
@@ -754,6 +782,7 @@
     </section>
 
     <section class="ordersv" id="viewOrders" hidden aria-label="My orders"><div class="inner" id="ordersView"></div></section>
+    <section class="ordersv" id="viewSupport" hidden aria-label="Help and support"><div class="inner" id="supportView"></div></section>
   </div>
 </div>
 
@@ -1161,13 +1190,16 @@
 
   // ---------- views & nav ----------
   function route() {
-    var orders = /^#(orders|track)/.test(location.hash);
-    $('viewOrder').hidden = orders || store.mode === 'error';
+    var orders = /^#(orders|track)/.test(location.hash), support = /^#support/.test(location.hash);
+    var here = orders ? 'orders' : support ? 'support' : 'order';
+    $('viewOrder').hidden = here !== 'order' || store.mode === 'error';
     $('viewOrders').hidden = !orders;
-    document.querySelectorAll('[data-nav="order"], [data-nav="orders"]').forEach(function (b) {
-      if ((b.getAttribute('data-nav') === 'orders') === orders) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    $('viewSupport').hidden = !support;
+    document.querySelectorAll('[data-nav="order"], [data-nav="orders"], [data-nav="support"]').forEach(function (b) {
+      if (b.getAttribute('data-nav') === here) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
     if (orders) renderOrders();
+    if (support) renderSupport();
   }
   function goOrder() { if (location.hash) { history.pushState('', '', location.pathname); route(); } }
   window.addEventListener('hashchange', route);
@@ -1177,13 +1209,96 @@
       if (n === 'order') { goOrder(); window.scrollTo(0, 0); }
       else if (n === 'orders') { location.hash = 'orders'; window.scrollTo(0, 0); }
       else if (n === 'wallet') addMoney();
-      else if (n === 'support') supportModal();
+      else if (n === 'support') { location.hash = 'support'; window.scrollTo(0, 0); }
       else if (n === 'account') accountModal();
     });
   });
   $('home').addEventListener('click', function (e) { e.preventDefault(); goOrder(); });
   $('acctBtn').addEventListener('click', function () { if (acct.signedIn && !acct.demo) confirmSignOut(); else if (!acct.signedIn) signIn(); });
   $('wAdd').addEventListener('click', function () { addMoney(); });
+
+  // ---------- help & support: tickets ----------
+  var TK_STATUS = { open: ['pending', 'Waiting for support'], answered: ['done', 'Support replied'], closed: ['', 'Closed'] };
+  var TK_CAT = [['order', 'An order'], ['payment', 'A payment / wallet top-up'], ['account', 'My account'], ['other', 'Something else']];
+  function tkPill(s) { var x = TK_STATUS[s] || ['', s]; return '<span class="pill ' + x[0] + '">' + esc(x[1]) + '</span>'; }
+  function supportHead(sub, btn) {
+    return '<div class="sup-head"><div><h2>Help &amp; Support</h2><p>' + sub + '</p></div>' + (btn || '') + '</div>';
+  }
+  var FAQ = '<div class="faq"><div><b>When does my order start?</b>Most orders start within an hour. Delivery speed is shown on each service.</div>' +
+    '<div><b>Keep the account public</b>Private accounts and deleted posts can’t receive delivery. Don’t change the link until it finishes.</div>' +
+    '<div><b>Failed orders refund themselves</b>If the provider can’t place an order, the money goes straight back to your wallet.</div></div>';
+  function renderSupport() {
+    var v = $('supportView'), parts = location.hash.replace(/^#support\/?/, '').split('/');
+    if (!acct.signedIn || acct.demo) {
+      v.innerHTML = supportHead('Questions about an order or a payment? We’re here to help.') + FAQ +
+        '<div class="card"><p>' + (acct.demo ? 'Support tickets work once the store is live.' : 'Sign in to open a support ticket and see our replies.') + '</p>' +
+        (acct.demo ? '' : '<button class="pay" id="supIn" type="button" style="width:auto;padding:0 24px;margin-top:10px">Sign in</button>') + '</div>';
+      if ($('supIn')) $('supIn').onclick = function () { signIn(renderSupport); };
+      return;
+    }
+    if (parts[0] === 'new') return newTicketForm(v, parts[1]);
+    if (/^\d+$/.test(parts[0])) return ticketThread(v, parts[0]);
+    v.innerHTML = supportHead('Open a ticket and we’ll reply here. You’ll see a red dot when we answer.', '<button class="pay" id="supNew" type="button" style="width:auto;padding:0 20px">New ticket</button>') +
+      FAQ + '<p class="sub">Your tickets</p><div class="olist" id="supList"><div style="display:grid;place-items:center;padding:20px"><span class="spin" style="border-color:var(--line);border-top-color:var(--accent)"></span></div></div>';
+    $('supNew').onclick = function () { location.hash = 'support/new'; };
+    api('/api/tickets').then(function (d) {
+      var list = d.tickets || [];
+      $('supList').innerHTML = list.length ? list.map(function (t) {
+        return '<button type="button" class="trow" data-t="' + t.id + '"><span class="a"><b>' + (t.customer_seen ? '' : '<span class="dot" aria-label="New reply"></span>') + esc(t.subject) + '</b>' + tkPill(t.status) + '</span>' +
+          '<small>Ticket #' + t.id + ' · updated ' + esc(new Date(t.updated_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })) + '</small></button>';
+      }).join('') : '<p class="muted">No tickets yet. Need help? Tap <b>New ticket</b>.</p>';
+      $('supList').onclick = function (e) { var b = e.target.closest('[data-t]'); if (b) location.hash = 'support/' + b.getAttribute('data-t'); };
+    }).catch(function (e) { $('supList').innerHTML = '<p class="hint bad">' + esc(e.message) + '</p>'; });
+  }
+  function newTicketForm(v, orderId) {
+    var orders = (acct.orders || []).slice(0, 20);
+    v.innerHTML = '<button class="tback" id="supBack" type="button">← All tickets</button>' + supportHead('Tell us what happened. Include your order number if it’s about an order.') +
+      '<div class="card"><form class="tform" id="tkForm">' +
+        '<label>What is it about?<select id="tkCat">' + TK_CAT.map(function (c) { return '<option value="' + c[0] + '"' + (orderId && c[0] === 'order' ? ' selected' : '') + '>' + c[1] + '</option>'; }).join('') + '</select></label>' +
+        '<label id="tkOrderL">Which order?<select id="tkOrder"><option value="">Not about a specific order</option>' + orders.map(function (o) {
+          return '<option value="' + esc(o.id) + '"' + (String(o.id) === String(orderId) ? ' selected' : '') + '>#' + esc(o.id) + ' · ' + esc(o.title) + ' · ' + esc(price(o.charge)) + '</option>';
+        }).join('') + '</select></label>' +
+        '<label>Subject<input class="tin" id="tkSubj" maxlength="140" placeholder="e.g. Order #12 hasn’t started"></label>' +
+        '<label>Message<textarea id="tkMsg" maxlength="4000" placeholder="What happened, and what did you expect? For payments, add the UTR from your UPI app."></textarea></label>' +
+        '<p class="err" id="tkErr" hidden></p><button class="pay" type="submit" id="tkSend">Send ticket</button></form></div>';
+    $('supBack').onclick = function () { location.hash = 'support'; };
+    $('tkSubj').focus();
+    $('tkForm').onsubmit = function (e) {
+      e.preventDefault();
+      $('tkSend').disabled = true; $('tkSend').innerHTML = '<span class="spin" aria-hidden="true"></span> Sending…'; $('tkErr').hidden = true;
+      api('/api/tickets', { subject: $('tkSubj').value, category: $('tkCat').value, orderId: $('tkOrder').value || null, message: $('tkMsg').value }).then(function (d) {
+        toast('Ticket sent. We’ll reply here.');
+        location.hash = 'support/' + d.ticket.id;
+      }).catch(function (err) {
+        $('tkSend').disabled = false; $('tkSend').textContent = 'Send ticket';
+        $('tkErr').hidden = false; $('tkErr').textContent = err.message;
+      });
+    };
+  }
+  function ticketThread(v, id) {
+    v.innerHTML = '<button class="tback" id="supBack" type="button">← All tickets</button><div style="display:grid;place-items:center;padding:30px"><span class="spin" style="border-color:var(--line);border-top-color:var(--accent)"></span></div>';
+    $('supBack').onclick = function () { location.hash = 'support'; };
+    api('/api/tickets?id=' + encodeURIComponent(id)).then(showThread).catch(function (e) { v.innerHTML += '<p class="hint bad">' + esc(e.message) + '</p>'; });
+    function showThread(d) {
+      var t = d.ticket;
+      v.innerHTML = '<button class="tback" id="supBack" type="button">← All tickets</button>' +
+        '<div class="sup-head"><div><h2 style="font-size:18px">' + esc(t.subject) + '</h2><p>Ticket #' + t.id + (t.order_id ? ' · order #' + esc(t.order_id) : '') + '</p></div>' + tkPill(t.status) + '</div>' +
+        '<div class="tthread">' + d.messages.map(function (m) {
+          return '<div class="tmsg' + (m.from_staff ? '' : ' me') + '">' + esc(m.body) + '<small>' + (m.from_staff ? esc(store.storeName) + ' support' : 'You') + ' · ' +
+            esc(new Date(m.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })) + '</small></div>';
+        }).join('') + '</div>' +
+        '<div class="card tform"><label>' + (t.status === 'closed' ? 'Reply to reopen this ticket' : 'Reply') + '<textarea id="tkReply" maxlength="4000" placeholder="Write a message…"></textarea></label>' +
+        '<p class="err" id="tkErr" hidden></p><div class="row2">' + (t.status === 'closed' ? '<span></span>' : '<button class="ghost" id="tkClose" type="button">Close ticket</button>') + '<button class="pay" id="tkSend" type="button">Send</button></div></div>';
+      $('supBack').onclick = function () { location.hash = 'support'; };
+      var fail = function (err) { $('tkErr').hidden = false; $('tkErr').textContent = err.message; };
+      $('tkSend').onclick = function () {
+        var b = this; b.disabled = true;
+        api('/api/tickets', { id: t.id, message: $('tkReply').value }).then(showThread).catch(function (e) { b.disabled = false; fail(e); });
+      };
+      if ($('tkClose')) $('tkClose').onclick = function () { api('/api/tickets', { id: t.id, close: true }).then(function (r) { toast('Ticket closed'); showThread(r); }).catch(fail); };
+      if (acct.unreadTickets) { acct.unreadTickets = Math.max(0, acct.unreadTickets - 1); renderWallet(); }
+    }
+  }
 
   function supportModal() {
     modal('<div class="left"><h2 id="modalTitle">Support</h2>' +
@@ -1227,6 +1342,7 @@
   var sb = null, token = null;
   var acct = { signedIn: false, loading: false, demo: false, email: '', balance: null, orders: [], recharges: [] };
   var afterSignIn = null;
+  var ADMIN_RETURN = /[?&]signin=admin\b/.test(location.search), adminPrompted = false;
 
   function initWallet() {
     // Pretend wallets from earlier versions and test runs never carry over; the live store never keeps one.
@@ -1258,6 +1374,8 @@
     var t = (session && session.access_token) || null;
     if (t === token && (acct.signedIn || !t)) { acct.loading = false; renderWallet(); return; }
     token = t;
+    if (token && ADMIN_RETURN) { location.replace('/admin'); return; }
+    if (!token && ADMIN_RETURN && !adminPrompted) { adminPrompted = true; setTimeout(function () { signIn(); }, 0); }
     if (!token) {
       acct = { signedIn: false, loading: false, demo: false, email: '', balance: null, orders: [], recharges: [] };
       renderWallet();
@@ -1273,6 +1391,7 @@
     if (!token) return Promise.resolve();
     return api('/api/wallet').then(function (w) {
       acct.loading = false; acct.balance = w.balance; acct.orders = w.orders; acct.recharges = w.recharges; acct.email = w.email || acct.email;
+      acct.isAdmin = !!w.isAdmin; acct.unreadTickets = w.unreadTickets || 0;
       renderWallet();
     }).catch(function (e) {
       acct.loading = false; renderWallet();
@@ -1299,6 +1418,8 @@
     $('planBal').textContent = bal;
     $('acctBtn').title = $('acctText').textContent;
     renderUser();
+    $('supBadge').hidden = !acct.unreadTickets; $('supBadge').textContent = acct.unreadTickets || '';
+    if (!$('viewSupport').hidden && !acct.loading && !/^#support\/\d/.test(location.hash) && renderedSupportFor !== (acct.signedIn ? acct.email : '')) { renderedSupportFor = acct.signedIn ? acct.email : ''; renderSupport(); }
     $('hello').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
     $('welcome').innerHTML = acct.signedIn ? 'Welcome, <span class="gt">' + esc(displayName()) + '</span>' : 'Grow your <span class="gt">' + esc(plat(state.platform).label) + '</span>';
     var orders = acct.orders || [];
@@ -1318,6 +1439,7 @@
 
   // ---------- sign-in page: email code or Google ----------
   var GOOGLE_G = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>';
+  var renderedSupportFor = null;
   var googleOn = null;        // is Google sign-in switched on in Supabase? (null = not checked yet)
   var resendTimer = null;
   function checkGoogle() {
@@ -1379,7 +1501,7 @@
       var why = authReady(); if (why) { fail(why); return; }
       if (googleOn === false) { fail('Google sign-in isn’t switched on yet. Use your email for now.'); return; }
       $('aGoogle').disabled = true; $('aGoogle').innerHTML = '<span class="spin" aria-hidden="true" style="border-color:var(--line);border-top-color:var(--accent)"></span> Opening Google…';
-      sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname, queryParams: { prompt: 'select_account' } } }).then(function (r) {
+      sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + (ADMIN_RETURN ? '/admin' : location.pathname), queryParams: { prompt: 'select_account' } } }).then(function (r) {
         if (r.error) throw r.error;            // on success the browser goes to Google
       }).catch(function (err) {
         $('aGoogle').disabled = false; $('aGoogle').innerHTML = GOOGLE_G + 'Continue with Google';
@@ -1492,6 +1614,7 @@
     orders: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
     wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h15a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z"/><path d="M3 7V6a2 2 0 0 1 2-2h11"/><path d="M17 13.5h.01"/></svg>',
     settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.8 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
     help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg>',
     out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3"/><path d="M14 8l4 4-4 4M18 12H9"/></svg>'
   };
@@ -1515,7 +1638,8 @@
       '<button type="button" role="menuitem" data-u="wallet">' + ICON.wallet + 'Add money</button>' +
       '<button type="button" role="menuitem" data-u="orders">' + ICON.orders + 'My orders</button>' +
       '<button type="button" role="menuitem" data-u="account">' + ICON.settings + 'Settings</button>' +
-      '<button type="button" role="menuitem" data-u="support">' + ICON.help + 'Help &amp; Support</button>' +
+      '<button type="button" role="menuitem" data-u="support">' + ICON.help + 'Help &amp; Support' + (acct.unreadTickets ? '<span class="nbadge">' + acct.unreadTickets + '</span>' : '') + '</button>' +
+      (acct.isAdmin ? '<hr><button type="button" role="menuitem" data-u="admin">' + ICON.shield + 'Admin panel</button>' : '') +
       (acct.demo ? '' : '<hr><button type="button" role="menuitem" class="out" data-u="out">' + ICON.out + 'Log out</button>');
   }
   function closeMenu() { $('uMenu').hidden = true; $('userBtn').setAttribute('aria-expanded', 'false'); }
@@ -1534,7 +1658,8 @@
     else if (u === 'wallet') addMoney();
     else if (u === 'orders') { location.hash = 'orders'; window.scrollTo(0, 0); }
     else if (u === 'account') accountModal();
-    else if (u === 'support') supportModal();
+    else if (u === 'support') { location.hash = 'support'; window.scrollTo(0, 0); }
+    else if (u === 'admin') location.href = '/admin';
   });
   document.addEventListener('click', function (e) { if (!$('uMenu').hidden && !$('userBox').contains(e.target)) closeMenu(); });
   document.addEventListener('keydown', function (e) {
@@ -1879,6 +2004,7 @@
     if (openOrder != null) loadStatus(openOrder);
   }
   $('ordersView').addEventListener('click', function (e) {
+    var h = e.target.closest('[data-help]'); if (h) { location.hash = 'support/new/' + h.getAttribute('data-help'); window.scrollTo(0, 0); return; }
     var b = e.target.closest('[data-oid]'); if (!b) return;
     var id = b.getAttribute('data-oid'), box = $('od' + id), open = box.hidden;
     openOrder = open ? (isNaN(+id) ? id : +id) : null;
@@ -1901,7 +2027,8 @@
         '<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><i style="width:' + pct + '%"></i></div>' +
         '<p class="hint">' + (delivered != null && qty ? num(delivered) + ' of ' + num(qty) + ' delivered (' + pct + '%)' : 'Progress shows here once delivery starts.') +
         (s.startCount != null ? ' · started from ' + num(s.startCount) : '') + (s.demo ? ' · demo numbers' : '') + '</p>' +
-        (o.link ? '<p class="hint" style="overflow-wrap:anywhere">' + esc(o.link) + '</p>' : '');
+        (o.link ? '<p class="hint" style="overflow-wrap:anywhere">' + esc(o.link) + '</p>' : '') +
+        (acct.demo ? '' : '<button type="button" class="linkbtn" data-help="' + esc(id) + '">Get help with this order →</button>');
     }).catch(function (e) { box.innerHTML = '<p class="hint bad">' + esc(e.message) + '</p>'; });
   }
 
