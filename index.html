@@ -669,7 +669,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); };
   var num = function (n) { return Number(n).toLocaleString('en-IN'); };
-  var KEY = 'boostly.v2', DEMO_WALLET = 'boostly.demoWallet.v1';
+  var KEY = 'boostly.v2', DEMO_WALLET = 'boostly.demoWallet.v2', OLD_DEMO_WALLETS = ['boostly.demoWallet.v1'];
   var SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';
   var price = function (v) { return C.formatPrice(v, store.currency); };
 
@@ -1101,6 +1101,11 @@
   var afterSignIn = null;
 
   function initWallet() {
+    // Pretend wallets from earlier versions and test runs never carry over; the live store never keeps one.
+    try {
+      OLD_DEMO_WALLETS.forEach(function (k) { localStorage.removeItem(k); });
+      if (store.mode === 'live') localStorage.removeItem(DEMO_WALLET);
+    } catch (e) {}
     if (store.mode !== 'live') {
       var w = {};
       try { w = JSON.parse(localStorage.getItem(DEMO_WALLET)) || {}; } catch (e) {}
