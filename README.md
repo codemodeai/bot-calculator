@@ -7,15 +7,17 @@ The store is the home page (`index.html`), laid out as a dashboard:
 
 | Column | What it does |
 |---|---|
-| Sidebar | New order, My orders, Add money, Support; account and dark/light at the bottom |
+| Sidebar | New order, My orders, Add money; Settings, Help & Support, sign in/out, profile and wallet at the bottom |
 | Platform rail | Instagram, TikTok, YouTube, Facebook, Telegram, X and any other platform the panel sells |
 | Categories | What the service does: Followers, Likes, Views, Comments, Shares, Saves, Story views… |
 | Services | Every service in the category, sortable by cheapest, fastest or quality. The automatic picks are tagged **Starter**, **Popular**, **Express** and **Premium** |
 | Service details | Price per 1,000, delivery estimate, start time, speed, refill, min/max |
-| Order | Link, quantity, exact total, wallet balance, Place order, and the customer's stats |
-| Calendar | Wallet balance, a month calendar marking order days, recent orders |
+| Place order | Link, wallet balance, Place order, and the customer's stats |
+| Price calculator | Quantity, price per 1,000, delivery estimate and exact total |
 
-On narrower screens the columns fold together, and on phones they stack with a bottom menu.
+On wide screens the price calculator has its own column on the far right; on narrower screens it sits above
+Place order, and on phones everything stacks with a bottom menu. The **Light / Dark** switch is in the top-right
+corner and is remembered in the browser.
 
 Customers pay from a **wallet**: they sign in with their email, add money once with Razorpay
 (minimum ₹1), and every order then takes its **exact price** from the balance, even ₹0.24 for
@@ -47,8 +49,6 @@ Set `MARKUP_PERCENT=0` and `ROUND_PRICES=0` to sell at exactly the panel price.
 2% plus 18% GST). Adding ₹100 costs the customer ₹102.36 and puts ₹100 in the wallet. Set it to `0`
 to absorb the fee yourself.
 
-- The footer of the store says **Live prices · updated HH:MM** when the prices come from your
-  panel.
 - If the panel rejects the key or can't be reached, the store shows the error instead of guessing
   prices. During a short outage (under an hour) it keeps using the last live prices.
 - The panel's account currency is read with `action=balance`. If it isn't INR, set
