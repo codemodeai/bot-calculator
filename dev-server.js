@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Local preview: serves the static site and the /api functions the same way Vercel does.
 //   node dev-server.js            -> http://localhost:3000
-// Put your keys in .env (see .env.example); without Razorpay keys the store runs in demo mode.
+// Put your keys in .env (see .env.example); until the panel, UPI, Gmail and Supabase keys are all set the store runs in demo mode.
 'use strict';
 
 const http = require('http');
@@ -30,7 +30,7 @@ http.createServer((req, res) => {
   }
   let rel = decodeURIComponent(url.pathname).replace(/\/+$/, '') || '/index';
   let file = path.join(ROOT, rel);
-  if (!file.startsWith(ROOT) || /\/(\.|lib\/|api\/|data\/|tools\/|test\/)/.test(rel)) { res.statusCode = 404; return res.end('Not found'); }
+  if (!file.startsWith(ROOT) || /\/(\.|lib\/|api\/|data\/|tools\/|test\/|node_modules\/|supabase\/)|^\/package(-lock)?\.json$/.test(rel)) { res.statusCode = 404; return res.end('Not found'); }
   if (!path.extname(file)) file += '.html';   // cleanUrls, like vercel.json
   fs.readFile(file, (err, data) => {
     if (err) { res.statusCode = 404; return res.end('Not found'); }

@@ -3,24 +3,27 @@ const assert = require('node:assert/strict');
 const C = require('../calculator');
 const shop = require('../lib/shop');
 const wallet = require('../lib/wallet');
+const upi = require('../lib/upi');
 const services = require('../data/services.json').services;
 
 const LIVE = {
-  smmUrl: 'https://panel.test/api/v2', smmKey: 'panel-key', keyId: 'rzp_test_abc', keySecret: 'secret123',
-  webhookSecret: 'whsec', markup: 50, fx: 0, storeName: 'Test', support: '',
+  smmUrl: 'https://panel.test/api/v2', smmKey: 'panel-key', markup: 50, fx: 0, storeName: 'Test', support: '',
+  upiId: 'store@okhdfcbank', upiName: 'Test Store', gmail: 'alerts@gmail.com', gmailPass: 'abcd efgh ijkl mnop',
+  alertSenders: '', qrMinutes: 10,
   supabaseUrl: 'https://db.test', supabaseAnon: 'anon-key', supabaseService: 'service-key'
 };
-const DEMO = Object.assign({}, LIVE, { keyId: '', keySecret: '' });
+const DEMO = Object.assign({}, LIVE, { gmailPass: '' });
 const USER = { id: 'user-1', email: 'a@x.com' };
 
 /*
- * Fake Razorpay, SMM panel and Supabase behind global.fetch.
- * The Supabase RPCs mirror supabase/migrations/001_wallet.sql (that SQL is tested separately against Postgres).
+ * Fake SMM panel and Supabase behind global.fetch.
+ * The Supabase RPCs mirror supabase/migrations/001_wallet.sql and 003_upi.sql (that SQL is tested separately
+ * against Postgres).
  */
 function fakeBackend() {
   const db = {
-    rzOrders: {}, payments: {}, panelAdds: [], n: 0,
-    wallets: {}, recharges: [], orders: [], ledger: [], panelReply: null
+    panelAdds: [], wallets: {}, recharges: [], orders: [], ledger: [], alerts: [], panelReply: null,
+    sync: { last_run: 0, last_uid: 0, uid_validity: 0, last_ok: null, last_error: null }, syncCalls: 0
   };
   const reply = (status, data) => ({ status, text: async () => (data === undefined ? '' : JSON.stringify(data)) });
   global.fetch = async (url, init) => {
@@ -40,19 +43,8 @@ function fakeBackend() {
       }
       if (p.action === 'status') return reply(200, { status: 'In progress', start_count: '120', remains: '300' });
     }
-    if (url.startsWith(LIVE.supabaseUrl)) return supabase(url.slice(LIVE.supabaseUrl.length), init);
-    const m = url.match(/^https:\/\/api\.razorpay\.com\/v1(\/.*)$/);
-    assert.ok(m, 'unexpected URL ' + url);
-    const path = m[1], method = init.method, data = body ? JSON.parse(body) : null;
-    if (method === 'POST' && path === '/orders') {
-      const id = 'order_' + (++db.n);
-      db.rzOrders[id] = Object.assign({ id, status: 'created' }, data);
-      return reply(200, db.rzOrders[id]);
-    }
-    let r;
-    if ((r = path.match(/^\/payments\/(\w+)\/capture$/))) { db.payments[r[1]].status = 'captured'; return reply(200, db.payments[r[1]]); }
-    if ((r = path.match(/^\/payments\/(\w+)$/))) return reply(200, db.payments[r[1]]);
-    return reply(404, { error: { description: 'not found' } });
+    assert.ok(url.startsWith(LIVE.supabaseUrl), 'unexpected URL ' + url);
+    return supabase(url.slice(LIVE.supabaseUrl.length), init);
   };
 
   function supabase(path, init) {
@@ -65,17 +57,72 @@ function fakeBackend() {
     }
     assert.equal(init.headers.apikey, 'service-key');
     if (p === '/rest/v1/wallets') return reply(200, db.wallets[eq('user_id')] != null ? [{ balance: String(db.wallets[eq('user_id')]) }] : []);
-    if (p === '/rest/v1/recharges' && method === 'POST') { db.recharges.push(Object.assign({ status: 'created' }, data)); return reply(201); }
-    if (p === '/rest/v1/recharges') return reply(200, db.recharges.filter((r) => r.razorpay_order_id === eq('razorpay_order_id') || (r.user_id === eq('user_id') && r.status === 'paid')));
+    if (p === '/rest/v1/recharges') {
+      const st = url.searchParams.get('status');
+      return reply(200, db.recharges.filter((r) => r.user_id === eq('user_id') &&
+        (!url.searchParams.get('id') || String(r.id) === eq('id')) && (!st || 'eq.' + r.status === st) &&
+        (!url.searchParams.get('expires_at') || Date.parse(r.expires_at) > Date.parse(url.searchParams.get('expires_at').replace(/^gt\./, '')))));
+    }
+    if (p === '/rest/v1/upi_sync') return reply(200, [db.sync]);
     if (p === '/rest/v1/orders') return reply(200, db.orders.filter((o) => o.user_id === eq('user_id') && (!url.searchParams.get('id') || String(o.id) === eq('id'))));
     const fn = p.replace('/rest/v1/rpc/', '');
     const credit = (user, delta, kind) => { db.wallets[user] = C.round((db.wallets[user] || 0) + delta, 4); db.ledger.push({ user, delta, kind }); return db.wallets[user]; };
-    if (fn === 'credit_recharge') {
-      const r = db.recharges.find((x) => x.razorpay_order_id === data.p_razorpay_order_id);
+    // --- UPI (003_upi.sql), simplified
+    const creditUpi = (r, a, how) => {
+      if (r.status === 'paid' || a.recharge_id) return null;
+      a.recharge_id = r.id;
+      Object.assign(r, { status: 'paid', credited: Number(a.amount), utr: a.utr, bank: a.bank, matched_by: how });
+      return credit(r.user_id, Number(a.amount), 'recharge');
+    };
+    const inWindow = (r, a, graceMs) => Date.parse(a.received_at) >= Date.parse(r.created_at) - 120e3 && Date.parse(a.received_at) <= Date.parse(r.expires_at) + graceMs;
+    if (fn === 'create_upi_recharge') {
+      const open = db.recharges.find((r) => r.user_id === data.p_user && r.status === 'pending' && r.amount === data.p_amount && Date.parse(r.expires_at) > Date.now() + 120e3);
+      if (open) return reply(200, [open]);
+      if (db.recharges.some((r) => r.ref === data.p_ref)) return reply(409, { message: 'duplicate key value violates unique constraint "recharges_ref_key"' });
+      const taken = new Set(db.recharges.filter((r) => r.status === 'pending').map((r) => Number(r.expected_amount).toFixed(2)));
+      let paise = 1 + Math.floor(Math.random() * 99);
+      while (taken.has((data.p_amount + paise / 100).toFixed(2))) paise = paise % 99 + 1;
+      const now = Date.now();
+      const r = { id: db.recharges.length + 1, user_id: data.p_user, amount: data.p_amount, expected_amount: (data.p_amount + paise / 100).toFixed(2), ref: data.p_ref,
+        status: 'pending', created_at: new Date(now).toISOString(), expires_at: new Date(now + data.p_minutes * 60e3).toISOString(), utr_tries: 0 };
+      db.recharges.push(r);
+      return reply(200, [r]);
+    }
+    if (fn === 'claim_upi_sync') {
+      if (Date.now() - db.sync.last_run < data.p_min_seconds * 1000) return reply(200, []);
+      db.sync.last_run = Date.now(); db.syncCalls++;
+      return reply(200, [{ last_uid: db.sync.last_uid, uid_validity: db.sync.uid_validity }]);
+    }
+    if (fn === 'finish_upi_sync') {
+      if (data.p_last_uid != null) { db.sync.last_uid = data.p_last_uid; db.sync.uid_validity = data.p_uid_validity; }
+      db.sync.last_error = data.p_error; if (!data.p_error) db.sync.last_ok = new Date().toISOString();
+      return reply(204);
+    }
+    if (fn === 'ingest_upi_alerts') {
+      data.p_alerts.forEach((a) => { if (!db.alerts.some((x) => x.utr === a.utr)) db.alerts.push(Object.assign({ recharge_id: null }, a)); });
+      let n = 0;
+      db.alerts.filter((a) => !a.recharge_id).forEach((a) => {
+        let r = a.ref && db.recharges.find((x) => x.status === 'pending' && x.ref === a.ref && inWindow(x, a, 30 * 60e3));
+        let how = 'ref';
+        if (!r) {
+          const hits = db.recharges.filter((x) => x.status === 'pending' && Number(x.expected_amount) === Number(a.amount) && inWindow(x, a, 30 * 60e3));
+          r = hits.length === 1 ? hits[0] : null; how = 'amount';
+        }
+        if (r && creditUpi(r, a, how) != null) n++;
+      });
+      return reply(200, n);
+    }
+    if (fn === 'claim_upi_utr') {
+      const r = db.recharges.find((x) => x.id === data.p_recharge && x.user_id === data.p_user);
       if (!r) return reply(400, { message: 'RECHARGE_NOT_FOUND' });
-      if (r.status === 'paid') return reply(200, db.wallets[r.user_id]);
-      r.status = 'paid'; r.razorpay_payment_id = data.p_payment_id;
-      return reply(200, credit(r.user_id, r.amount, 'recharge'));
+      if (r.status === 'paid') return reply(200, 'paid');
+      if (r.utr_tries >= 5) return reply(400, { message: 'TOO_MANY_TRIES' });
+      r.utr_tries++;
+      const a = db.alerts.find((x) => x.utr === data.p_utr);
+      if (!a || !inWindow(r, a, 48 * 3600e3)) return reply(200, 'not_found');
+      if (a.recharge_id) return reply(200, 'used');
+      creditUpi(r, a, 'utr');
+      return reply(200, 'paid');
     }
     if (fn === 'place_order') {
       if (!((db.wallets[data.p_user] || 0) >= data.p_charge)) return reply(400, { message: 'INSUFFICIENT_FUNDS' });
@@ -96,13 +143,6 @@ function fakeBackend() {
     return reply(404, { message: 'no route ' + p });
   }
 
-  // A customer paying a Razorpay order (status as Razorpay would report it).
-  db.pay = (orderId, status) => {
-    const id = 'pay_' + Math.random().toString(36).slice(2, 14);
-    db.payments[id] = { id, order_id: orderId, amount: db.rzOrders[orderId].amount, currency: 'INR', status: status || 'captured', notes: db.rzOrders[orderId].notes, created_at: 1 };
-    return id;
-  };
-  db.sign = (orderId, payId) => shop.hmac(LIVE.keySecret, orderId + '|' + payId);
   return db;
 }
 
@@ -131,11 +171,14 @@ test('cleanLink accepts links and usernames, rejects junk', () => {
   assert.throws(() => shop.cleanLink('<script>'), /full link/);
 });
 
-test('mode is live only with panel, Razorpay and Supabase keys', () => {
+test('mode is live only with panel, UPI, Gmail and Supabase keys', () => {
   assert.equal(shop.mode(LIVE), 'live');
   assert.equal(shop.mode(DEMO), 'demo');
   assert.equal(shop.mode(Object.assign({}, LIVE, { smmKey: '' })), 'demo');
   assert.equal(shop.mode(Object.assign({}, LIVE, { supabaseService: '' })), 'demo');
+  assert.equal(shop.mode(Object.assign({}, LIVE, { upiId: '' })), 'demo');
+  assert.equal(shop.mode(Object.assign({}, LIVE, { upiId: 'not a upi id' })), 'demo');
+  assert.equal(shop.mode(Object.assign({}, LIVE, { gmail: '' })), 'demo');
 });
 
 test('catalogue hides cost prices and custom-comment services', async () => {
@@ -174,8 +217,10 @@ test('panel errors are reported instead of falling back to sample prices', async
   const st = await shop.status(LIVE);
   assert.equal(st.panel.ok, false);
   assert.match(st.panel.error, /Incorrect API Key/);
-  assert.equal(st.razorpay, 'test keys');
+  assert.equal(st.upi.payTo, 'store@okhdfcbank');
   assert.equal(st.keys.SUPABASE_SERVICE_ROLE_KEY, true);
+  assert.equal(st.keys.GMAIL_APP_PASSWORD, true);
+  assert.ok(!JSON.stringify(st).includes('abcd efgh'), 'never shows the Gmail app password');
 });
 
 test('a short panel outage reuses the last live prices', async () => {
@@ -210,23 +255,6 @@ test('wallet endpoints need a signed-in customer and a live setup', async () => 
   await assert.rejects(wallet.currentUser(req('stolen'), LIVE), /session expired/);
   await assert.rejects(wallet.currentUser(req('good-token'), DEMO), /isn’t connected/);
   assert.deepEqual(await wallet.currentUser(req('good-token'), LIVE), USER);
-});
-
-test('recharge: minimum ₹1, signed payment credits the wallet once', async () => {
-  shop._resetCache();
-  const db = fakeBackend();
-  await assert.rejects(wallet.createRecharge(USER, { amount: 0.5 }, LIVE), /minimum recharge is ₹1/);
-  const o = await wallet.createRecharge(USER, { amount: 1 }, LIVE);
-  assert.equal(o.amount, 100);
-  assert.equal(db.rzOrders[o.orderId].notes.user_id, USER.id);
-
-  const payId = db.pay(o.orderId, 'authorized');
-  await assert.rejects(wallet.verifyRecharge(USER, { razorpay_order_id: o.orderId, razorpay_payment_id: payId, razorpay_signature: 'bad' }, LIVE), /signature/);
-  const body = { razorpay_order_id: o.orderId, razorpay_payment_id: payId, razorpay_signature: db.sign(o.orderId, payId) };
-  assert.equal((await wallet.verifyRecharge(USER, body, LIVE)).balance, 1);
-  assert.equal((await wallet.verifyRecharge(USER, body, LIVE)).balance, 1, 'same payment never credits twice');
-  assert.equal((await wallet.creditPayment(payId, LIVE)).balance, 1, 'webhook after the page: still once');
-  await assert.rejects(wallet.verifyRecharge({ id: 'someone-else' }, body, LIVE), /another account/);
 });
 
 test('orders take the exact price from the wallet and place one panel order', async () => {
@@ -281,13 +309,6 @@ test('panel times out: the order is held for checking, not refunded blindly', as
   assert.equal(db.wallets[USER.id], 4.7);
 });
 
-test('webhook signature check', () => {
-  const body = '{"event":"payment.captured"}';
-  assert.ok(shop.verifyWebhookSignature(body, shop.hmac('whsec', body), 'whsec'));
-  assert.ok(!shop.verifyWebhookSignature(body, shop.hmac('other', body), 'whsec'));
-  assert.ok(!shop.verifyWebhookSignature(body, 'x', ''));
-});
-
 test('new sb_secret_ keys go only in the apikey header; legacy JWT keys also in Authorization', async () => {
   const seen = [];
   global.fetch = async (url, init) => { seen.push(init.headers); return { status: 200, text: async () => '[]' }; };
@@ -312,18 +333,116 @@ test('80% markup rounds up to tidy prices: ₹0.16 cost -> ₹0.30 per 1000', as
   assert.equal((await shop.priceOrder({ serviceId: '931', quantity: 1000, link: 'https://instagram.com/p/x' }, cfg)).charge, 0.3);
 });
 
-test('recharge adds the Razorpay fee on top; the wallet gets the full amount', async () => {
-  shop._resetCache();
+
+// ---------- UPI recharges ----------
+
+// The inbox reader is replaced by a list of alerts "in Gmail"; everything else (matching, crediting) runs.
+function fakeInbox(alerts, opts) {
+  const calls = [];
+  upi.readInbox = async (cfg, state) => {
+    calls.push(state);
+    if (opts && opts.fail) throw Object.assign(new Error('Command failed'), { authenticationFailed: true });
+    const list = alerts.slice();
+    alerts.length = 0;
+    return { alerts: list, scanned: list.length, fromBanks: list.length, rejected: 0, lastUid: (state.last_uid || 0) + list.length, uidValidity: 7 };
+  };
+  return calls;
+}
+const realReadInbox = upi.readInbox;
+test.afterEach(() => { upi.readInbox = realReadInbox; });
+
+test('recharge: a UPI QR for a unique amount, credited when the bank alert arrives', async () => {
   const db = fakeBackend();
-  const cfg = Object.assign({}, LIVE, { feePercent: 2.36 });
-  assert.equal(C.gatewayFee(100, 2.36), 2.36);
-  assert.equal(C.gatewayFee(1, 2.36), 0.03);
-  assert.equal(C.gatewayFee(100, 0), 0);
-  const o = await wallet.createRecharge(USER, { amount: 100 }, cfg);
-  assert.equal(o.amount, 10236, 'customer pays ₹102.36');
-  assert.equal(o.fee, 2.36);
-  const payId = db.pay(o.orderId);
-  const r = await wallet.verifyRecharge(USER, { razorpay_order_id: o.orderId, razorpay_payment_id: payId, razorpay_signature: db.sign(o.orderId, payId) }, cfg);
-  assert.equal(r.balance, 100, 'wallet gets ₹100');
-  assert.equal(r.paid, 102.36);
+  const inbox = [];
+  const reads = fakeInbox(inbox);
+  await assert.rejects(wallet.createRecharge(USER, { amount: 0.5 }, LIVE), /minimum recharge is ₹1/);
+  await assert.rejects(wallet.createRecharge(USER, { amount: 60000 }, LIVE), /maximum recharge/);
+
+  const c = await wallet.createRecharge(USER, { amount: 100 }, LIVE);
+  assert.ok(c.expectedAmount > 100 && c.expectedAmount < 101, 'rupees + 1..99 paise');
+  assert.equal(c.link, 'upi://pay?pa=store@okhdfcbank&pn=Test%20Store&am=' + c.expectedAmount.toFixed(2) + '&cu=INR&tn=' + c.ref);
+  assert.match(c.qr, /^<svg/);
+  assert.equal(c.payTo, 'store@okhdfcbank');
+  assert.equal((await wallet.createRecharge(USER, { amount: 100 }, LIVE)).id, c.id, 'reopening reuses the same QR');
+
+  assert.equal((await wallet.rechargeStatus(USER, c.id, LIVE)).status, 'pending');
+  assert.equal(reads.length, 1, 'the inbox was checked');
+  await assert.rejects(wallet.rechargeStatus({ id: 'someone-else' }, c.id, LIVE), /not found/);
+
+  // someone pays the base amount without the paise: not this recharge
+  inbox.push({ utr: '427700000001', amount: '100.00', bank: 'HDFC Bank', payer: 'x@ybl', ref: '', received_at: new Date().toISOString() });
+  db.sync.last_run = 0;
+  assert.equal((await wallet.rechargeStatus(USER, c.id, LIVE)).status, 'pending');
+
+  inbox.push({ utr: '427700000002', amount: c.expectedAmount.toFixed(2), bank: 'HDFC Bank', payer: 'john@okaxis', ref: '', received_at: new Date().toISOString() });
+  db.sync.last_run = 0;
+  const s = await wallet.rechargeStatus(USER, c.id, LIVE);
+  assert.equal(s.status, 'paid');
+  assert.equal(s.credited, c.expectedAmount, 'the wallet gets exactly what was paid');
+  assert.equal(s.utr, '427700000002');
+  assert.equal(s.balance, c.expectedAmount);
+  assert.equal(db.wallets[USER.id], c.expectedAmount);
+
+  db.sync.last_run = 0;
+  await wallet.rechargeStatus(USER, c.id, LIVE);
+  assert.equal(db.wallets[USER.id], c.expectedAmount, 'never credited twice');
+  const w = await wallet.wallet(USER, LIVE);
+  assert.deepEqual(w.recharges.map((r) => [r.amount, r.utr]), [[c.expectedAmount, '427700000002']]);
+});
+
+test('recharge: Gmail is checked at most every few seconds however many customers wait', async () => {
+  const db = fakeBackend();
+  const reads = fakeInbox([]);
+  const c = await wallet.createRecharge(USER, { amount: 50 }, LIVE);
+  await Promise.all([1, 2, 3, 4, 5].map(() => wallet.rechargeStatus(USER, c.id, LIVE)));
+  assert.equal(reads.length, 1);
+  assert.equal(db.syncCalls, 1);
+});
+
+test('recharge: "I’ve paid" with the UTR credits only a genuine, unused bank alert', async () => {
+  const db = fakeBackend();
+  const inbox = [];
+  fakeInbox(inbox);
+  const c = await wallet.createRecharge(USER, { amount: 20 }, LIVE);
+  await assert.rejects(wallet.claimUtr(USER, c.id, '1234', LIVE), /12-digit UTR/);
+  await assert.rejects(wallet.claimUtr(USER, c.id, '427700000009', LIVE), (e) => { assert.equal(e.status, 404); assert.match(e.message, /haven’t received/); return true; });
+
+  // the customer changed the amount in their app to ₹20, so the unique amount didn't match; the UTR does
+  inbox.push({ utr: '427700000010', amount: '20.00', bank: 'SBI', payer: '', ref: '', received_at: new Date().toISOString() });
+  db.sync.last_run = 0;
+  const s = await wallet.claimUtr(USER, c.id, '4277 0000 0010', LIVE);
+  assert.equal(s.status, 'paid');
+  assert.equal(s.credited, 20);
+  assert.equal(db.wallets[USER.id], 20);
+
+  const c2 = await wallet.createRecharge(USER, { amount: 30 }, LIVE);
+  await assert.rejects(wallet.claimUtr(USER, c2.id, '427700000010', LIVE), /already been used/);
+  await assert.rejects(wallet.claimUtr({ id: 'someone-else' }, c2.id, '427700000010', LIVE), /not found/);
+  // five tries per payment: the used UTR above was the first
+  for (let i = 0; i < 4; i++) await assert.rejects(wallet.claimUtr(USER, c2.id, '427700000099', LIVE), /haven’t received/);
+  await assert.rejects(wallet.claimUtr(USER, c2.id, '427700000099', LIVE), /Too many tries/);
+  assert.equal(db.wallets[USER.id], 20);
+});
+
+test('recharge: a payment made while the page was closed is credited on the next visit', async () => {
+  const db = fakeBackend();
+  const inbox = [];
+  fakeInbox(inbox);
+  const c = await wallet.createRecharge(USER, { amount: 10 }, LIVE);
+  inbox.push({ utr: '427700000020', amount: c.expectedAmount.toFixed(2), bank: 'Axis Bank', payer: '', ref: c.ref, received_at: new Date().toISOString() });
+  db.sync.last_run = 0;
+  const w = await wallet.wallet(USER, LIVE);
+  assert.equal(w.balance, c.expectedAmount);
+});
+
+test('inbox problems show on /api/status without secrets, and never break the checkout', async () => {
+  const db = fakeBackend();
+  fakeInbox([], { fail: true });
+  const c = await wallet.createRecharge(USER, { amount: 10 }, LIVE);
+  assert.equal((await wallet.rechargeStatus(USER, c.id, LIVE)).status, 'pending');
+  assert.match(db.sync.last_error, /App Password/);
+  const st = await wallet.inboxStatus(LIVE);
+  assert.equal(st.gmail, 'a•••s@gmail.com');
+  assert.match(st.lastError, /App Password/);
+  assert.ok(!JSON.stringify(st).includes('abcd'));
 });

@@ -344,6 +344,138 @@
   .codein { letter-spacing: .4em; text-align: center; font-size: 22px; font-weight: 600; height: 48px; }
   .toast { position: fixed; z-index: 60; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--text); color: var(--panel); padding: 10px 16px; border-radius: 12px; font-weight: 500; font-size: 14px; box-shadow: var(--shadow-md); max-width: calc(100% - 32px); }
 
+  /* ---------- UPI checkout ---------- */
+  .modal.wide { max-width: 780px; padding: 0; display: block; text-align: left; overflow-x: hidden; overflow-y: auto; }
+  .co { position: relative; display: grid; grid-template-columns: 272px minmax(0, 1fr); min-height: 540px; }
+  .co-bar { position: absolute; z-index: 3; top: 0; left: 0; right: 0; height: 3px; background: color-mix(in srgb, var(--line) 60%, transparent); }
+  .co-bar i { display: block; height: 100%; background: var(--accent); transform-origin: left; transition: transform 1s linear, background-color .3s; }
+  .co[data-low] .co-bar i { background: var(--warn); }
+  .co[data-state="paid"] .co-bar i { background: var(--good-dot); transform: none !important; }
+  .co-side { position: relative; display: flex; flex-direction: column; gap: 18px; padding: 26px 22px 20px; color: #fff; background: var(--sheen), var(--grad); overflow: hidden; }
+  .co-side::after { content: ""; position: absolute; right: -70px; bottom: -70px; width: 220px; height: 220px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .16); box-shadow: 0 0 0 36px rgba(255, 255, 255, .05), 0 0 0 72px rgba(255, 255, 255, .03); pointer-events: none; }
+  .co-side > * { position: relative; z-index: 1; }
+  .co-brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+  .co-brand .logo { background: rgba(255, 255, 255, .18); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .3); }
+  .co-amt small { display: block; font-size: 12.5px; opacity: .8; }
+  .co-amt b { display: block; font-size: 34px; font-weight: 600; letter-spacing: -.03em; line-height: 1.15; }
+  .co-amt span { font-size: 12px; opacity: .8; }
+  .co-meta { margin: 0; display: grid; gap: 9px; padding: 13px 14px; border-radius: 12px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .18); font-size: 12.5px; }
+  .co-meta div { display: flex; justify-content: space-between; gap: 10px; }
+  .co-meta dt { opacity: .75; }
+  .co-meta dd { margin: 0; font-weight: 500; text-align: right; overflow-wrap: anywhere; }
+  .co-timer { margin-top: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .co-timer svg { width: 34px; height: 34px; transform: rotate(-90deg); }
+  .co-timer circle { fill: none; stroke-width: 3; }
+  .co-timer .t1 { stroke: rgba(255, 255, 255, .22); }
+  .co-timer .t2 { stroke: #fff; stroke-linecap: round; stroke-dasharray: 88; transition: stroke-dashoffset 1s linear; }
+  .co-timer b { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .co[data-state="paid"] .co-timer, .co[data-state="expired"] .co-timer .t2 { visibility: hidden; }
+  .co-secure { margin: 0; display: flex; gap: 7px; align-items: flex-start; font-size: 11.5px; line-height: 1.45; opacity: .85; }
+  .co-secure svg { width: 14px; height: 14px; margin-top: 1px; }
+  .co-main { display: flex; flex-direction: column; min-width: 0; background: var(--panel); }
+  .co-main > header { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 20px 20px 0; }
+  .co-main h2 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+  .co-x { width: 32px; height: 32px; flex: none; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); display: grid; place-items: center; }
+  .co-x:hover { background: var(--hover); color: var(--text); }
+  .co-x svg { width: 15px; height: 15px; }
+  .co-body { flex: 1; padding: 16px 22px 20px; display: grid; gap: 14px; align-content: start; justify-items: center; text-align: center; }
+  .co-qrwrap { position: relative; padding: 10px; }
+  .co-qrwrap > i { position: absolute; width: 22px; height: 22px; border: 3px solid var(--accent); opacity: .85; }
+  .co-qrwrap > i:nth-child(1) { left: 0; top: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 10px; }
+  .co-qrwrap > i:nth-child(2) { right: 0; top: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 10px; }
+  .co-qrwrap > i:nth-child(3) { left: 0; bottom: 0; border-right: 0; border-top: 0; border-bottom-left-radius: 10px; }
+  .co-qrwrap > i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0; border-bottom-right-radius: 10px; }
+  .co-qr { position: relative; width: 216px; height: 216px; padding: 12px; border-radius: 14px; background: #fff; box-shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 0 0 1px rgba(16, 24, 40, .06); overflow: hidden; }
+  .co-qr > svg { display: block; width: 100%; height: 100%; transition: filter .3s, opacity .3s; }
+  .co-qrlogo { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 12px; display: grid; place-items: center; background: var(--sheen), var(--grad); box-shadow: 0 0 0 5px #fff; }
+  .co-qrlogo svg { width: 18px; height: 18px; }
+  .co-scan { display: none; position: absolute; left: 6px; right: 6px; top: 6px; height: 46px; border-radius: 6px; pointer-events: none;
+    background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--accent-2) 28%, transparent)); border-bottom: 2px solid var(--accent-2); }
+  .co-demo { position: absolute; top: 12px; right: -30px; transform: rotate(45deg); background: var(--warn); color: #fff; font-size: 10px; font-weight: 600; letter-spacing: .08em; padding: 2px 34px; }
+  .co-expired { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 8px; padding: 16px; background: color-mix(in srgb, var(--panel) 72%, transparent); color: var(--text); font-weight: 600; font-size: 14px; }
+  .co-expired .ghost { height: 34px; font-size: 13px; }
+  .co[data-state="expired"] .co-qr > svg { filter: blur(3px); opacity: .35; }
+  .co[data-state="expired"] .co-scan, .co[data-state="expired"] .co-qrlogo { display: none; }
+  .co-apps { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .co-apps span { padding: 3px 9px; border-radius: 999px; background: var(--sunk); border: 1px solid var(--line); font-weight: 500; color: var(--text-2); }
+  .co-applinks { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .co-applinks a { display: grid; justify-items: center; gap: 4px; padding: 10px 6px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--text-2); font-size: 12px; font-weight: 500; text-decoration: none; }
+  .co-applinks a:active { background: var(--hover); }
+  .co-applinks i { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; color: #fff; font-style: normal; font-weight: 700; font-size: 12px; }
+  a.pay { text-decoration: none; }
+  .co-copy { width: 100%; display: grid; gap: 8px; }
+  .co-copy > div { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 12px; border-radius: 12px; background: var(--sunk); border: 1px solid var(--line); text-align: left; }
+  .co-copy > div > div { flex: 1; min-width: 0; }
+  .co-copy span { display: block; font-size: 11.5px; color: var(--muted); }
+  .co-copy b { display: block; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+  .co-copy .ghost { height: 32px; padding: 0 12px; font-size: 12.5px; flex: none; }
+  .co-status { display: inline-flex; align-items: center; gap: 9px; margin: 0; font-size: 13.5px; font-weight: 500; color: var(--text-2); }
+  .co-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
+  .co-status .spin { width: 14px; height: 14px; border-width: 2px; border-color: var(--line); border-top-color: var(--accent); }
+  .co-dots::after { content: ""; display: inline-block; width: 1.2em; text-align: left; }
+  .co-hint { margin: -6px 0 0; font-size: 12.5px; color: var(--muted); max-width: 360px; }
+  /* .modal p would otherwise restyle the checkout's paragraphs */
+  .co p.co-secure { color: inherit; font-size: 11.5px; }
+  .co p.co-status { color: var(--text-2); font-size: 13.5px; }
+  .co p.co-hint { font-size: 12.5px; }
+  .co .hint { font-size: 12.5px; margin: 0; }
+  .co-utr { width: 100%; display: grid; gap: 8px; text-align: left; padding: 12px; border-radius: 12px; border: 1px dashed var(--line-strong); }
+  .co-utr .row { display: flex; gap: 8px; }
+  .co-utr .tin { height: 38px; font-size: 14px; letter-spacing: .06em; }
+  .co-utr .pay { width: auto; height: 38px; padding: 0 14px; font-size: 13px; }
+  .co-qrtoggle { font-size: 12.5px; }
+  .co-done { display: grid; justify-items: center; gap: 8px; padding: 18px 0 4px; width: 100%; }
+  .co-done h3 { margin: 6px 0 0; font-size: 19px; font-weight: 600; letter-spacing: -.02em; }
+  .co-done > p { margin: 0; color: var(--muted); }
+  .co-done > p b { color: var(--text); }
+  .co-done .tid { width: 100%; margin-top: 6px; }
+  .co-done .pay { margin-top: 8px; }
+  .co-burst { position: relative; width: 104px; height: 104px; display: grid; place-items: center; }
+  .co-burst::before, .co-burst::after { content: ""; position: absolute; inset: 8px; border-radius: 50%; border: 2px solid var(--good-dot); opacity: 0; }
+  .co-check { width: 88px; height: 88px; position: relative; z-index: 1; }
+  .co-check circle { fill: var(--good-soft); stroke: var(--good-dot); stroke-width: 3; stroke-dasharray: 260; stroke-dashoffset: 0; }
+  .co-check path { fill: none; stroke: var(--good); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 0; }
+  .co-burst > i { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px; border-radius: 2px; background: var(--c); opacity: 0; }
+  @media (max-width: 640px) {
+    .scrim:has(.modal.wide) { place-items: end stretch; padding: 0; }
+    .modal.wide { max-width: none; border-radius: 20px 20px 0 0; max-height: 96dvh; }
+    .co { grid-template-columns: 1fr; min-height: 0; }
+    .co-side { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 18px 18px 14px; }
+    .co-side::after, .co-meta, .co-secure { display: none; }
+    .co-brand { flex: 1 1 100%; font-size: 13.5px; }
+    .co-brand .logo { width: 24px; height: 24px; border-radius: 7px; }
+    .co-amt { flex: 1; }
+    .co-amt b { font-size: 26px; }
+    .co-timer { margin: 0; font-size: 12.5px; }
+    .co-timer svg { width: 28px; height: 28px; }
+    .co-main > header { padding: 16px 18px 0; }
+    .co-body { padding: 14px 18px calc(18px + env(safe-area-inset-bottom, 0px)); }
+    .co-qr { width: 196px; height: 196px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .modal.wide { animation: pop .25s ease-out; }
+    @media (max-width: 640px) { .modal.wide { animation: sheet .3s cubic-bezier(.2, .8, .2, 1); } }
+    @keyframes sheet { from { transform: translateY(40px); opacity: 0; } }
+    .co-scan { display: block; animation: scan 2.6s cubic-bezier(.45, 0, .55, 1) infinite; }
+    @keyframes scan { 0%, 100% { transform: translateY(0); opacity: .9; } 50% { transform: translateY(146px); opacity: 1; } }
+    .co-qrwrap > i { animation: corner 2.6s ease-in-out infinite; }
+    @keyframes corner { 50% { opacity: .35; } }
+    .co-pulse { animation: pulse 1.6s ease-out infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 80%, 100% { box-shadow: 0 0 0 10px transparent; } }
+    .co-dots::after { animation: dots 1.4s steps(1) infinite; }
+    @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+    .co-body > * { animation: fadeUp .35s ease-out both; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } }
+    .co-check circle { stroke-dashoffset: 260; animation: draw .6s ease-out forwards; }
+    .co-check path { stroke-dashoffset: 60; animation: draw .35s .45s ease-out forwards; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    .co-burst::before { animation: ring 1s .35s ease-out forwards; }
+    .co-burst::after { animation: ring 1.2s .55s ease-out forwards; }
+    @keyframes ring { 0% { transform: scale(.85); opacity: .7; } 100% { transform: scale(1.7); opacity: 0; } }
+    .co-burst > i { animation: confetti 1s .5s cubic-bezier(.2, .7, .3, 1) forwards; }
+    @keyframes confetti { 0% { opacity: 1; transform: rotate(var(--a)) translateY(0) scale(1); } 100% { opacity: 0; transform: rotate(var(--a)) translateY(var(--d)) rotate(160deg) scale(.6); } }
+  }
+
   .mbar { display: none; }
 
   /* ---------- responsive ---------- */
@@ -670,7 +802,6 @@
         loadScript('data/services.js').then(function () {
           var d = window.SERVICES_DATA || { services: [] };
           store.mode = 'preview';
-          store.feePercent = 2.36;
           store.services = d.services.map(function (s) { return C.normaliseService(s, d.currency); })
             .filter(function (s) { return s.id && isFinite(s.rate) && s.rate > 0; })
             .map(function (s) { s.platform = C.platformOf(s); s.kind = C.serviceType(s); s.rate = C.niceRate(C.retailRate(s.rate, 80)); return s; })
@@ -1092,79 +1223,230 @@
   }
   function signOut() { if (sb) sb.auth.signOut(); toast('Signed out'); }
 
-  // ---------- add money ----------
-  function addMoney(suggest) {
-    if (!acct.signedIn) { signIn(function () { addMoney(suggest); }); return; }
+  // ---------- add money: UPI straight to the store's bank account ----------
+  var BOLT = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5 2 4 14h7l-1.5 8L20 10h-7l.5-8z"/></svg>';
+  var CLOSE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  var LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+  var MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && matchMedia('(pointer: coarse)').matches;
+
+  function addMoney(suggest, then) {
+    if (!acct.signedIn) { signIn(function () { addMoney(suggest, then); }); return; }
     var min = store.minRecharge || 1;
-    var picks = [10, 50, 100, 500];
+    var picks = [50, 100, 200, 500];
     if (suggest && picks.indexOf(suggest) === -1) picks.unshift(suggest);
     modal('<div class="left"><h2 id="modalTitle">Add money</h2>' +
       '<p>Wallet balance: <b>' + esc(price(acct.balance || 0)) + '</b>' + (suggest ? '. Add at least <b>' + esc(price(suggest)) + '</b> for this order.' : '') + '</p>' +
       '<form id="amForm"><div class="amtin"><span>₹</span><input id="amIn" type="number" inputmode="decimal" min="' + min + '" max="50000" step="0.01" required aria-label="Amount"></div>' +
       '<div class="presets" id="amPicks">' + picks.map(function (v) { return '<button type="button" data-a="' + v + '">₹' + num(v) + '</button>'; }).join('') + '</div>' +
-      '<p class="hint" id="amHint">Minimum recharge ₹' + min + '. Your balance never expires.</p>' +
-      '<div class="fees" id="amFees"></div>' +
+      '<p class="hint" id="amHint"></p>' +
       '<button class="pay" type="submit" id="amBtn"></button></form>' +
-      (acct.demo ? '<p class="note">Demo wallet: no money is charged.</p>' : '<div class="methods"><span>UPI</span><span>GPAY</span><span>PHONEPE</span><span>CARDS</span><span>NETBANKING</span></div>') +
+      (acct.demo ? '<p class="note">Demo wallet: no money is charged.</p>' : '<div class="methods"><span>UPI</span><span>GOOGLE PAY</span><span>PHONEPE</span><span>PAYTM</span><span>BHIM</span></div>') +
       '<button class="ghost" id="mClose" type="button">Cancel</button></div>');
     var input = $('amIn');
+    var NOTE = 'Paid by UPI straight to our bank account. No extra fees. Your balance never expires.';
     function sync() {
       var v = Number(input.value), ok = v >= min && v <= 50000;
-      var fee = ok ? C.gatewayFee(v, store.feePercent) : 0;
-      $('amBtn').textContent = ok ? 'Pay ' + price(C.round(v + fee, 2)) : 'Add money';
+      $('amBtn').textContent = ok ? 'Continue to pay ' + price(v) : 'Add money';
       $('amBtn').disabled = !ok;
-      $('amFees').hidden = !ok;
-      if (ok) $('amFees').innerHTML = '<div><span>Added to wallet</span><b>' + esc(price(v)) + '</b></div>' +
-        (fee ? '<div><span>Razorpay fee (' + esc(store.feePercent) + '%)</span><b>' + esc(price(fee)) + '</b></div>' : '') +
-        '<div class="s"><span>You pay</span><b>' + esc(price(C.round(v + fee, 2))) + '</b></div>';
       $('amHint').className = 'hint' + (input.value && !ok ? ' bad' : '');
-      $('amHint').textContent = input.value && v < min ? 'The minimum recharge is ₹' + min + '.' : input.value && v > 50000 ? 'The maximum recharge is ₹50,000.' : 'Minimum recharge ₹' + min + '. Your balance never expires.';
+      $('amHint').textContent = input.value && v < min ? 'The minimum is ₹' + min + '.' : input.value && v > 50000 ? 'The maximum is ₹50,000.' : NOTE;
       document.querySelectorAll('#amPicks button').forEach(function (b) { b.setAttribute('aria-pressed', Number(b.getAttribute('data-a')) === v); });
     }
-    input.value = suggest || 50; sync();
+    input.value = suggest || 100; sync();
     input.addEventListener('input', sync);
     $('amPicks').addEventListener('click', function (e) { var b = e.target.closest('[data-a]'); if (b) { input.value = b.getAttribute('data-a'); sync(); } });
     $('mClose').onclick = closeModal;
     $('amForm').onsubmit = function (e) {
       e.preventDefault();
       var v = Math.round(Number(input.value) * 100) / 100;
-      if (acct.demo) {
-        acct.balance = C.round(acct.balance + v, 4);
-        acct.recharges.unshift({ amount: v, paymentId: 'demo', at: new Date().toISOString() });
-        saveDemo(); closeModal(); renderWallet(); toast(price(v) + ' added to your demo wallet');
-        return;
-      }
-      $('amBtn').disabled = true; $('amBtn').innerHTML = '<span class="spin" aria-hidden="true"></span> Opening payment…';
-      api('/api/recharge', { amount: v }).then(function (o) {
-        return loadRazorpay().then(function () { closeModal(); openRazorpay(o); });
-      }).catch(function (err) { sync(); $('amHint').className = 'hint bad'; $('amHint').textContent = err.message; });
+      if (acct.demo) { checkout(demoCheckout(v), then); return; }
+      $('amBtn').disabled = true; $('amBtn').innerHTML = '<span class="spin" aria-hidden="true"></span> Creating your QR…';
+      api('/api/recharge', { amount: v }).then(function (o) { checkout(o, then); })
+        .catch(function (err) { sync(); $('amHint').className = 'hint bad'; $('amHint').textContent = err.message; });
     };
   }
-  var rzpLoaded = null;
-  function loadRazorpay() { return rzpLoaded || (rzpLoaded = loadScript('https://checkout.razorpay.com/v1/checkout.js')); }
-  function openRazorpay(o) {
-    var rz = new window.Razorpay({
-      key: o.keyId, order_id: o.orderId, amount: o.amount, currency: o.currency,
-      name: o.storeName || store.storeName, description: 'Wallet recharge',
-      prefill: o.email ? { email: o.email } : {},
-      theme: { color: '#e1306c' },
-      handler: function (resp) {
-        modal(loadingHtml('Adding money to your wallet…'));
-        api('/api/recharge', resp).then(function (r) {
-          acct.balance = r.balance; closeModal(); renderWallet(); refreshWallet();
-          toast(price(r.amount) + ' added. Balance ' + price(r.balance));
-        }).catch(function (e) {
-          modal('<div class="tick fail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg></div>' +
-            '<h2 id="modalTitle">Payment received, still updating</h2><p>' + esc(e.message) + ' Your money is safe: it will show in your wallet shortly. Payment reference:</p>' +
-            '<div class="tid"><div><code>' + esc(resp.razorpay_payment_id) + '</code></div><button class="ghost" id="copyId" type="button">Copy</button></div>' +
-            (store.support ? '<p>Support: <b>' + esc(store.support) + '</b></p>' : '') + '<button class="ghost" id="mClose" type="button">Close</button>');
-          $('copyId').onclick = function () { copy(resp.razorpay_payment_id, this); };
-          $('mClose').onclick = function () { closeModal(); refreshWallet(); };
-        });
-      }
+
+  // Demo: a look-alike QR that can't be scanned, and a button that pretends the bank confirmed it.
+  function demoCheckout(v) {
+    var paise = 1 + Math.floor(Math.random() * 99), amount = C.round(v + paise / 100, 2), now = Date.now();
+    var ref = 'BSTDEMO' + Math.random().toString(36).slice(2, 6).toUpperCase();
+    var link = 'upi://pay?pa=yourstore@upi&pn=' + encodeURIComponent(store.storeName) + '&am=' + amount.toFixed(2) + '&cu=INR&tn=' + ref;
+    return { id: 'demo', demo: true, amount: v, expectedAmount: amount, ref: ref, payTo: 'yourstore@upi', payee: store.storeName, link: link, qr: demoQr(ref),
+      createdAt: new Date(now).toISOString(), expiresAt: new Date(now + 10 * 60e3).toISOString(), serverTime: new Date(now).toISOString() };
+  }
+  function demoQr(seed) {
+    var n = 29, d = '', h = 0, i, x, y;
+    for (i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+    var rnd = function () { h = (h * 1664525 + 1013904223) >>> 0; return h / 4294967296; };
+    var finder = function (fx, fy) { return x >= fx && x < fx + 7 && y >= fy && y < fy + 7; };
+    for (y = 0; y < n; y++) for (x = 0; x < n; x++) {
+      var dark;
+      if (finder(0, 0) || finder(n - 7, 0) || finder(0, n - 7)) {
+        var cx = x < 7 ? x : x - (n - 7), cy = y < 7 ? y : y - (n - 7);
+        dark = cx === 0 || cx === 6 || cy === 0 || cy === 6 || (cx >= 2 && cx <= 4 && cy >= 2 && cy <= 4);
+      } else if ((x < 8 && y < 8) || (x > n - 9 && y < 8) || (x < 8 && y > n - 9)) dark = false;
+      else dark = rnd() < 0.47;
+      if (dark) d += 'M' + x + ' ' + y + 'h1v1h-1z';
+    }
+    return '<svg viewBox="0 0 ' + n + ' ' + n + '" shape-rendering="crispEdges"><path fill="#fff" d="M0 0h' + n + 'v' + n + 'H0z"/><path fill="#0f172a" d="' + d + '"/></svg>';
+  }
+
+  // The checkout: amount, countdown, QR (or UPI app buttons on phones), live status, success.
+  var co = null;
+  function upiQuery(o) { return o.link.slice(o.link.indexOf('?') + 1); }
+  function checkout(o, then) {
+    stopCheckout();
+    var rupees = Math.floor(o.amount + 1e-9) === o.amount ? price(o.amount).replace(/\.00$/, '') : price(o.amount);
+    var paise = Math.round((o.expectedAmount - o.amount) * 100);
+    var ios = /iPhone|iPad|iPod/i.test(navigator.userAgent), q = upiQuery(o);
+    var apps = [['Google Pay', (ios ? 'gpay://upi/pay?' : 'tez://upi/pay?') + q, '#1a73e8', 'G'], ['PhonePe', 'phonepe://pay?' + q, '#5f259f', 'Pe'], ['Paytm', 'paytmmp://pay?' + q, '#00b9f1', 'P']];
+    var qr = '<div class="co-qrwrap"><i></i><i></i><i></i><i></i><div class="co-qr" id="coQr">' + (/^<svg[\s>]/.test(o.qr || '') && !/<script/i.test(o.qr) ? o.qr : '') +
+      '<span class="co-qrlogo" aria-hidden="true">' + BOLT + '</span><i class="co-scan" aria-hidden="true"></i>' + (o.demo ? '<span class="co-demo">DEMO</span>' : '') +
+      '<div class="co-expired" id="coExpired" hidden>QR expired<button class="ghost" type="button" id="coNew">Get a new QR</button></div></div></div>';
+    modal('<div class="co" id="co" data-state="waiting">' +
+      '<div class="co-bar"><i id="coBar"></i></div>' +
+      '<aside class="co-side">' +
+        '<div class="co-brand"><span class="logo">' + BOLT + '</span><span>' + esc(store.storeName) + '</span></div>' +
+        '<div class="co-amt"><small>Add to wallet</small><b>' + esc(price(o.expectedAmount)) + '</b>' +
+          (paise > 0 ? '<span>' + esc(rupees) + ' + ' + paise + ' paise so we can spot your payment</span>' : '') + '</div>' +
+        '<dl class="co-meta"><div><dt>Pay to</dt><dd>' + esc(o.payee) + '</dd></div><div><dt>UPI ID</dt><dd>' + esc(o.payTo) + '</dd></div><div><dt>Reference</dt><dd>' + esc(o.ref) + '</dd></div></dl>' +
+        '<div class="co-timer"><svg viewBox="0 0 34 34" aria-hidden="true"><circle class="t1" cx="17" cy="17" r="14"/><circle class="t2" id="coRing" cx="17" cy="17" r="14"/></svg><span id="coTimeText">Expires in <b id="coTime">--:--</b></span></div>' +
+        '<p class="co-secure">' + LOCK + '<span>Paid by UPI directly to ' + esc(o.payee) + '’s bank account and confirmed automatically. We never see your UPI PIN.</span></p>' +
+      '</aside>' +
+      '<section class="co-main"><header><h2 id="modalTitle">' + (MOBILE ? 'Pay with a UPI app' : 'Scan &amp; pay with any UPI app') + '</h2>' +
+        '<button type="button" class="co-x" id="mClose" aria-label="Close">' + CLOSE_ICON + '</button></header>' +
+        '<div class="co-body" id="coBody">' +
+          (MOBILE
+            ? '<a class="pay" id="coOpen" href="' + esc(o.link) + '">Pay ' + esc(price(o.expectedAmount)) + ' with UPI</a>' +
+              '<div class="co-applinks">' + apps.map(function (a) { return '<a href="' + esc(a[1]) + '"><i style="background:' + a[2] + '">' + a[3] + '</i>' + a[0] + '</a>'; }).join('') + '</div>' +
+              '<button type="button" class="linkbtn co-qrtoggle" id="coQrToggle">Paying from another phone? Show QR</button><div id="coQrBox" hidden>' + qr + '</div>'
+            : qr + '<div class="co-apps"><span>Google Pay</span><span>PhonePe</span><span>Paytm</span><span>BHIM</span><span>any UPI app</span></div>') +
+          '<div class="co-copy"><div><div><span>UPI ID</span><b>' + esc(o.payTo) + '</b></div><button class="ghost" type="button" data-copy="' + esc(o.payTo) + '">Copy</button></div>' +
+            '<div><div><span>Amount</span><b>' + esc(price(o.expectedAmount)) + '</b></div><button class="ghost" type="button" data-copy="' + esc(o.expectedAmount.toFixed(2)) + '">Copy</button></div></div>' +
+          '<p class="co-status" id="coStatus"><span class="co-pulse"></span><span class="co-dots" id="coMsg">Waiting for your payment</span></p>' +
+          '<p class="co-hint" id="coHint">Pay exactly <b>' + esc(price(o.expectedAmount)) + '</b>. It’s added to your wallet a few seconds after your bank confirms it.</p>' +
+          (o.demo ? '<button class="ghost" type="button" id="coSim">Simulate a payment (demo)</button>' : '') +
+          '<button type="button" class="linkbtn" id="coUtrOpen">Paid but still waiting? Enter your UTR</button>' +
+          '<form class="co-utr" id="coUtr" hidden><label for="coUtrIn" class="hint">The 12-digit UTR / UPI reference number from your UPI app’s payment details</label>' +
+            '<div class="row"><input class="tin" id="coUtrIn" inputmode="numeric" autocomplete="off" maxlength="16" placeholder="e.g. 427712345678"><button class="pay" type="submit" id="coUtrBtn">Check</button></div>' +
+            '<p class="hint bad" id="coUtrErr" hidden></p></form>' +
+        '</div></section></div>', 'wide');
+    co = { o: o, then: then, state: 'waiting', skew: Date.parse(o.serverTime) - Date.now(), started: Date.now(),
+      total: Math.max(60e3, Date.parse(o.expiresAt) - Date.parse(o.createdAt)) };
+    $('mClose').onclick = closeModal;
+    $('coBody').addEventListener('click', function (e) { var b = e.target.closest('[data-copy]'); if (b) copy(b.getAttribute('data-copy'), b); });
+    if ($('coQrToggle')) $('coQrToggle').onclick = function () { var box = $('coQrBox'); box.hidden = !box.hidden; this.textContent = box.hidden ? 'Paying from another phone? Show QR' : 'Hide QR'; };
+    $('coUtrOpen').onclick = function () { $('coUtr').hidden = false; this.hidden = true; $('coUtrIn').focus(); };
+    $('coUtr').onsubmit = function (e) { e.preventDefault(); submitUtr(); };
+    $('coNew').onclick = function () { renewCheckout(); };
+    if ($('coSim')) $('coSim').onclick = simulatePayment;
+    tick();
+    co.timer = setInterval(tick, 1000);
+    schedulePoll(2500);
+  }
+  function stopCheckout() {
+    if (!co) return;
+    clearInterval(co.timer); clearTimeout(co.poll); clearTimeout(co.later);
+    co = null;
+  }
+  function remaining() { return co ? Date.parse(co.o.expiresAt) - (Date.now() + co.skew) : 0; }
+  function tick() {
+    if (!co || co.state !== 'waiting') return;
+    var left = Math.max(0, remaining()), s = Math.ceil(left / 1000);
+    $('coTime').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+    $('coBar').style.transform = 'scaleX(' + Math.min(1, left / co.total).toFixed(4) + ')';
+    $('coRing').style.strokeDashoffset = (88 * (1 - Math.min(1, left / co.total))).toFixed(2);
+    if (left < 120e3) $('co').setAttribute('data-low', ''); else $('co').removeAttribute('data-low');
+    if (left <= 0 && co.state === 'waiting') setExpired();
+    else if (co.state === 'waiting' && Date.now() - co.started > 25e3) $('coMsg').textContent = 'Checking with your bank';
+  }
+  function setStatus(html) { $('coStatus').innerHTML = html; }
+  function setExpired() {
+    co.state = 'expired';
+    clearInterval(co.timer);
+    $('coBar').style.transform = 'scaleX(0)';
+    $('co').setAttribute('data-state', 'expired');
+    $('coExpired').hidden = false;
+    if ($('coQrBox')) $('coQrBox').hidden = false;
+    if ($('coOpen')) $('coOpen').hidden = true;
+    $('coTimeText').textContent = 'QR expired';
+    setStatus('<span class="co-pulse"></span><span>Already paid? It will still be added automatically.</span>');
+    $('coHint').textContent = 'Bank confirmations can take a few minutes. You can also enter the UTR from your UPI app.';
+  }
+  function schedulePoll(ms) { if (!co || co.o.demo) return; clearTimeout(co.poll); co.poll = setTimeout(poll, ms); }
+  function poll() {
+    var c = co;
+    if (!c || c.state === 'paid') return;
+    api('/api/recharge?id=' + encodeURIComponent(c.o.id)).then(function (s) {
+      if (co !== c) return;
+      if (s.status === 'paid') { paidCheckout(s); return; }
+      if (s.status === 'expired' && c.state === 'waiting') setExpired();
+      if (remaining() > -30 * 60e3) schedulePoll(c.state === 'expired' ? 6000 : document.hidden ? 8000 : 3000);
+    }).catch(function (e) {
+      if (co !== c || e.status === 401 || e.status === 404) return;
+      schedulePoll(6000);
     });
-    rz.on('payment.failed', function (r) { toast((r.error && r.error.description) || 'Payment failed. You weren’t charged.'); });
-    rz.open();
+  }
+  document.addEventListener('visibilitychange', function () { if (co && !document.hidden && co.state !== 'paid') schedulePoll(150); });
+
+  function submitUtr() {
+    var c = co, v = $('coUtrIn').value.replace(/\D/g, '');
+    var fail = function (msg) { $('coUtrErr').hidden = false; $('coUtrErr').textContent = msg; };
+    if (v.length !== 12) { fail('A UTR has 12 digits. Find it in your UPI app under the payment’s details.'); return; }
+    $('coUtrErr').hidden = true;
+    $('coUtrBtn').disabled = true; $('coUtrBtn').innerHTML = '<span class="spin" aria-hidden="true"></span>';
+    setStatus('<span class="spin" aria-hidden="true"></span><span>Looking for UTR ' + esc(v) + '…</span>');
+    if (c.o.demo) { co.later = setTimeout(function () { if (co === c) creditDemo(v); }, 1400); return; }
+    api('/api/recharge', { id: c.o.id, utr: v }).then(function (s) {
+      if (co === c) paidCheckout(s);
+    }).catch(function (e) {
+      if (co !== c) return;
+      $('coUtrBtn').disabled = false; $('coUtrBtn').textContent = 'Check';
+      setStatus('<span class="co-pulse"></span><span class="co-dots">' + (c.state === 'expired' ? 'Still watching for your payment' : 'Waiting for your payment') + '</span>');
+      fail(e.message);
+    });
+  }
+  function renewCheckout() {
+    var c = co;
+    if (c.o.demo) { checkout(demoCheckout(c.o.amount), c.then); return; }
+    $('coNew').disabled = true; $('coNew').innerHTML = '<span class="spin" aria-hidden="true" style="border-color:var(--line);border-top-color:var(--accent)"></span>';
+    api('/api/recharge', { amount: c.o.amount }).then(function (o) { if (co === c) checkout(o, c.then); })
+      .catch(function (e) { if (co === c) { $('coNew').disabled = false; $('coNew').textContent = 'Get a new QR'; toast(e.message); } });
+  }
+  function simulatePayment() {
+    var c = co;
+    $('coSim').disabled = true;
+    setStatus('<span class="spin" aria-hidden="true"></span><span>Bank alert received. Verifying…</span>');
+    co.later = setTimeout(function () { if (co === c) creditDemo(String(Math.floor(1e11 + Math.random() * 9e11))); }, 1600);
+  }
+  function creditDemo(utr) {
+    var amount = co.o.expectedAmount;
+    acct.balance = C.round((acct.balance || 0) + amount, 4);
+    acct.recharges.unshift({ amount: amount, utr: utr, at: new Date().toISOString() });
+    saveDemo();
+    paidCheckout({ status: 'paid', credited: amount, utr: utr, balance: acct.balance });
+  }
+  function paidCheckout(s) {
+    var c = co;
+    c.state = 'paid';
+    clearInterval(c.timer); clearTimeout(c.poll);
+    $('co').setAttribute('data-state', 'paid');
+    $('co').removeAttribute('data-low');
+    $('modalTitle').textContent = 'Payment successful';
+    if (s.balance != null) acct.balance = s.balance;
+    renderWallet();
+    if (!c.o.demo) refreshWallet();
+    var colors = ['var(--accent)', 'var(--good-dot)', 'var(--warn)', '#e1306c', 'var(--accent-2)', '#17b26a'];
+    var bits = '';
+    for (var i = 0; i < 14; i++) bits += '<i style="--a:' + Math.round(i * 360 / 14 + Math.random() * 14) + 'deg;--d:-' + (60 + Math.round(Math.random() * 30)) + 'px;--c:' + colors[i % colors.length] + '"></i>';
+    $('coBody').innerHTML = '<div class="co-done" role="status">' +
+      '<div class="co-burst"><svg class="co-check" viewBox="0 0 88 88" aria-hidden="true"><circle cx="44" cy="44" r="41"/><path d="M27 45.5l11.5 11.5L62 33.5"/></svg>' + bits + '</div>' +
+      '<h3>' + esc(price(s.credited)) + ' added</h3>' +
+      '<p>Your wallet is topped up. ' + (c.then ? 'Your order is ready to go.' : 'Order away!') + '</p>' +
+      '<div class="tid"><div><span>UTR</span><code>' + esc(s.utr || '—') + '</code></div><div style="text-align:right"><span>New balance</span><code>' + esc(price(acct.balance)) + '</code></div></div>' +
+      '<button class="pay" type="button" id="coDone">' + (c.then ? 'Continue to order' : 'Done') + '</button></div>';
+    $('coDone').focus();
+    $('coDone').onclick = function () { var then = c.then; closeModal(); if (then) then(); };
   }
 
   // ---------- place order ----------
@@ -1188,7 +1470,7 @@
     if (!acct.signedIn) { signIn(); return; }
     if (acct.balance == null) return;
     var total = cur.total;
-    if (acct.balance + 1e-9 < total) { addMoney(Math.max(store.minRecharge || 1, Math.ceil(total - acct.balance))); return; }
+    if (acct.balance + 1e-9 < total) { addMoney(Math.max(store.minRecharge || 1, Math.ceil(total - acct.balance)), onPay); return; }
     var order = { serviceId: cur.service.id, quantity: state.qty, link: state.link.trim() };
     if (acct.demo) {
       acct.balance = C.round(acct.balance - total, 4);
@@ -1205,7 +1487,7 @@
     }).catch(function (e) {
       setBusy(false);
       if (e.data && e.data.balance != null) { acct.balance = e.data.balance; renderWallet(); }
-      if (e.status === 402 && e.data && e.data.needed) { addMoney(Math.max(store.minRecharge || 1, Math.ceil(e.data.needed))); return; }
+      if (e.status === 402 && e.data && e.data.needed) { addMoney(Math.max(store.minRecharge || 1, Math.ceil(e.data.needed)), onPay); return; }
       if (e.status === 401) { signIn(onPay); return; }
       showErr(e.message);
       refreshWallet();
@@ -1233,12 +1515,21 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(function () { $('toast').hidden = true; }, 3500);
   }
   var lastFocus = null;
-  function modal(html) {
+  function modal(html, cls) {
     if ($('scrim').hidden) lastFocus = document.activeElement;
+    stopCheckout();
+    $('modal').className = 'modal' + (cls ? ' ' + cls : '');
     $('modal').innerHTML = html; $('scrim').hidden = false;
-    var f = $('modal').querySelector('input, button'); if (f) f.focus();
+    var f = $('modal').querySelector(cls === 'wide' ? '.co-main button, .co-main a' : 'input, button'); if (f) f.focus();
   }
-  function closeModal() { $('scrim').hidden = true; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+  function closeModal() {
+    if (co && co.state !== 'paid' && !co.o.demo) {
+      toast('If you’ve paid, it will be added to your wallet automatically.');
+      setTimeout(refreshWallet, 15000); setTimeout(refreshWallet, 45000);
+    }
+    stopCheckout();
+    $('scrim').hidden = true; if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('scrim').hidden && $('modal').querySelector('#mClose')) $('mClose').click(); });
 
   // ---------- my orders ----------
@@ -1259,7 +1550,8 @@
           '<div class="odetail" id="od' + esc(o.id) + '"' + (openOrder === o.id ? '' : ' hidden') + '></div></div>';
       }).join('') + '</div>' : '<p class="muted">No orders yet. Your orders show up here with live delivery progress.</p>') +
       (acct.recharges && acct.recharges.length ? '<p class="sub">Money added</p><div class="olist">' + acct.recharges.map(function (r) {
-        return '<div class="orow" style="cursor:default"><span class="a"><b>+ ' + esc(price(r.amount)) + '</b><span class="muted">' + esc(new Date(r.at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })) + '</span></span></div>';
+        return '<div class="orow" style="cursor:default"><span class="a"><b>+ ' + esc(price(r.amount)) + '</b><span class="muted">' + esc(new Date(r.at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })) + '</span></span>' +
+          (r.utr ? '<span class="b"><span>UPI · UTR ' + esc(r.utr) + '</span></span>' : '') + '</div>';
       }).join('') + '</div>' : '');
     $('ovAdd').onclick = function () { addMoney(); };
     if ($('ovOut')) $('ovOut').onclick = signOut;

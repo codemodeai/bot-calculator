@@ -1,5 +1,6 @@
 // GET /api/services -> store settings + catalogue with selling prices (markup applied).
 const shop = require('../lib/shop');
+const wallet = require('../lib/wallet');
 const { send, handler } = require('../lib/http');
 
 module.exports = handler(['GET'], async (req, res) => {
@@ -11,8 +12,7 @@ module.exports = handler(['GET'], async (req, res) => {
     support: cfg.support,
     supabaseUrl: cfg.supabaseUrl,
     supabaseAnonKey: cfg.supabaseAnon,
-    minRecharge: 1,
-    feePercent: cfg.feePercent,
+    minRecharge: wallet.MIN_RECHARGE,
     currency: 'INR',
     priceSource: cat.source,
     pricesFetchedAt: cat.fetchedAt,
