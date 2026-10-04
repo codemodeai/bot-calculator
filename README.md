@@ -3,20 +3,19 @@
 A store for SMM panel services, buying from [smmzio.com](https://smmzio.com). Customers add money to a wallet with
 Razorpay (UPI, cards, netbanking), order at exact prices, and orders go to the panel automatically.
 
-The store is the home page (`index.html`). The steps:
+The store is the home page (`index.html`), laid out as a dashboard:
 
-1. **Platform:** Instagram, YouTube, TikTok, Facebook, Telegram or X.
-2. **Service:** Followers, Likes, Views, Subscribers, Members, Comments and so on.
-3. **Package:** up to four, picked automatically from the panel's services:
-   - **Starter:** the lowest price.
-   - **Popular:** better refill or quality for at most 2.5× the cheapest price.
-   - **Express:** clearly quicker delivery for the chosen quantity.
-   - **Premium:** the strongest refill and accounts.
+| Column | What it does |
+|---|---|
+| Sidebar | New order, My orders, Add money, Support; account and dark/light at the bottom |
+| Platform rail | Instagram, TikTok, YouTube, Facebook, Telegram, X and any other platform the panel sells |
+| Categories | What the service does: Followers, Likes, Views, Comments, Shares, Saves, Story views… |
+| Services | Every service in the category, sortable by cheapest, fastest or quality. The automatic picks are tagged **Starter**, **Popular**, **Express** and **Premium** |
+| Service details | Price per 1,000, delivery estimate, start time, speed, refill, min/max |
+| Order | Link, quantity, exact total, wallet balance, Place order, and the customer's stats |
+| Calendar | Wallet balance, a month calendar marking order days, recent orders |
 
-   A package only appears when it actually differs from the others. **See all options** lists
-   every service in the group, cheapest first.
-4. **Quantity**, within the service's min and max order.
-5. **Link** to the profile or post, then **Place order**.
+On narrower screens the columns fold together, and on phones they stack with a bottom menu.
 
 Customers pay from a **wallet**: they sign in with their email, add money once with Razorpay
 (minimum ₹1), and every order then takes its **exact price** from the balance, even ₹0.24 for
