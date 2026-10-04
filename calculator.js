@@ -253,6 +253,20 @@
     return Math.max(1, Math.ceil(exact * 100 - 1e-9) / 100);
   }
 
+  // Exact price for `qty` units at `rate` per 1000, used for wallet orders: rounded up to 1/100 paisa (4 dp), no minimum.
+  function exactCharge(rate, qty) {
+    var exact = round(rate * qty / 1000, 8);
+    return Math.ceil(exact * 10000 - 1e-6) / 10000;
+  }
+
+  // "₹12.50", "₹0.24", "₹0.024", "₹11.616": two decimals, up to four when the amount has them.
+  function formatPrice(value, currency) {
+    if (!isFinite(value)) return '—';
+    var dp = 4;
+    while (dp > 2 && round(value, dp - 1) === round(value, dp)) dp--;
+    return formatMoney(round(value, dp), currency, dp);
+  }
+
   function formatMoney(value, currency, dp) {
     if (!isFinite(value)) return '—';
     dp = dp == null ? (Math.abs(value) < 1 && value !== 0 ? 4 : 2) : dp;
@@ -465,6 +479,8 @@
     quantityForBudget: quantityForBudget,
     retailRate: retailRate,
     chargeAmount: chargeAmount,
+    exactCharge: exactCharge,
+    formatPrice: formatPrice,
     formatMoney: formatMoney,
     toCsv: toCsv,
     round: round
