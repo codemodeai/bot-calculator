@@ -1,5 +1,5 @@
 // GET  /api/admin?view=overview|orders|customers|payments|tickets|ticket|team  -> admin panel data
-// POST /api/admin { action, ... }   -> refund, markPlaced, orderStatus, adjust, creditAlert, syncInbox, reply,
+// POST /api/admin { action, ... }   -> refund, markPlaced, orderStatus, cancelDrip, part, adjust, creditAlert, syncInbox, reply,
 //                                      ticketStatus, addAdmin, removeAdmin
 // Only for admins (see lib/admin.js); everyone else gets 403.
 const shop = require('../lib/shop');

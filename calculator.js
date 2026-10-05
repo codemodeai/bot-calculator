@@ -259,6 +259,62 @@
     return Math.ceil(exact * 10000 - 1e-6) / 10000;
   }
 
+  // ---------- gradual delivery: one order split into parts sent to the panel over time ----------
+  var DRIP = { surcharge: 0.2, minParts: 2, maxParts: 30, minInterval: 60, maxInterval: 7 * 24 * 60 };
+
+  // Price of a gradual order: the normal exact price + 20%, rounded up to 1/100 paisa.
+  function dripCharge(rate, qty) {
+    return Math.ceil(round(exactCharge(rate, qty) * (1 + DRIP.surcharge), 8) * 10000 - 1e-6) / 10000;
+  }
+
+  // Uneven random parts that add up to `total`, each between min and max. null if it can't be done.
+  function splitQuantity(total, parts, min, max, rnd) {
+    rnd = rnd || Math.random;
+    min = Math.max(1, min || 1);
+    max = max > 0 ? max : Infinity;
+    total = Math.floor(total); parts = Math.floor(parts);
+    if (!(parts >= 1) || parts * min > total || parts * max < total) return null;
+    var w = [], sw = 0, i;
+    for (i = 0; i < parts; i++) { w.push(0.55 + rnd() * 0.9); sw += w[i]; }
+    var q = w.map(function (x) { return Math.max(min, Math.min(max, Math.floor(total * x / sw))); });
+    var diff = total - q.reduce(function (a, b) { return a + b; }, 0), guard = 0;
+    while (diff !== 0 && guard++ < 1000) {
+      var order = q.map(function (_, k) { return k; }).sort(function () { return rnd() - 0.5; });
+      for (i = 0; i < order.length && diff !== 0; i++) {
+        var k = order[i], room = diff > 0 ? max - q[k] : q[k] - min;
+        if (room <= 0) continue;
+        var step = Math.min(Math.abs(diff), room, Math.max(1, Math.ceil(Math.abs(diff) / parts)));
+        q[k] += diff > 0 ? step : -step;
+        diff += diff > 0 ? -step : step;
+      }
+    }
+    return diff === 0 ? q : null;
+  }
+
+  // Why a split can't be used for service `s` and total `total`, or null if it's fine.
+  function checkSplit(split, s, total) {
+    if (!Array.isArray(split)) return 'Choose how to split the order.';
+    if (split.length < DRIP.minParts || split.length > DRIP.maxParts) return 'Use ' + DRIP.minParts + ' to ' + DRIP.maxParts + ' parts.';
+    var sum = 0;
+    for (var i = 0; i < split.length; i++) {
+      var q = split[i];
+      if (!(q === Math.floor(q))) return 'Part ' + (i + 1) + ' needs a whole number.';
+      if (q < Math.max(1, s.min)) return 'Each part must be at least ' + Math.max(1, s.min).toLocaleString('en-IN') + ' (part ' + (i + 1) + ' is ' + q.toLocaleString('en-IN') + ').';
+      if (s.max > 0 && q > s.max) return 'Each part can be at most ' + s.max.toLocaleString('en-IN') + '.';
+      sum += q;
+    }
+    if (sum !== total) return 'The parts add up to ' + sum.toLocaleString('en-IN') + ', not ' + total.toLocaleString('en-IN') + '.';
+    return null;
+  }
+
+  // Shortest gap between parts, in minutes: how long the panel takes to deliver the biggest part (at least 1 hour).
+  function dripMinInterval(s, split) {
+    var biggest = Math.max.apply(null, split && split.length ? split : [s.min || 1]);
+    var h = estimateHours(s, biggest);
+    var m = h == null ? DRIP.minInterval : Math.ceil(h * 60 / 5) * 5;
+    return Math.min(DRIP.maxInterval, Math.max(DRIP.minInterval, m));
+  }
+
   // "₹12.50", "₹0.24", "₹0.024", "₹11.616": two decimals, up to four when the amount has them.
   function formatPrice(value, currency) {
     if (!isFinite(value)) return '—';
@@ -480,6 +536,11 @@
     retailRate: retailRate,
     niceRate: niceRate,
     exactCharge: exactCharge,
+    DRIP: DRIP,
+    dripCharge: dripCharge,
+    splitQuantity: splitQuantity,
+    checkSplit: checkSplit,
+    dripMinInterval: dripMinInterval,
     formatPrice: formatPrice,
     formatMoney: formatMoney,
     toCsv: toCsv,

@@ -45,6 +45,12 @@ function fake() {
       Object.assign(t, data.p_user ? { status: 'open', customer_seen: true } : { status: 'answered', customer_seen: false });
       return reply(200, t.status);
     }
+    if (p === '/rest/v1/rpc/admin_orders') return reply(200, (db.orderRows || []).filter((o) => !data.p_search || String(o.id) === data.p_search || String(o.email).includes(data.p_search)));
+    if (p === '/rest/v1/orders' && u.searchParams.get('drip') === 'is.true') return reply(200, db.dripOrders || []);
+    if (p === '/rest/v1/order_parts') return reply(200, db.parts || []);
+    if (p === '/rest/v1/rpc/cancel_drip') return data.p_order === 5 ? reply(400, { message: 'NOT_RUNNING' }) : reply(200, { refunded: 7.88, balance: 50 });
+    if (p === '/rest/v1/rpc/admin_part') { db.partCalls = (db.partCalls || []).concat([data]); return data.p_part === 9 ? reply(400, { message: 'PART_NOT_ALLOWED' }) : reply(204); }
+    if (p === '/rest/v1/rpc/admin_refund_order') return reply(400, { message: 'DRIP_ORDER' });
     if (p === '/rest/v1/rpc/admin_adjust') return data.p_delta < -10 ? reply(400, { message: 'BALANCE_NEGATIVE' }) : reply(200, 10 + data.p_delta);
     return reply(404, { message: 'no route ' + method + ' ' + p });
   };
@@ -112,4 +118,32 @@ test('date ranges start at midnight India time', () => {
   assert.equal((today.getUTCHours() * 60 + today.getUTCMinutes()), 18 * 60 + 30, '00:00 IST = 18:30 UTC');
   assert.equal(admin.rangeStart('all'), new Date(0).toISOString());
   assert.equal((Date.parse(admin.rangeStart('today')) - Date.parse(admin.rangeStart('7d'))) / 86400e3, 6);
+});
+
+test('gradual orders: the list carries parts and the cost of what was sent; support can cancel and fix parts', async () => {
+  const db = fake();
+  const boss = await admin.requireAdmin(req('tok-boss'), CFG);
+  db.orderRows = [{ id: 43, email: 'c@x.com', charge: 18, cost: 10, status: 'placed' }, { id: 41, email: 'd@x.com', charge: 2, cost: 1, status: 'placed' }];
+  db.dripOrders = [{ id: 43, drip_state: 'running', parts: 3, interval_minutes: 180, refunded: 0 }];
+  db.parts = [{ id: 1, order_id: 43, seq: 1, quantity: 10000, charge: 3.6, cost: 2, status: 'placed', smm_order: '9001' },
+    { id: 2, order_id: 43, seq: 2, quantity: 15000, charge: 5.4, cost: 3, status: 'checking' },
+    { id: 3, order_id: 43, seq: 3, quantity: 25000, charge: 9, cost: 5, status: 'scheduled' }];
+  const { orders } = await admin.read(CFG, { view: 'orders' });
+  assert.equal(orders[0].drip.cost, 5, 'parts sent or being checked');
+  assert.equal(orders[0].drip.sent, 1);
+  assert.equal(orders[0].drip.checking, 1);
+  assert.equal(orders[1].drip, undefined, 'normal orders untouched');
+
+  assert.deepEqual(await admin.act(CFG, boss, { action: 'cancelDrip', orderId: 43 }), { ok: true, refunded: 7.88, balance: 50 });
+  await assert.rejects(admin.act(CFG, boss, { action: 'cancelDrip', orderId: 5 }), /no parts left/);
+  await assert.rejects(admin.act(CFG, boss, { action: 'refund', orderId: 43 }), /gradual order/);
+
+  await assert.rejects(admin.act(CFG, boss, { action: 'part', do: 'placed', partId: 2, orderId: 43, smmOrder: '' }), /panel’s order number/);
+  const r = await admin.act(CFG, boss, { action: 'part', do: 'placed', partId: 2, orderId: 43, smmOrder: ' 9002 ' });
+  assert.deepEqual(db.partCalls.pop(), { p_part: 2, p_action: 'placed', p_smm_order: '9002' });
+  assert.equal(r.order.id, 43, 'returns the fresh order');
+  await admin.act(CFG, boss, { action: 'part', do: 'refund', partId: 2, orderId: 43, smmOrder: '123' });
+  assert.deepEqual(db.partCalls.pop(), { p_part: 2, p_action: 'refund', p_smm_order: null }, 'panel number only for placed');
+  await assert.rejects(admin.act(CFG, boss, { action: 'part', do: 'refund', partId: 9, orderId: 43 }), /isn’t waiting/);
+  await assert.rejects(admin.act(CFG, boss, { action: 'part', do: 'delete', partId: 2, orderId: 43 }), /Unknown action/);
 });

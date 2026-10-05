@@ -194,7 +194,9 @@ How it stays safe:
 API routes (`api/`, Vercel serverless functions): `GET /api/admin`, `POST /api/admin` (admins only),
 `GET/POST /api/tickets`, `GET /api/services`, `GET /api/status`,
 `GET /api/wallet`, `POST /api/recharge` (new payment, or `{ id, utr }`), `GET /api/recharge?id=…` (payment
-status), `POST /api/order`, `GET /api/order-status?id=…`.
+status), `POST /api/order` (add `drip: { split | parts, intervalMinutes }` for gradual delivery, or send
+`{ cancel: id }` to cancel its remaining parts), `GET /api/order-status?id=…`, `GET|POST /api/drip` (the
+scheduler).
 
 ## Admin panel and support tickets
 
@@ -203,7 +205,7 @@ status), `POST /api/order`, `GET /api/order-status?id=…`.
 | Page | What's there |
 |---|---|
 | Overview | Profit and margin, money in by UPI, order revenue, provider (smmzio) cost, accounts, money held in wallets, your smmzio balance (warns when low), revenue-per-day chart, and alerts for anything that needs you |
-| Orders | Every order with paid / cost / profit; check live status on the panel, refund to the wallet, or mark a "being checked" order as placed |
+| Orders | Every order with paid / cost / profit; check live status on the panel, refund to the wallet, or mark a "being checked" order as placed. Gradual orders show each part (see below) |
 | Customers | Accounts, sign-in method, wallet, money added and spent; adjust a wallet (with a reason saved in the ledger) |
 | Payments | UPI top-ups, inbox status, **Check inbox now**, and bank payments that matched no top-up, which you can credit to a customer |
 | Tickets | Customers' support tickets; read, reply, close or reopen |
@@ -225,6 +227,37 @@ customer's ticket with a red dot until they read it. Customers see replies as "*
 the staff member's email.
 
 Run `supabase/migrations/004_admin.sql` (after 001–003) to add the admin and ticket tables.
+
+## Gradual delivery
+
+Customers can switch on **Gradual delivery** under the link field. The order is split into 2–30 parts
+that go to the panel one after another, so the growth looks natural (e.g. 50,000 views as 7,200 now,
+11,800 three hours later, and so on). It costs **20% more**, and the customer still sees one order.
+
+- **Parts:** random sizes (with a **Shuffle** button) or **Custom**, where the customer types each part.
+  Each part must be at least the service's minimum, and the parts must add up to the total.
+- **Gap between parts:** minutes, hours or days, up to 7 days. It can't be shorter than the time the
+  provider takes to deliver the biggest part (worked out from the service's speed; at least 1 hour).
+- **One part at a time:** before sending a part, the store checks the panel has finished the previous one.
+  If not, it waits 10 minutes and checks again.
+- **Money:** the whole price comes out of the wallet when the order is placed. If the customer clicks
+  **Cancel remaining parts** in My orders, the unsent parts' share goes back to their wallet. If the panel
+  refuses a part 3 times (15 minutes apart), the order stops and unsent parts are refunded automatically.
+- **Admin panel:** gradual orders show as "Gradual · 2/5" and have a **Gradual** filter. Open one to see
+  every part with its panel number, check each part on the panel, or cancel the rest. Profit counts only
+  the parts actually sent. If the panel doesn't answer when a part is sent, that part shows **Being
+  checked** and the order waits: look for it on smmzio, then click **Mark sent** (with the panel order
+  number), **Send again**, or **Not there · refund**.
+
+**Setup (once):**
+
+1. Run `supabase/migrations/005_drip.sql`, then `006_drip_admin.sql`, in the Supabase SQL editor.
+2. In Vercel, add `CRON_SECRET` with a long random value (e.g. from `openssl rand -hex 24`), then redeploy.
+3. Open `supabase/drip_scheduler.sql`, put in your store address and the same secret, and run it in
+   the SQL editor. Supabase then calls `/api/drip` every 5 minutes to send the parts that are due.
+
+Parts are also sent when the customer opens the store, but without step 3 an order only moves when
+someone visits.
 
 ## Running locally
 
