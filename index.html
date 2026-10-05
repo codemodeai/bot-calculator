@@ -608,6 +608,41 @@
   .tback { border: 0; background: none; padding: 0; color: var(--accent); font-weight: 500; font-size: 13.5px; justify-self: start; }
   @media (max-width: 900px) { .faq { grid-template-columns: 1fr; } .tmsg { max-width: 92%; } }
 
+  /* ---------- gradual delivery ---------- */
+  .drip { border: 1px solid var(--line); border-radius: 14px; background: var(--sunk); overflow: hidden; }
+  .drip.on { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); background: var(--panel); box-shadow: 0 0 0 3px var(--accent-ring); }
+  .switch { display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; }
+  .switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .switch .sw { position: relative; flex: none; width: 38px; height: 22px; border-radius: 999px; background: var(--line-strong); transition: background-color .2s; }
+  .switch .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(16, 24, 40, .2); transition: transform .2s; }
+  .switch input:checked + .sw { background: var(--accent); }
+  .switch input:checked + .sw::after { transform: translateX(16px); }
+  .switch input:focus-visible + .sw { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .switch b { display: block; font-size: 13.5px; font-weight: 600; color: var(--text); }
+  .switch small { display: block; font-size: 12px; color: var(--muted); }
+  .switch .plus { margin-left: auto; flex: none; font-size: 11.5px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 999px; }
+  .dcfg { display: grid; gap: 12px; padding: 0 14px 14px; }
+  .dcfg .row2 label { display: grid; gap: 6px; font-size: 12.5px; font-weight: 500; color: var(--text-2); }
+  .dcfg .tin { height: 38px; font-size: 14px; }
+  .every { display: flex; gap: 6px; }
+  .every .tin { min-width: 0; }
+  .every select { height: 38px; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--panel); padding: 0 8px; font-size: 13.5px; }
+  .dmode { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .dmode .sorts button { padding: 4px 10px; }
+  .dsched { display: grid; gap: 4px; max-height: 260px; overflow-y: auto; padding-right: 2px; }
+  .drow { display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 10px; background: var(--sunk); font-size: 13px; }
+  .drow span { color: var(--muted); font-size: 12px; }
+  .drow b { font-weight: 600; }
+  .drow em { font-style: normal; color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .drow input { width: 100%; height: 30px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--panel); padding: 0 8px; font-size: 13px; font-weight: 600; outline: none; }
+  .drow input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+  .dsum { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--muted); }
+  .dsum b { color: var(--text); font-weight: 600; }
+  .sum .dripx b { color: var(--accent); }
+  .parts { display: grid; gap: 4px; margin: 8px 0; }
+  .parts .drow { grid-template-columns: 58px minmax(0, 1fr) auto auto; background: var(--panel); border: 1px solid var(--line); }
+  .parts .drow.next { border-color: var(--accent); }
+
   .mbar { display: none; }
 
   /* ---------- responsive ---------- */
@@ -746,6 +781,7 @@
               <div><span>Price per 1,000</span><b id="calcRate">—</b></div>
               <div><span>Quantity</span><b id="calcQty">—</b></div>
               <div><span>Delivery</span><b id="sumTime">—</b></div>
+              <div class="dripx" id="dripRow" hidden><span>Gradual delivery (+20%)</span><b id="dripExtra">—</b></div>
             </div>
             <div class="total"><span>Total</span><b id="sumTotal">—</b></div>
             <div class="wbox"><span>Wallet balance</span><b id="wBal">₹0.00</b><button type="button" id="wAdd">+ Add money</button></div>
@@ -759,6 +795,20 @@
               <label for="link" id="linkLabel">Link</label>
               <input class="tin" id="link" type="text" autocomplete="off" autocapitalize="off" spellcheck="false">
               <p class="hint" id="linkHint"></p>
+            </div>
+            <div class="drip" id="dripBox">
+              <label class="switch"><input type="checkbox" id="dripOn"><span class="sw" aria-hidden="true"></span><span><b>Gradual delivery</b><small>Split into parts sent over time, so growth looks natural</small></span><span class="plus">+20%</span></label>
+              <div class="dcfg" id="dripCfg" hidden>
+                <div class="row2">
+                  <label>Parts<input class="tin" id="dripParts" type="number" inputmode="numeric" min="2" max="30" value="5"></label>
+                  <label>Every<span class="every"><input class="tin" id="dripEvery" type="number" inputmode="decimal" min="1" value="6"><select id="dripUnit" aria-label="Unit"><option value="minutes">minutes</option><option value="hours" selected>hours</option><option value="days">days</option></select></span></label>
+                </div>
+                <p class="hint" id="dripMin"></p>
+                <div class="dmode"><div class="sorts" id="dripMode"><button type="button" data-m="random" aria-pressed="true">Random split</button><button type="button" data-m="custom" aria-pressed="false">Custom</button></div><button type="button" class="linkbtn" id="dripShuffle">↻ Shuffle</button></div>
+                <div class="dsched" id="dripSched"></div>
+                <div class="dsum" id="dripSum"></div>
+                <p class="hint bad" id="dripErr" hidden></p>
+              </div>
             </div>
             <div class="sum">
               <div><span>Service</span><b id="sumTitle">—</b></div>
@@ -1074,13 +1124,90 @@
       '<p class="raw">' + esc(s.name) + '</p>';
   }
 
+  // ---------- gradual delivery (split into parts sent over time, +20%) ----------
+  var drip = { on: false, parts: 5, every: 6, unit: 'hours', mode: 'random', split: null, key: '' };
+  function dripMinutes() { return Math.round((Number(drip.every) || 0) * (drip.unit === 'days' ? 1440 : drip.unit === 'hours' ? 60 : 1)); }
+  function minutesText(m) {
+    if (m % 1440 === 0) return m / 1440 + (m === 1440 ? ' day' : ' days');
+    if (m % 60 === 0) return m / 60 + (m === 60 ? ' hour' : ' hours');
+    return m >= 60 ? Math.floor(m / 60) + ' h ' + (m % 60) + ' min' : m + ' min';
+  }
+  function ensureSplit(reshuffle) {
+    var s = cur.service;
+    if (!s || !(state.qty > 0)) { drip.split = null; return; }
+    var key = s.id + ':' + state.qty + ':' + drip.parts + ':' + drip.mode;
+    if (!reshuffle && drip.key === key && drip.split) return;
+    drip.key = key;
+    drip.split = C.splitQuantity(state.qty, drip.parts, s.min, s.max, drip.mode === 'custom' ? function () { return 0.5; } : undefined);
+  }
+  function dripProblem() {
+    var s = cur.service;
+    if (!drip.on || !s) return null;
+    if (!(drip.parts >= C.DRIP.minParts && drip.parts <= C.DRIP.maxParts)) return 'Use ' + C.DRIP.minParts + ' to ' + C.DRIP.maxParts + ' parts.';
+    if (!drip.split) return num(state.qty) + ' can’t be split into ' + drip.parts + ' parts of at least ' + num(s.min) + '. Use fewer parts or a bigger amount.';
+    var e = C.checkSplit(drip.split, s, state.qty); if (e) return e;
+    var min = C.dripMinInterval(s, drip.split);
+    if (dripMinutes() < min) return 'For this service the gap must be at least ' + minutesText(min) + ' (how long the provider takes to deliver a part).';
+    if (dripMinutes() > C.DRIP.maxInterval) return 'The gap can be at most 7 days.';
+    return null;
+  }
+  function partTime(i) {
+    if (!i) return 'now';
+    var t = new Date(Date.now() + i * dripMinutes() * 60e3);
+    var sameDay = t.toDateString() === new Date().toDateString();
+    return (sameDay ? '' : t.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }) + ', ') + t.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+  }
+  function renderDrip(rebuild) {
+    var s = cur.service;
+    $('dripBox').classList.toggle('on', drip.on);
+    $('dripCfg').hidden = !drip.on;
+    if (!drip.on || !s) return;
+    ensureSplit(false);
+    var min = C.dripMinInterval(s, drip.split || []);
+    $('dripMin').textContent = 'Minimum gap for this service: ' + minutesText(min) + '. Each part at least ' + num(s.min) + '.';
+    document.querySelectorAll('#dripMode [data-m]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-m') === drip.mode)); });
+    $('dripShuffle').hidden = drip.mode !== 'random';
+    if (rebuild !== false) {
+      $('dripSched').innerHTML = (drip.split || []).map(function (q, i) {
+        return '<div class="drow"><span>Part ' + (i + 1) + '</span>' +
+          (drip.mode === 'custom' ? '<input type="number" inputmode="numeric" min="' + s.min + '" data-i="' + i + '" value="' + q + '" aria-label="Part ' + (i + 1) + ' amount">' : '<b>' + num(q) + '</b>') +
+          '<em>' + esc(partTime(i)) + '</em></div>';
+      }).join('');
+    } else {
+      document.querySelectorAll('#dripSched em').forEach(function (em, i) { em.textContent = partTime(i); });
+    }
+    var sum = (drip.split || []).reduce(function (a, b) { return a + (Number(b) || 0); }, 0);
+    $('dripSum').innerHTML = '<span>' + (drip.split ? drip.split.length + ' parts · every ' + esc(minutesText(dripMinutes() || 0)) : '') + '</span><span>Total <b>' + num(sum) + '</b> of ' + num(state.qty || 0) + '</span>';
+    var e = dripProblem();
+    $('dripErr').hidden = !e; $('dripErr').textContent = e || '';
+  }
+  $('dripOn').addEventListener('change', function () {
+    drip.on = this.checked;
+    if (drip.on && cur.service) {                       // start from a gap the service can do
+      ensureSplit(true);
+      var min = C.dripMinInterval(cur.service, drip.split || []);
+      if (dripMinutes() < min) { if (min % 60 === 0) { drip.every = min / 60; drip.unit = 'hours'; } else { drip.every = min; drip.unit = 'minutes'; } $('dripEvery').value = drip.every; $('dripUnit').value = drip.unit; }
+    }
+    renderDrip(); renderAction();
+  });
+  $('dripParts').addEventListener('input', function () { drip.parts = parseInt(this.value, 10) || 0; ensureSplit(true); renderDrip(); renderAction(); });
+  $('dripEvery').addEventListener('input', function () { drip.every = Number(this.value) || 0; renderDrip(false); renderAction(); });
+  $('dripUnit').addEventListener('change', function () { drip.unit = this.value; renderDrip(false); renderAction(); });
+  $('dripMode').addEventListener('click', function (e) { var b = e.target.closest('[data-m]'); if (b) { drip.mode = b.getAttribute('data-m'); ensureSplit(true); renderDrip(); renderAction(); } });
+  $('dripShuffle').addEventListener('click', function () { ensureSplit(true); renderDrip(); });
+  $('dripSched').addEventListener('input', function (e) {
+    var inp = e.target.closest('input[data-i]'); if (!inp || !drip.split) return;
+    drip.split[+inp.getAttribute('data-i')] = parseInt(inp.value, 10) || 0;
+    renderDrip(false); renderAction();
+  });
+
   function problems() {
     if (!cur.service) return 'Pick a service.';
     var q = C.quote(cur.service, { quantity: state.qty });
     if (!q.valid) return q.errors[0];
     var l = linkProblem(state.link, state.platform, state.cat);
     if (l) return l === 'empty' ? 'Add your link to continue.' : l;
-    return null;
+    return dripProblem();
   }
 
   function renderAction() {
@@ -1104,11 +1231,15 @@
     $('qHint').className = 'hint' + (q.valid ? '' : ' bad');
     $('qHint').textContent = q.valid ? 'Min ' + num(s.min) + ' · max ' + (s.max > 0 && s.max < 1e9 ? num(s.max) : 'unlimited') : q.errors.join(' ');
 
-    var total = q.valid ? C.exactCharge(s.rate, state.qty) : null;
+    var base = q.valid ? C.exactCharge(s.rate, state.qty) : null;
+    var total = base != null && drip.on ? C.dripCharge(s.rate, state.qty) : base;
     cur.total = total;
+    renderDrip(false);
+    $('dripRow').hidden = !drip.on || total == null;
+    if (total != null) $('dripExtra').textContent = '+ ' + price(C.round(total - base, 4));
     cur.title = num(state.qty || 0) + ' ' + p.label + ' ' + state.cat;
     $('sumTitle').textContent = cur.title;
-    $('sumTime').textContent = approx(C.estimateHours(s, state.qty)) || 'Starts within the hour';
+    $('sumTime').textContent = drip.on && drip.split ? drip.split.length + ' parts over ' + minutesText((drip.split.length - 1) * dripMinutes() || 0) : approx(C.estimateHours(s, state.qty)) || 'Starts within the hour';
     $('sumTotal').textContent = total != null ? price(total) : '—';
     $('orderTotal').textContent = total != null ? price(total) : '';
     $('calcRate').textContent = price(s.rate);
@@ -1118,14 +1249,14 @@
       acct.balance == null ? 'Loading…' : price(acct.balance) + (short ? ' (' + price(total - acct.balance) + ' short)' : '');
     $('sumBal').className = short ? 'low' : '';
     var issue = problems();
-    var label = issue ? 'Place order' : !acct.signedIn ? 'Sign in to order' : short ? 'Add money to order' : 'Place order · ' + price(total);
+    var label = issue ? 'Place order' : !acct.signedIn ? 'Sign in to order' : short ? 'Add money to order' : (drip.on ? 'Place gradual order · ' : 'Place order · ') + price(total);
     if (!busy) $('payText').textContent = label;
     $('payBtn').disabled = !!issue || busy;
     $('payBtn').title = issue || '';
   }
 
   function renderAll() { renderRail(); renderCats(); renderServices(); renderDetail(); renderAction(); remember(); }
-  function renderPick() { renderServices(); renderDetail(); renderAction(); remember(); }
+  function renderPick() { renderServices(); renderDetail(); renderAction(); if (drip.on) { renderDrip(); renderAction(); } remember(); }
 
   // ---------- events ----------
   $('rail').addEventListener('click', function (e) {
@@ -1432,9 +1563,15 @@
 
   var STATE_OF = { placed: 'progress', refunded: 'error', checking: 'pending', placing: 'pending' };
   var LABEL_OF = { placed: 'Placed', refunded: 'Refunded', checking: 'Being checked', placing: 'Placing' };
+  var DRIP_PILL = { running: ['progress', 'Gradual'], done: ['done', 'All parts sent'], canceled: ['partial', 'Canceled'], stopped: ['error', 'Stopped'] };
   function orderRow(o) {
+    var pill = STATE_OF[o.status] || 'pending', label = LABEL_OF[o.status] || o.status;
+    if (o.drip) {
+      var d = DRIP_PILL[o.drip_state] || ['progress', 'Gradual'], sent = (o.parts_list || []).filter(function (p) { return p.status === 'placed' || (acct.demo && Date.parse(p.at) <= Date.now()); }).length;
+      pill = d[0]; label = d[1] + (o.drip_state === 'running' ? ' · ' + sent + '/' + (o.parts || (o.parts_list || []).length) : '');
+    }
     return '<button type="button" class="orow" data-go="' + esc(o.id) + '"><span class="a"><b>' + esc(o.title) + '</b><span>' + esc(price(o.charge)) + '</span></span>' +
-      '<span class="b"><span>#' + esc(o.id) + ' · ' + esc(o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '') + '</span><span class="pill ' + (STATE_OF[o.status] || 'pending') + '">' + esc(LABEL_OF[o.status] || o.status) + '</span></span></button>';
+      '<span class="b"><span>#' + esc(o.id) + ' · ' + esc(o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '') + (o.drip ? ' · ' + (o.parts || '') + ' parts' : '') + '</span><span class="pill ' + pill + '">' + esc(label) + '</span></span></button>';
   }
 
   // ---------- sign-in page: email code or Google ----------
@@ -1918,11 +2055,19 @@
     var total = cur.total;
     if (acct.balance + 1e-9 < total) { addMoney(Math.max(store.minRecharge || 1, Math.ceil(total - acct.balance)), onPay); return; }
     var order = { serviceId: cur.service.id, quantity: state.qty, link: state.link.trim() };
+    if (drip.on) order.drip = { split: drip.split.slice(), intervalMinutes: dripMinutes() };
     if (acct.demo) {
       acct.balance = C.round(acct.balance - total, 4);
       var o = { id: acct.orders.length + 1, title: cur.title, link: order.link, quantity: order.quantity, charge: total, status: 'placed', created_at: new Date().toISOString() };
+      var info = null;
+      if (order.drip) {
+        var t0 = Date.now();
+        o.drip = true; o.drip_state = 'running'; o.parts = order.drip.split.length; o.interval_minutes = order.drip.intervalMinutes; o.refunded = 0;
+        o.parts_list = order.drip.split.map(function (qq, i) { return { seq: i + 1, quantity: qq, status: i ? 'scheduled' : 'placed', at: new Date(t0 + i * order.drip.intervalMinutes * 60e3).toISOString() }; });
+        info = { parts: o.parts, intervalMinutes: o.interval_minutes, schedule: o.parts_list.map(function (x) { return { quantity: x.quantity, at: x.at }; }) };
+      }
       acct.orders.unshift(o); saveDemo(); renderWallet();
-      placed({ orderId: o.id, charge: total, balance: acct.balance, title: cur.title, demo: true });
+      placed({ orderId: o.id, charge: total, balance: acct.balance, title: cur.title, demo: true, drip: info });
       return;
     }
     setBusy(true);
@@ -1943,8 +2088,10 @@
 
   function placed(r) {
     modal('<div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
-      '<h2 id="modalTitle">Order placed</h2>' +
-      '<p>' + esc(r.title) + ' for <b>' + esc(price(r.charge)) + '</b>. ' + (r.demo ? 'Demo order: nothing is delivered.' : 'Delivery starts automatically.') + '</p>' +
+      '<h2 id="modalTitle">' + (r.drip ? 'Gradual order placed' : 'Order placed') + '</h2>' +
+      '<p>' + esc(r.title) + ' for <b>' + esc(price(r.charge)) + '</b>. ' + (r.demo ? 'Demo order: nothing is delivered.' : r.drip ? '' : 'Delivery starts automatically.') + '</p>' +
+      (r.drip ? '<p>' + r.drip.parts + ' parts, one every ' + esc(minutesText(r.drip.intervalMinutes)) + '. Part 1 (' + num(r.drip.schedule[0].quantity) + ') has started; part 2 (' + num(r.drip.schedule[1].quantity) + ') goes at ' +
+        esc(new Date(r.drip.schedule[1].at).toLocaleString('en-IN', { weekday: 'short', hour: 'numeric', minute: '2-digit' })) + '. Follow it in My orders.</p>' : '') +
       '<div class="tid"><div><span>Order</span><code>#' + esc(r.orderId) + '</code></div><div style="text-align:right"><span>Wallet left</span><code>' + esc(price(r.balance)) + '</code></div></div>' +
       '<div class="row2"><button class="ghost" id="mClose" type="button">New order</button><button class="pay" id="mTrack" type="button">My orders</button></div>');
     $('mClose').onclick = function () { closeModal(); state.link = ''; $('link').value = ''; renderAction(); };
@@ -2011,14 +2158,62 @@
     box.hidden = !open; b.setAttribute('aria-expanded', open);
     if (open) loadStatus(id);
   });
+  function demoDripStatus(o) {
+    var now = Date.now(), list = (o.parts_list || []).map(function (p) {
+      var on = p.status !== 'canceled' && Date.parse(p.at) <= now;
+      return { seq: p.seq, quantity: p.quantity, status: p.status === 'canceled' ? 'canceled' : on ? 'placed' : 'scheduled', label: p.status === 'canceled' ? 'Canceled (refunded)' : on ? 'Completed' : 'Scheduled', delivered: on ? p.quantity : 0, at: p.at };
+    });
+    var sent = list.filter(function (p) { return p.status === 'placed'; }), next = list.filter(function (p) { return p.status === 'scheduled'; })[0];
+    var running = o.drip_state === 'running' && !!next, delivered = sent.reduce(function (a, p) { return a + p.quantity; }, 0);
+    return { drip: true, demo: true, parts: list, quantity: o.quantity, delivered: delivered, sentParts: sent.length, nextAt: next ? next.at : null, refunded: o.refunded || 0,
+      intervalMinutes: o.interval_minutes, canCancel: running, state: o.drip_state === 'canceled' ? 'partial' : running ? 'progress' : 'done',
+      status: o.drip_state === 'canceled' ? 'Canceled · ' + price(o.refunded) + ' refunded' : running ? 'Gradual · ' + sent.length + ' of ' + list.length + ' parts sent' : 'Completed' };
+  }
+  function dripStatusHtml(s, o, id) {
+    var pct = s.quantity ? Math.min(100, Math.round(100 * s.delivered / s.quantity)) : 0;
+    var nextSeq = s.parts.filter(function (p) { return p.status === 'scheduled'; }).map(function (p) { return p.seq; })[0];
+    var when = function (t) { return new Date(t).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }); };
+    return '<div class="st-head"><span class="muted">Gradual delivery · ' + s.parts.length + ' parts every ' + esc(minutesText(s.intervalMinutes || 60)) + '</span><span class="pill ' + esc(s.state) + '">' + esc(s.status) + '</span></div>' +
+      (s.note ? '<p class="hint bad">' + esc(s.note) + '</p>' : '') +
+      '<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><i style="width:' + pct + '%"></i></div>' +
+      '<p class="hint">' + num(s.delivered) + ' of ' + num(s.quantity) + ' delivered (' + pct + '%)' + (s.nextAt ? ' · next part ' + esc(when(s.nextAt)) : '') + (s.refunded ? ' · ' + esc(price(s.refunded)) + ' refunded' : '') + (s.demo ? ' · demo' : '') + '</p>' +
+      '<div class="parts">' + s.parts.map(function (p) {
+        return '<div class="drow' + (p.seq === nextSeq ? ' next' : '') + '"><span>Part ' + p.seq + '</span><b>' + num(p.quantity) + '</b><em>' + esc(p.label) + '</em><em>' + esc(when(p.at)) + '</em></div>';
+      }).join('') + '</div>' +
+      (s.canCancel ? '<button type="button" class="ghost" data-cancel="' + esc(id) + '" style="height:34px;font-size:13px">Cancel remaining parts</button> ' : '') +
+      (o.link ? '<p class="hint" style="overflow-wrap:anywhere">' + esc(o.link) + '</p>' : '') +
+      (acct.demo ? '' : '<button type="button" class="linkbtn" data-help="' + esc(id) + '">Get help with this order →</button>');
+  }
+  function wireDripStatus(box, s, o, id) {
+    var b = box.querySelector('[data-cancel]'); if (!b) return;
+    b.onclick = function (e) {
+      e.stopPropagation();
+      var unsent = s.parts.filter(function (p) { return p.status === 'scheduled'; });
+      modal('<div class="left"><h2 id="modalTitle">Cancel the remaining parts?</h2><p>' + unsent.length + ' part' + (unsent.length === 1 ? '' : 's') + ' (' + num(unsent.reduce(function (a, p) { return a + p.quantity; }, 0)) +
+        ') won’t be sent, and their price goes back to your wallet. Parts already sent keep delivering.</p>' +
+        '<div class="row2"><button class="ghost" id="mClose" type="button">Keep going</button><button class="pay danger" id="mOk" type="button">Cancel parts</button></div></div>');
+      $('mClose').onclick = closeModal;
+      $('mOk').onclick = function () {
+        if (acct.demo) {
+          var back = 0; (o.parts_list || []).forEach(function (p) { if (Date.parse(p.at) > Date.now() && p.status !== 'canceled') { p.status = 'canceled'; back += C.round(o.charge * p.quantity / o.quantity, 4); } });
+          o.drip_state = 'canceled'; o.refunded = C.round(back, 4); acct.balance = C.round(acct.balance + back, 4); saveDemo(); renderWallet();
+          closeModal(); toast(price(back) + ' back in your wallet'); renderOrders(); return;
+        }
+        this.disabled = true;
+        api('/api/order', { cancel: id }).then(function (r) { closeModal(); toast(price(r.refunded) + ' back in your wallet'); acct.balance = r.balance; refreshWallet().then(function () { if (!$('viewOrders').hidden) renderOrders(); }); })
+          .catch(function (err) { closeModal(); toast(err.message); });
+      };
+    };
+  }
   function loadStatus(id) {
     var box = $('od' + id); if (!box) return;
     box.innerHTML = '<div style="display:grid;place-items:center;padding:12px"><span class="spin" style="border-color:var(--line);border-top-color:var(--accent)"></span></div>';
     var o = (acct.orders || []).filter(function (x) { return String(x.id) === String(id); })[0] || {};
     var p = acct.demo
-      ? Promise.resolve({ status: 'In progress', state: 'progress', quantity: o.quantity, remains: Math.round((o.quantity || 0) * 0.4), startCount: 1200, demo: true })
+      ? Promise.resolve(o.drip ? demoDripStatus(o) : { status: 'In progress', state: 'progress', quantity: o.quantity, remains: Math.round((o.quantity || 0) * 0.4), startCount: 1200, demo: true })
       : api('/api/order-status?id=' + encodeURIComponent(id));
     p.then(function (s) {
+      if (s.drip) { box.innerHTML = dripStatusHtml(s, o, id); wireDripStatus(box, s, o, id); return; }
       var qty = s.quantity || o.quantity || null;
       var delivered = qty != null && s.remains != null ? Math.max(0, qty - s.remains) : null;
       var pct = s.state === 'done' ? 100 : qty && delivered != null ? Math.round(100 * delivered / qty) : 0;

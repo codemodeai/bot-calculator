@@ -165,6 +165,16 @@
   .modal .kv { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 6px 12px; font-size: 13.5px; }
   .modal .kv span { color: var(--muted); }
   .modal .kv b { font-weight: 500; overflow-wrap: anywhere; }
+  .modal.wide { max-width: 640px; }
+  .parts { display: grid; gap: 6px; }
+  .part { border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; display: grid; gap: 8px; font-size: 13px; }
+  .part.warn { border-color: var(--warn-line); background: var(--warn-soft); }
+  .part .a { display: grid; grid-template-columns: 52px 80px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+  .part .a > span:first-child { color: var(--muted); }
+  .part .a b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .part .a em { font-style: normal; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .part small { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+  .part .row .input { padding: 7px 10px; font-size: 13px; }
   .modal .acts { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
   .err { padding: 9px 12px; border-radius: 10px; background: var(--bad-soft); color: var(--bad); font-size: 13px; font-weight: 500; margin: 0; }
   .toast { position: fixed; z-index: 60; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--text); color: var(--panel); padding: 10px 16px; border-radius: 12px; font-weight: 500; }
@@ -339,7 +349,7 @@
       '<div class="kpis">' +
         kpi('Profit', inr(s.profit), '<span class="up">' + s.margin + '% margin</span> on ' + inr(s.revenue) + ' of orders', 'hero') +
         kpi('Money in (UPI)', inr(s.money_in), num(s.payments) + ' wallet ' + (s.payments === 1 ? 'top-up' : 'top-ups')) +
-        kpi('Order revenue', inr(s.revenue), num(s.orders) + ' orders · ' + num(s.orders_refunded) + ' refunded (' + inr(s.refunded_amount) + ')') +
+        kpi('Order revenue', inr(s.revenue), num(s.orders) + ' orders · ' + num(s.orders_refunded) + ' refunded (' + inr(s.refunded_amount) + ')' + (s.drip_running ? ' · ' + num(s.drip_running) + ' gradual running' : '')) +
         kpi('Provider cost', inr(s.provider_cost), 'what smmzio charged, at your ₹ rate') +
         kpi('Accounts', num(s.accounts), '+' + num(s.new_accounts) + ' new · ' + num(s.active_customers) + ' ordered') +
         kpi('Held in wallets', inr(s.wallet_held), 'customers’ unspent balance (you owe in orders)') +
@@ -359,7 +369,7 @@
   function recentList(rows) {
     if (!rows.length) return '<p class="empty">No orders yet.</p>';
     return '<div class="mini">' + rows.map(function (o) {
-      return '<div><span class="clip" style="max-width:62%">#' + o.id + ' · ' + esc(o.title) + '</span><b>' + inr(o.charge) + ' ' + statusPill(o.status) + '</b></div>';
+      return '<div><span class="clip" style="max-width:62%">#' + o.id + ' · ' + esc(o.title) + '</span><b>' + inr(o.charge) + ' ' + orderPill(o) + '</b></div>';
     }).join('') + '</div>';
   }
   function drawChart(days) {
@@ -410,6 +420,19 @@
   // ---------- orders ----------
   var ORDER_STATUS = { placed: ['good', 'Placed'], checking: ['warn', 'Being checked'], refunded: ['bad', 'Refunded'], placing: ['blue', 'Placing'] };
   function statusPill(s) { var x = ORDER_STATUS[s] || ['', s]; return '<span class="pill ' + x[0] + '">' + esc(x[1]) + '</span>'; }
+  var DRIP_STATE = { running: ['blue', 'Gradual'], done: ['good', 'All parts sent'], canceled: ['', 'Canceled'], stopped: ['bad', 'Stopped'] };
+  var PART_STATUS = { scheduled: ['', 'Scheduled'], placing: ['blue', 'Sending'], placed: ['good', 'Sent'], checking: ['warn', 'Being checked'], failed: ['bad', 'Failed · refunded'], canceled: ['', 'Canceled · refunded'] };
+  function orderPill(o) {
+    if (!o.drip) return statusPill(o.status);
+    if (o.drip.checking) return '<span class="pill warn">Part being checked</span>';
+    var x = DRIP_STATE[o.drip.state] || ['blue', 'Gradual'];
+    return '<span class="pill ' + x[0] + '">' + esc(x[1] + (o.drip.state === 'running' ? ' · ' + o.drip.sent + '/' + o.drip.list.length : '')) + '</span>';
+  }
+  // What the order earns: paid minus refunds, less what the panel charged (for gradual orders, only the parts sent).
+  function orderCost(o) { return o.drip ? o.drip.cost : o.cost; }
+  function orderProfit(o) { return o.status === 'refunded' ? null : C_round(o.charge - (o.drip ? o.drip.refunded : 0) - orderCost(o)); }
+  function C_round(n) { return Math.round(n * 1e4) / 1e4; }
+  function mins(m) { return m % 1440 === 0 ? m / 1440 + (m === 1440 ? ' day' : ' days') : m % 60 === 0 ? m / 60 + (m === 60 ? ' hour' : ' hours') : m + ' min'; }
   var cache = {};
   function listTools(placeholder, chips) {
     return (chips ? '<div class="seg" id="chips">' + chips.map(function (c) { return '<button type="button" data-st="' + c[0] + '" aria-pressed="' + (state.status === c[0]) + '">' + c[1] + '</button>'; }).join('') + '</div>' : '') +
@@ -428,18 +451,19 @@
   function renderOrders(d) {
     cache.orders = d.orders;
     $('main').innerHTML = head('Orders', 'Every order, what the customer paid and what smmzio charged.',
-        listTools('Search order #, email, link…', [['', 'All'], ['placed', 'Placed'], ['checking', 'Being checked'], ['refunded', 'Refunded']])) +
+        listTools('Search order #, panel #, email, link…', [['', 'All'], ['placed', 'Placed'], ['drip', 'Gradual'], ['checking', 'Being checked'], ['refunded', 'Refunded']])) +
       (d.orders.length ? '<div class="tablewrap"><table class="table"><thead><tr><th>#</th><th>Date</th><th>Customer</th><th>Service</th><th class="num">Qty</th><th class="num">Paid</th><th class="num">Cost</th><th class="num">Profit</th><th>Status</th><th>Panel #</th></tr></thead><tbody>' +
         d.orders.map(function (o) {
-          var live = o.status === 'placed' || o.status === 'checking';
+          var profit = orderProfit(o);
           return '<tr data-row="' + o.id + '"><td>' + o.id + '</td><td class="muted">' + when(o.created_at) + '</td><td class="clip">' + esc(o.email || '—') + '</td><td class="clip" title="' + esc(o.link) + '">' + esc(o.title) + '</td>' +
-            '<td class="num">' + num(o.quantity) + '</td><td class="num">' + inr(o.charge) + '</td><td class="num muted">' + inr(o.cost) + '</td><td class="num ' + (live ? 'profit' : 'muted') + '">' + (live ? inr(o.charge - o.cost) : '—') + '</td>' +
-            '<td>' + statusPill(o.status) + '</td><td class="muted">' + esc(o.smm_order || '—') + '</td></tr>';
+            '<td class="num">' + num(o.quantity) + '</td><td class="num">' + inr(o.charge) + '</td><td class="num muted">' + inr(orderCost(o)) + '</td><td class="num ' + (profit != null ? 'profit' : 'muted') + '">' + (profit != null ? inr(profit) : '—') + '</td>' +
+            '<td>' + orderPill(o) + '</td><td class="muted">' + esc(o.drip ? o.drip.list.length + ' parts' : o.smm_order || '—') + '</td></tr>';
         }).join('') + '</tbody></table></div>' + pager(d.orders.length) : '<div class="card empty">No orders found.</div>');
     wireList(); keepFocus();
     $('main').querySelectorAll('[data-row]').forEach(function (r) { r.onclick = function () { orderModal(cache.orders.filter(function (o) { return String(o.id) === r.getAttribute('data-row'); })[0]); }; });
   }
   function orderModal(o) {
+    if (o.drip) return dripModal(o);
     modal('<h3>Order #' + o.id + ' ' + statusPill(o.status) + '</h3><div class="kv">' +
       '<span>Customer</span><b>' + esc(o.email || '—') + '</b><span>Service</span><b>' + esc(o.title) + ' (service ' + esc(o.service_id) + ')</b>' +
       '<span>Link</span><b><a href="' + esc(/^https?:/.test(o.link) ? o.link : '#') + '" target="_blank" rel="noopener noreferrer">' + esc(o.link) + '</a></b>' +
@@ -465,6 +489,65 @@
     };
     if ($('mPlaced')) $('mPlaced').onclick = function () {
       api('/api/admin', { action: 'markPlaced', orderId: o.id, smmOrder: $('smmNo').value }).then(function () { closeModal(); toast('Marked as placed'); load(); }).catch(fail);
+    };
+  }
+
+  function dripModal(o) {
+    var d = o.drip, unsent = d.list.filter(function (p) { return p.status === 'scheduled'; });
+    var unsentCharge = C_round(unsent.reduce(function (a, p) { return a + p.charge; }, 0));
+    modal('<h3>Order #' + o.id + ' ' + orderPill(o) + '</h3><div class="kv">' +
+      '<span>Customer</span><b>' + esc(o.email || '—') + '</b><span>Service</span><b>' + esc(o.title) + ' (service ' + esc(o.service_id) + ')</b>' +
+      '<span>Link</span><b><a href="' + esc(/^https?:/.test(o.link) ? o.link : '#') + '" target="_blank" rel="noopener noreferrer">' + esc(o.link) + '</a></b>' +
+      '<span>Gradual</span><b>' + d.list.length + ' parts, one every ' + esc(mins(d.intervalMinutes || 60)) + ' · ' + d.sent + ' sent</b>' +
+      '<span>Customer paid</span><b>' + inr(o.charge) + (d.refunded ? ' · ' + inr(d.refunded) + ' refunded' : '') + '</b>' +
+      '<span>Provider cost</span><b>' + inr(d.cost) + ' so far (all parts: ' + inr(o.cost) + ')</b>' +
+      '<span>Placed</span><b>' + when(o.created_at) + '</b>' + (o.error ? '<span>Note</span><b>' + esc(o.error) + '</b>' : '') +
+      '</div><div class="parts" id="parts">' + d.list.map(function (p) {
+        var x = PART_STATUS[p.status] || ['', p.status];
+        return '<div class="part' + (p.status === 'checking' ? ' warn' : '') + '" data-part="' + p.id + '"><div class="a"><span>Part ' + p.seq + '</span><b>' + num(p.quantity) + '</b><em>' +
+          (p.smm_order ? 'panel #' + esc(p.smm_order) + ' · ' : '') + when(p.at) + '</em><span class="pill ' + x[0] + '">' + esc(x[1]) + '</span></div>' +
+          (p.error && p.status !== 'placed' && p.status !== 'checking' ? '<small>' + esc(p.error) + (p.attempts > 1 ? ' · try ' + p.attempts : '') + '</small>' : '') +
+          (p.status === 'checking' ? '<small>The panel didn’t answer when this part was sent. Look for it on smmzio, then:</small><div class="row">' +
+            '<input class="input" data-smm placeholder="Panel order # (if it’s there)"><button class="btn sm" data-do="placed">Mark sent</button>' +
+            (d.state === 'running' ? '<button class="btn sm" data-do="retry" title="Only if it is NOT on the panel">Send again</button>' : '') +
+            '<button class="btn sm danger" data-do="refund">Not there · refund ' + inr(p.charge) + '</button></div>' : '') +
+          (p.smm_order ? '<div class="row"><button class="btn sm" data-live="' + esc(p.smm_order) + '">Check on panel</button><span class="muted" data-out></span></div>' : '') +
+          '</div>';
+      }).join('') + '</div><p class="err" id="mErr" hidden></p><div class="acts">' +
+      (d.state === 'running' && unsent.length ? '<button class="btn danger" id="mCancel">Cancel ' + unsent.length + ' remaining · refund ' + inr(unsentCharge) + '</button>' : '') +
+      '<button class="btn" id="mClose">Close</button></div>');
+    $('modal').classList.add('wide');
+    $('mClose').onclick = closeModal;
+    var fail = function (e) { $('mErr').hidden = false; $('mErr').textContent = e.message; };
+    if ($('mCancel')) $('mCancel').onclick = function () {
+      confirmBox('Cancel the rest of order #' + o.id + '?', unsent.length + ' unsent ' + (unsent.length === 1 ? 'part goes' : 'parts go') + ' back to ' + esc(o.email) + '’s wallet (' + inr(unsentCharge) + '). Parts already sent keep delivering.', 'Cancel parts', function () {
+        api('/api/admin', { action: 'cancelDrip', orderId: o.id }).then(function (r) { toast(inr(r.refunded) + ' refunded to the wallet'); load(); }).catch(function (e) { toast(e.message); });
+      });
+    };
+    $('parts').onclick = function (e) {
+      var row = e.target.closest('[data-part]'); if (!row) return;
+      var live = e.target.closest('[data-live]');
+      if (live) {
+        live.disabled = true;
+        api('/api/admin', { action: 'orderStatus', orderId: o.id, smmOrder: live.getAttribute('data-live') }).then(function (s) {
+          row.querySelector('[data-out]').textContent = (s.status || '—') + (s.remains != null ? ' · ' + num(s.remains) + ' left' : '') + (s.startCount != null ? ' · started at ' + num(s.startCount) : '');
+        }).catch(fail).finally(function () { live.disabled = false; });
+        return;
+      }
+      var b = e.target.closest('[data-do]'); if (!b) return;
+      var what = b.getAttribute('data-do'), part = d.list.filter(function (p) { return String(p.id) === row.getAttribute('data-part'); })[0];
+      var smm = (row.querySelector('[data-smm]') || {}).value;
+      var run = function () {
+        b.disabled = true;
+        api('/api/admin', { action: 'part', do: what, partId: part.id, orderId: o.id, smmOrder: smm }).then(function (r) {
+          toast(what === 'placed' ? 'Part ' + part.seq + ' marked as sent' : what === 'retry' ? 'Part ' + part.seq + ' sent again' : inr(part.charge) + ' refunded to the wallet');
+          if (state.view === 'orders') load();
+          if (r.order) dripModal(r.order); else closeModal();
+        }).catch(function (e) { if (!$('parts')) dripModal(o); fail(e); b.disabled = false; });
+      };
+      if (what === 'placed') return run();
+      confirmBox(what === 'retry' ? 'Send part ' + part.seq + ' again?' : 'Refund part ' + part.seq + '?', 'Only do this if part ' + part.seq + ' is <b>not</b> on smmzio' +
+        (what === 'retry' ? ', or it will be delivered twice.' : '. ' + inr(part.charge) + ' goes back to ' + esc(o.email) + '’s wallet.'), what === 'retry' ? 'Send again' : 'Refund', run);
     };
   }
 
@@ -601,7 +684,7 @@
   }
 
   // ---------- modal / toast ----------
-  function modal(html) { $('modal').innerHTML = html; $('scrim').hidden = false; var f = $('modal').querySelector('input, textarea, button'); if (f) f.focus(); }
+  function modal(html) { $('modal').className = 'modal'; $('modal').innerHTML = html; $('scrim').hidden = false; var f = $('modal').querySelector('input, textarea, button'); if (f) f.focus(); }
   function closeModal() { $('scrim').hidden = true; }
   $('scrim').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('scrim').hidden) closeModal(); });

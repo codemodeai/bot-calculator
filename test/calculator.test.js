@@ -145,3 +145,43 @@ test('features turns panel names into short plain tags', () => {
   assert.deepEqual(f('Telegram Premium Members [ 30 Days Premium ⭐️ ] | No Drop'), ['30-day premium', 'No drop', 'No refill']);
   assert.deepEqual(f('Facebook Followers [ Page & Profile ] | MQ Profiles | 30 Days ♻️'), ['Standard accounts', '30-day refill']);
 });
+
+// ---------- gradual delivery ----------
+test('gradual delivery costs the exact price + 20%', () => {
+  assert.equal(C.dripCharge(0.2, 50000), 12);          // ₹10 -> ₹12
+  assert.equal(C.dripCharge(0.3, 1000), 0.36);
+  assert.equal(C.dripCharge(110, 1000), 132);
+});
+
+test('random split: uneven, within min/max, adds up exactly', () => {
+  for (let n = 0; n < 200; n++) {
+    const parts = 2 + (n % 29), total = 50000 + n * 37, min = 100, max = 30000;
+    const q = C.splitQuantity(total, parts, min, max);
+    assert.ok(q, 'split exists');
+    assert.equal(q.length, parts);
+    assert.equal(q.reduce((a, b) => a + b, 0), total);
+    assert.ok(q.every((x) => x >= min && x <= max && Number.isInteger(x)));
+  }
+  const q = C.splitQuantity(50000, 7, 100, 0);
+  assert.ok(new Set(q).size > 1, 'not all the same');
+  assert.equal(C.splitQuantity(500, 7, 100, 0), null, '7 parts of at least 100 need 700');
+  assert.equal(C.splitQuantity(10000, 2, 100, 1000), null, 'max too small');
+});
+
+test('checkSplit explains what is wrong', () => {
+  const s = { min: 100, max: 10000 };
+  assert.equal(C.checkSplit([5000, 5000], s, 10000), null);
+  assert.match(C.checkSplit([10000], s, 10000), /2 to 30 parts/);
+  assert.match(C.checkSplit([50, 9950], s, 10000), /at least 100/);
+  assert.match(C.checkSplit([4000, 4000], s, 10000), /add up to 8,000/);
+  assert.match(C.checkSplit([20000, 30000], { min: 100, max: 10000 }, 50000), /at most 10,000/);
+  assert.match(C.checkSplit([1.5, 9998.5], s, 10000), /whole number/);
+});
+
+test('minimum gap between parts follows the service speed, at least an hour', () => {
+  const fast = { name: 'IG Views | Start: 0-1 Hours | Speed: 100K/Day', category: 'Instagram Views', min: 100, max: 1e6 };
+  assert.equal(C.dripMinInterval(fast, [10000, 20000]), 350);   // 1 h start + 20k at ~4,167/h = 5.8 h -> 348, rounded up to 350 min
+  const slow = { name: 'Followers | Start: 0-6 Hours | Speed: 1K/Day', category: 'Instagram Followers', min: 10, max: 1e5 };
+  assert.equal(C.dripMinInterval(slow, [2000, 3000]), C.DRIP.maxInterval > 4680 ? 6 * 60 + 72 * 60 : C.DRIP.maxInterval);
+  assert.equal(C.dripMinInterval({ name: 'Mystery service', category: 'x', min: 1 }, [10, 10]), 60, 'unknown speed -> 1 hour');
+});
