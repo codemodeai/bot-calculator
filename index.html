@@ -1566,20 +1566,26 @@
   var DRIP_PILL = { running: ['progress', 'Gradual'], done: ['done', 'All parts sent'], canceled: ['partial', 'Canceled'], stopped: ['error', 'Stopped'] };
   // What the customer actually paid for an order: nothing if refunded, minus the refunded parts of a gradual order.
   function netCharge(o) { return o.status === 'refunded' ? 0 : Math.max(0, C.round(Number(o.charge || 0) - Number(o.refunded || 0), 4)); }
-  // Still going: a gradual order only while it has parts to send; a canceled or stopped one isn't active.
+  // Still going: not refunded, canceled or stopped, and the panel hasn't finished it (o.live comes from the panel).
   function isActive(o) {
-    if (o.drip) return o.drip_state === 'running';
+    if (o.live && o.live.state !== 'progress' && o.live.state !== 'pending') return false;
+    if (o.drip) return o.drip_state === 'running' || o.drip_state === 'done';
     return o.status === 'placed' || o.status === 'placing' || o.status === 'checking';
   }
-  function orderRow(o) {
+  // The pill for an order: the panel's live status once we have it (Completed, In progress, …), else ours.
+  function orderPill(o) {
     var pill = STATE_OF[o.status] || 'pending', label = LABEL_OF[o.status] || o.status;
     if (o.drip) {
       var d = DRIP_PILL[o.drip_state] || ['progress', 'Gradual'], sent = (o.parts_list || []).filter(function (p) { return p.status === 'placed' || (acct.demo && Date.parse(p.at) <= Date.now()); }).length;
       pill = d[0]; label = d[1] + (o.drip_state === 'running' ? ' · ' + sent + '/' + (o.parts || (o.parts_list || []).length) : '');
     }
+    if (o.live && o.status === 'placed' && (!o.drip || o.drip_state === 'done')) { pill = o.live.state; label = o.live.status; }
+    return '<span class="pill ' + esc(pill) + '">' + esc(label) + '</span>';
+  }
+  function orderRow(o) {
     var paid = o.refunded > 0 && o.status !== 'refunded' ? esc(price(netCharge(o))) + ' <s class="muted">' + esc(price(o.charge)) + '</s>' : esc(price(o.charge));
     return '<button type="button" class="orow" data-go="' + esc(o.id) + '"><span class="a"><b>' + esc(o.title) + '</b><span>' + paid + '</span></span>' +
-      '<span class="b"><span>#' + esc(o.id) + ' · ' + esc(o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '') + (o.drip ? ' · ' + (o.parts || '') + ' parts' : '') + '</span><span class="pill ' + pill + '">' + esc(label) + '</span></span></button>';
+      '<span class="b"><span>#' + esc(o.id) + ' · ' + esc(o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '') + (o.drip ? ' · ' + (o.parts || '') + ' parts' : '') + '</span>' + orderPill(o) + '</span></button>';
   }
 
   // ---------- sign-in page: email code or Google ----------
@@ -2221,6 +2227,11 @@
       ? Promise.resolve(o.drip ? demoDripStatus(o) : { status: 'In progress', state: 'progress', quantity: o.quantity, remains: Math.round((o.quantity || 0) * 0.4), startCount: 1200, demo: true })
       : api('/api/order-status?id=' + encodeURIComponent(id));
     p.then(function (s) {
+      if (!s.demo && s.status && o.status === 'placed' && (!o.drip || (o.drip_state === 'done' && s.state === 'done'))) {   // keep the row in step with what we just saw
+        o.live = { status: s.status, state: s.state, remains: s.remains };
+        document.querySelectorAll('[data-oid="' + id + '"] .pill, [data-go="' + id + '"] .pill').forEach(function (el) { el.outerHTML = orderPill(o); });
+        $('stActive').textContent = (acct.orders || []).filter(isActive).length;
+      }
       if (s.drip) { box.innerHTML = dripStatusHtml(s, o, id); wireDripStatus(box, s, o, id); return; }
       var qty = s.quantity || o.quantity || null;
       var delivered = qty != null && s.remains != null ? Math.max(0, qty - s.remains) : null;

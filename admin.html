@@ -422,7 +422,10 @@
   function statusPill(s) { var x = ORDER_STATUS[s] || ['', s]; return '<span class="pill ' + x[0] + '">' + esc(x[1]) + '</span>'; }
   var DRIP_STATE = { running: ['blue', 'Gradual'], done: ['good', 'All parts sent'], canceled: ['', 'Canceled'], stopped: ['bad', 'Stopped'] };
   var PART_STATUS = { scheduled: ['', 'Scheduled'], placing: ['blue', 'Sending'], placed: ['good', 'Sent'], checking: ['warn', 'Being checked'], failed: ['bad', 'Failed · refunded'], canceled: ['', 'Canceled · refunded'] };
+  var PANEL_STATUS = [[/complete/, 'good', 'Completed'], [/partial/, 'warn', 'Partial'], [/cancel|refund/, 'bad', 'Canceled on panel'], [/progress|processing/, 'blue', 'In progress'], [/pending/, 'blue', 'Queued']];
   function orderPill(o) {
+    var ps = o.status === 'placed' && o.panel_status && (!o.drip || o.drip.state === 'done') ? PANEL_STATUS.filter(function (x) { return x[0].test(o.panel_status); })[0] : null;
+    if (ps) return '<span class="pill ' + ps[1] + '">' + esc(ps[2]) + '</span>';
     if (!o.drip) return statusPill(o.status);
     if (o.drip.checking) return '<span class="pill warn">Part being checked</span>';
     var x = DRIP_STATE[o.drip.state] || ['blue', 'Gradual'];
@@ -464,7 +467,7 @@
   }
   function orderModal(o) {
     if (o.drip) return dripModal(o);
-    modal('<h3>Order #' + o.id + ' ' + statusPill(o.status) + '</h3><div class="kv">' +
+    modal('<h3>Order #' + o.id + ' ' + orderPill(o) + '</h3><div class="kv">' +
       '<span>Customer</span><b>' + esc(o.email || '—') + '</b><span>Service</span><b>' + esc(o.title) + ' (service ' + esc(o.service_id) + ')</b>' +
       '<span>Link</span><b><a href="' + esc(/^https?:/.test(o.link) ? o.link : '#') + '" target="_blank" rel="noopener noreferrer">' + esc(o.link) + '</a></b>' +
       '<span>Customer paid</span><b>' + inr(o.charge) + '</b><span>Provider cost</span><b>' + inr(o.cost) + '</b>' +

@@ -1,5 +1,5 @@
-// GET /api/wallet -> the signed-in customer's balance, recent orders (gradual ones with their parts) and recharges,
-//                    unread support replies, and whether they may open the admin panel.
+// GET /api/wallet -> the signed-in customer's balance, recent orders (with the panel's live status; gradual ones with
+//                    their parts) and recharges, unread support replies, and whether they may open the admin panel.
 const shop = require('../lib/shop');
 const wallet = require('../lib/wallet');
 const admin = require('../lib/admin');
@@ -16,5 +16,6 @@ module.exports = handler(['GET'], async (req, res) => {
     admin.unreadTickets(user, cfg).catch(() => 0)
   ]);
   await drip.attachParts(cfg, w.orders).catch(() => null);
+  await wallet.attachLive(cfg, w.orders).catch(() => null);      // Completed / In progress / … in the order list
   send(res, 200, Object.assign(w, { isAdmin: !!role, unreadTickets: unread }));
 });

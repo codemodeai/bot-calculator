@@ -251,7 +251,9 @@ that go to the panel one after another, so the growth looks natural (e.g. 50,000
 
 **Setup (once):**
 
-1. Run `supabase/migrations/005_drip.sql`, then `006_drip_admin.sql`, in the Supabase SQL editor.
+1. Run `supabase/migrations/005_drip.sql`, `006_drip_admin.sql` and `007_panel_status.sql`, in that order, in the
+   Supabase SQL editor. (007 saves each order's panel status, so My orders and the admin panel show
+   Completed / In progress / Partial in the list.)
 2. In Vercel, add `CRON_SECRET` with a long random value (e.g. from `openssl rand -hex 24`), then redeploy.
 3. Open `supabase/drip_scheduler.sql`, put in your store address and the same secret, and run it in
    the SQL editor. Supabase then calls `/api/drip` every 5 minutes to send the parts that are due.
