@@ -194,8 +194,8 @@ How it stays safe:
 API routes (`api/`, Vercel serverless functions): `GET /api/admin`, `POST /api/admin` (admins only),
 `GET/POST /api/tickets`, `GET /api/services`, `GET /api/status`,
 `GET /api/wallet`, `POST /api/recharge` (new payment, or `{ id, utr }`), `GET /api/recharge?id=…` (payment
-status), `POST /api/order` (add `drip: { split | parts, intervalMinutes }` for gradual delivery, or send
-`{ cancel: id }` to cancel its remaining parts), `GET /api/order-status?id=…`, `GET|POST /api/drip` (the
+status), `POST /api/order` (add `drip: { split | parts, intervalMinutes }` for gradual delivery; `{ cancel: id }`
+cancels an order or a gradual order's remaining parts; `{ refill: id }` asks for a refill), `GET /api/order-status?id=…`, `GET|POST /api/drip` (the
 scheduler).
 
 ## Admin panel and support tickets
@@ -227,6 +227,21 @@ customer's ticket with a red dot until they read it. Customers see replies as "*
 the staff member's email.
 
 Run `supabase/migrations/004_admin.sql` (after 001–003) to add the admin and ticket tables.
+
+## Order actions (My orders)
+
+Open an order in **My orders** to see its delivery status and:
+
+- **Order again**: fills in the same service, amount and link, ready to pay.
+- **Request refill**: for services with refill, once the order is completed. It asks the provider's API
+  (`action=refill`) to top up what dropped. Once a day per order; the refill's progress shows under the order.
+- **Cancel order**: for services that allow cancel, while the order is still running. It asks the provider's
+  API (`action=cancel`).
+
+When the provider ends an order as **Canceled** or **Partial** (after a cancel, or on its own), the part that
+wasn't delivered goes back to the customer's wallet automatically, once. The provider refunds you the same
+share, so the admin numbers count only what was delivered. Run `supabase/migrations/008_order_actions.sql`
+after 007 for this.
 
 ## Gradual delivery
 

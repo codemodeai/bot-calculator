@@ -6,7 +6,7 @@ const CFG = { smmUrl: 'https://panel.test/api/v2', smmKey: 'panel-key', supabase
 
 // Fake Supabase (saved panel statuses, gradual parts) and panel (multi-order status).
 function fake(opts) {
-  const db = { saved: Object.assign({}, opts.saved), parts: opts.parts || [], panel: opts.panel || {}, asked: [], writes: [] };
+  const db = { saved: Object.assign({}, opts.saved), parts: opts.parts || [], panel: opts.panel || {}, asked: [], writes: [], settled: [] };
   const reply = (status, data) => ({ status, text: async () => (data === undefined ? '' : JSON.stringify(data)) });
   global.fetch = async (url, init) => {
     init = init || {};
@@ -24,6 +24,10 @@ function fake(opts) {
       return reply(200, ids.map((id) => ({ id: Number(id), panel_status: db.saved[id] || null })));
     }
     if (u.pathname === '/rest/v1/order_parts') return reply(200, db.parts);
+    if (u.pathname === '/rest/v1/rpc/settle_panel_order') {
+      const d = JSON.parse(init.body); db.settled.push([d.p_order, d.p_status, d.p_remains]);
+      return opts.settleFails ? reply(500, { message: 'boom' }) : reply(200, { refunded: /cancel/.test(d.p_status) ? 2 : /partial/.test(d.p_status) ? 0.31 : 0 });
+    }
     return reply(404, {});
   };
   return db;
@@ -69,4 +73,17 @@ test('panel down or the column not added yet: the list still loads', async () =>
   orders = await wallet.attachLive(CFG, [order(4)]);
   assert.equal(orders[0].live.status, 'Completed', 'still shown');
   assert.deepEqual(db.writes, [], 'nothing saved without the column');
+});
+
+test('the panel canceled or partly delivered an order: the undelivered share is refunded, once', async () => {
+  let db = fake({ panel: { 9004: { status: 'Canceled', remains: '200' }, 9003: { status: 'Partial', remains: '40' } } });
+  const orders = await wallet.attachLive(CFG, [order(4), order(3)]);
+  assert.deepEqual(db.settled.sort(), [[3, 'partial', 40], [4, 'canceled', 200]]);
+  assert.equal(orders[0].status, 'refunded', 'canceled shows as refunded');
+  assert.equal(orders[0].refunded, 2);
+  assert.equal(orders[1].refunded, 0.31);
+  assert.equal(orders.refundedNow, true, 'so /api/wallet re-reads the balance');
+  db = fake({ settleFails: true, panel: { 9004: { status: 'Canceled', remains: '200' } } });
+  await wallet.attachLive(CFG, [order(4)]);
+  assert.deepEqual(db.writes, [], 'status not saved when the refund failed, so it’s tried again');
 });

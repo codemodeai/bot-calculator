@@ -150,6 +150,9 @@
   .pill.partial::before, .pill.pending::before { background: var(--warn); }
   .pill.error { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
   .pill.error::before { background: var(--bad); }
+  .oacts { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 2px; }
+  .oacts .oact { height: 34px; padding: 0 14px; font-size: 13px; width: auto; }
+  .oacts .oact.danger { color: var(--bad); }
   .notes { display: grid; gap: 8px; }
   .notes:has(.err:not([hidden])) { padding: 10px 20px; border-bottom: 1px solid var(--line); }
   .note { font-size: 12.5px; padding: 8px 10px; border-radius: var(--r-sm); background: var(--warn-soft); color: var(--warn); border: 1px solid var(--warn-line); margin: 0; }
@@ -2219,6 +2222,56 @@
       };
     };
   }
+  // ---------- order actions: order again, refill and cancel (the last two go to the provider's API) ----------
+  function whenAt(t) { return new Date(t).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }); }
+  function orderActionsHtml(s, o, id) {
+    var notes = [];
+    if (s.refill) notes.push('Refill ' + esc(String(s.refill.status).toLowerCase() === 'requested' ? 'requested' : String(s.refill.status).toLowerCase()) + ' · asked ' + esc(whenAt(s.refill.requestedAt)));
+    if (s.refillAgainAt) notes.push('You can ask for another refill after ' + esc(whenAt(s.refillAgainAt)) + '.');
+    else if (s.refillable && !s.canRefill && s.state !== 'done' && s.state !== 'error') notes.push('This service has refill: you can ask for one once the order is completed.');
+    if (s.cancelRequested) notes.push('Cancel requested. When the provider stops the order, the part not delivered comes back to your wallet automatically.');
+    var again = all.some(function (x) { return x.id === String(o.service_id); });
+    var btns = (again ? '<button type="button" class="ghost oact" data-again>' + 'Order again</button>' : '') +
+      (s.canRefill ? '<button type="button" class="ghost oact" data-refill>Request refill</button>' : '') +
+      (s.canCancel ? '<button type="button" class="ghost oact danger" data-ocancel>Cancel order</button>' : '');
+    return (notes.length ? '<p class="hint">' + notes.join('<br>') + '</p>' : '') + (btns ? '<div class="oacts">' + btns + '</div>' : '');
+  }
+  function wireOrderActions(box, s, o, id) {
+    var b;
+    if ((b = box.querySelector('[data-again]'))) b.onclick = function (e) { e.stopPropagation(); orderAgain(o); };
+    if ((b = box.querySelector('[data-refill]'))) b.onclick = function (e) {
+      e.stopPropagation(); var btn = this; btn.disabled = true; btn.textContent = 'Asking the provider…';
+      api('/api/order', { refill: id }).then(function () { toast('Refill requested. The provider tops up what dropped, usually within 24–72 hours.'); loadStatus(id); })
+        .catch(function (err) { toast(err.message); btn.disabled = false; btn.textContent = 'Request refill'; });
+    };
+    if ((b = box.querySelector('[data-ocancel]'))) b.onclick = function (e) {
+      e.stopPropagation();
+      modal('<div class="left"><h2 id="modalTitle">Cancel this order?</h2><p>We’ll ask the provider to stop <b>' + esc(o.title) + '</b>. When they do, the part that wasn’t delivered (up to ' + esc(price(o.charge)) +
+        ') comes back to your wallet automatically. If delivery has already finished, it can’t be canceled.</p>' +
+        '<div class="row2"><button class="ghost" id="mClose" type="button">Keep it</button><button class="pay danger" id="mOk" type="button">Cancel order</button></div></div>');
+      $('mClose').onclick = closeModal;
+      $('mOk').onclick = function () {
+        this.disabled = true;
+        api('/api/order', { cancel: id }).then(function (r) {
+          closeModal();
+          toast(r.refunded ? price(r.refunded) + ' back in your wallet' : 'Cancel requested. You’ll get the undelivered part back when the provider confirms.');
+          refreshWallet().then(function () { if (!$('viewOrders').hidden) renderOrders(); });
+        }).catch(function (err) { closeModal(); toast(err.message); });
+      };
+    };
+  }
+  // Fill the order form with the same service, amount and link.
+  function orderAgain(o) {
+    var sv = all.filter(function (x) { return x.id === String(o.service_id); })[0];
+    if (!sv) { toast('That service isn’t available any more. Pick another one.'); return; }
+    state.platform = sv.platform; state.cat = sv.cat; state.svc = sv.id; state.q = ''; $('svcSearch').value = '';
+    state.qty = o.quantity; $('qty').value = o.quantity;
+    state.link = o.link || ''; $('link').value = state.link;
+    if (drip.on) { drip.on = false; $('dripOn').checked = false; renderDrip(); }
+    goOrder(); renderAll();
+    window.scrollTo(0, 0);
+    toast('Same service, amount and link filled in. Check it and place the order.');
+  }
   function loadStatus(id) {
     var box = $('od' + id); if (!box) return;
     box.innerHTML = '<div style="display:grid;place-items:center;padding:12px"><span class="spin" style="border-color:var(--line);border-top-color:var(--accent)"></span></div>';
@@ -2241,8 +2294,10 @@
         '<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><i style="width:' + pct + '%"></i></div>' +
         '<p class="hint">' + (delivered != null && qty ? num(delivered) + ' of ' + num(qty) + ' delivered (' + pct + '%)' : 'Progress shows here once delivery starts.') +
         (s.startCount != null ? ' · started from ' + num(s.startCount) : '') + (s.demo ? ' · demo numbers' : '') + '</p>' +
+        orderActionsHtml(s, o, id) +
         (o.link ? '<p class="hint" style="overflow-wrap:anywhere">' + esc(o.link) + '</p>' : '') +
         (acct.demo ? '' : '<button type="button" class="linkbtn" data-help="' + esc(id) + '">Get help with this order →</button>');
+      wireOrderActions(box, s, o, id);
     }).catch(function (e) { box.innerHTML = '<p class="hint bad">' + esc(e.message) + '</p>'; });
   }
 

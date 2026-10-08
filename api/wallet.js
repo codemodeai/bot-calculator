@@ -17,5 +17,6 @@ module.exports = handler(['GET'], async (req, res) => {
   ]);
   await drip.attachParts(cfg, w.orders).catch(() => null);
   await wallet.attachLive(cfg, w.orders).catch(() => null);      // Completed / In progress / … in the order list
+  if (w.orders.refundedNow) w.balance = await wallet.balanceOf(user, cfg);   // the panel canceled something: money's back
   send(res, 200, Object.assign(w, { isAdmin: !!role, unreadTickets: unread }));
 });
